@@ -1,0 +1,13 @@
+project_id = "mmgaczrnqwroqudmaxve"
+
+[functions.generate-use-cases]
+verify_jwt = false
+
+[functions.generate-benchmarking]
+verify_jwt = false
+
+[functions.generate-screen-match]
+verify_jwt = false
+
+[functions.generate-business-case]
+verify_jwt = false

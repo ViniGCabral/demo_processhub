@@ -1,0 +1,1 @@
+ALTER TABLE public.processes ADD COLUMN IF NOT EXISTS business_unit text, ADD COLUMN IF NOT EXISTS use_cases jsonb;
