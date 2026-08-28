@@ -2,8 +2,18 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const configuredUrl = import.meta.env.VITE_SUPABASE_URL;
+const configuredPublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+// The public prototype can run with local demo data when Supabase is not
+// configured in the hosting environment. A valid, inert client keeps imports
+// from crashing before React has a chance to render the application.
+export const isSupabaseConfigured = Boolean(
+  configuredUrl && configuredPublishableKey,
+);
+
+const SUPABASE_URL = configuredUrl ?? "https://demo-placeholder.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = configuredPublishableKey ?? "demo-placeholder-key";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +21,7 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+    persistSession: isSupabaseConfigured,
+    autoRefreshToken: isSupabaseConfigured,
   }
 });
