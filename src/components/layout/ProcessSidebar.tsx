@@ -1,4 +1,4 @@
-import { List, FileText, GitBranch, SlidersHorizontal, ArrowLeft, Check, Settings2, Database, BookOpen, Plug, Wand2, Workflow } from "lucide-react";
+import { List, FileText, GitBranch, SlidersHorizontal, ArrowLeft, Check, Settings2, Database, BookOpen, Wand2, Workflow, Wrench, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -15,6 +15,15 @@ interface ProcessSidebarProps {
   onModeChange?: (mode: "as-is" | "to-be") => void;
   toBeGenerated?: boolean;
   onOpenTransformPipeline?: () => void;
+  customizationCount?: number;
+}
+
+interface SidebarItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  hasContent: boolean;
+  count?: number;
 }
 
 export function ProcessSidebar({ 
@@ -30,19 +39,21 @@ export function ProcessSidebar({
   onModeChange,
   toBeGenerated = false,
   onOpenTransformPipeline,
+  customizationCount = 0,
 }: ProcessSidebarProps) {
   const { language } = useLanguage();
 
-  const asIsItems = [
+  const asIsItems: SidebarItem[] = [
     { id: "overview", label: language === "PT" ? "Visão Geral" : "Overview", icon: List, hasContent: false },
     { id: "pre-mapping", label: language === "PT" ? "Pré-Mapeamento" : "Pre-Mapping", icon: Wand2, hasContent: hasPreMapping },
     { id: "pop-sop", label: language === "PT" ? "POP" : "SOP", icon: FileText, hasContent: hasPOP },
+    { id: "modifications", label: language === "PT" ? "Modificações" : "Modifications", icon: Wrench, hasContent: false, count: customizationCount },
     { id: "bpmn", label: "BPMN", icon: GitBranch, hasContent: hasBPMN },
     { id: "assessment", label: "Assessment", icon: SlidersHorizontal, hasContent: hasAttributes },
     { id: "process-attributes", label: language === "PT" ? "Atributos" : "Attributes", icon: Settings2, hasContent: false },
   ];
 
-  const toBeItems = [
+  const toBeItems: SidebarItem[] = [
     { id: "tobe-bpmn", label: "BPMN (TO-BE)", icon: GitBranch, hasContent: false },
     { id: "tobe-fields", label: "Fields", icon: Database, hasContent: false },
     { id: "tobe-user-stories", label: "User Stories", icon: BookOpen, hasContent: false },
@@ -86,6 +97,14 @@ export function ProcessSidebar({
             >
               <item.icon className="h-4 w-4 shrink-0" />
               <span className="flex-1 text-left">{item.label}</span>
+              {typeof item.count === "number" && item.count > 0 && (
+                <span className={cn(
+                  "min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[11px] font-semibold",
+                  activeTab === item.id ? "bg-primary text-primary-foreground" : "bg-violet-100 text-violet-700"
+                )}>
+                  {item.count}
+                </span>
+              )}
               {item.hasContent && (
                 <Check className="h-4 w-4 text-green-500 shrink-0" />
               )}

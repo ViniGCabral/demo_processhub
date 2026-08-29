@@ -1,1020 +1,124 @@
-import { useState, useRef, useEffect } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Layers, Network, BarChart3, Search, Star, ChevronRight, FileText, ArrowRight, Lightbulb, Sparkles, BookmarkCheck, LineChart, ScrollText } from "lucide-react";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
-import { cn } from "@/lib/utils";
+import { ArrowRight, BarChart3, Clock3, FileText, GraduationCap, Layers3, Network, ScrollText, Star } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
+import { ProcessAssistant } from "@/components/dashboard/ProcessAssistant";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
+import { useProcessStore } from "@/stores/processStore";
 
-interface DashboardProps {
-  onLogout: () => void;
-}
+interface DashboardProps { onLogout: () => void; }
 
-// All searchable processes with descriptions
-const allProcesses = [
-  { id: 1, name: "Cotação de Frete Emergencial", area: "S2P", description: "Realizar a cotação e aprovação de frete emergencial no sistema Mosaic" },
-  { id: 2, name: "Adjust EHS Learning Schedules", area: "H2R", description: "Ajustar as datas de expiração dos cronogramas de aprendizado EHS no Workday" },
-  { id: 3, name: "Quality Control", area: "Operations", description: "Processo de controle de qualidade para produtos e serviços" },
-  { id: 4, name: "Budget Approval", area: "Finance", description: "Fluxo de aprovação de orçamentos e despesas corporativas" },
-  { id: 5, name: "Performance Review", area: "HR", description: "Avaliação de desempenho de colaboradores e feedback 360" },
-  { id: 6, name: "Incident Management", area: "IT", description: "Gerenciamento de incidentes e resolução de problemas técnicos" },
-  { id: 7, name: "Purchase Request", area: "Finance", description: "Solicitação e aprovação de compras e aquisições" },
-  { id: 8, name: "Onboarding", area: "HR", description: "Processo de integração de novos colaboradores na empresa" },
-  { id: 9, name: "Vendor Qualification", area: "S2P", description: "Qualificação e homologação de fornecedores" },
-  { id: 10, name: "Contract Review", area: "Legal", description: "Revisão e aprovação de contratos e acordos legais" },
-];
-
-const suggestionTags = ["Cotação de Frete", "Quality Control", "Budget Approval", "Onboarding"];
-
-const favoriteProcesses = [
-  { id: 1, area: "S2P", name: "Cotação de Frete Emergencial", docType: "POP", version: "v3.0" },
-  { id: 2, area: "Operations", name: "Quality Control", docType: "POP", version: "v2.1" },
-  { id: 3, area: "Finance", name: "Budget Approval", docType: "POP", version: "v1.2" },
-  { id: 4, area: "HR", name: "Performance Review", docType: "BPMN", version: "v2.0" },
-];
-
-const recentProcesses = [
-  { id: 1, name: "Cotação de Frete Emergencial", area: "S2P", timePT: "Acessado há 2 horas", timeEN: "Accessed 2 hours ago" },
-  { id: 2, name: "Incident Management", area: "IT", timePT: "Acessado ontem", timeEN: "Accessed yesterday" },
-  { id: 3, name: "Purchase Request", area: "Finance", timePT: "Acessado há 3 dias", timeEN: "Accessed 3 days ago" },
-];
+const recentProcessNames = ["Cotação de Frete Emergencial", "Incident Management", "IT Prepaid Amortization Process"];
 
 export function Dashboard({ onLogout }: DashboardProps) {
   const navigate = useNavigate();
   const { language } = useLanguage();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [hasFavorites] = useState(true);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-  const [showUseCaseDialog, setShowUseCaseDialog] = useState(false);
-  const [savedUseCases, setSavedUseCases] = useState<any[]>([]);
+  const processes = useProcessStore((state) => state.processes);
+
+  const recentProcesses = useMemo(() => {
+    const selected = recentProcessNames
+      .map((name) => processes.find((process) => process.name === name))
+      .filter((process): process is NonNullable<typeof process> => Boolean(process));
+    return selected.length > 0 ? selected : processes.slice(0, 3);
+  }, [processes]);
+
+  const favoriteProcesses = useMemo(() => {
+    const favorites = processes.filter((process) => process.isFavorite).slice(0, 3);
+    return favorites.length > 0 ? favorites : processes.slice(0, 3);
+  }, [processes]);
 
   const modules = [
-    {
-      id: "normatives",
-      title: language === "PT" ? "Gestão de Normativos" : "Policy Management",
-      description: language === "PT"
-        ? "Crie, revise, aprove e acompanhe todo o ciclo de vida dos normativos corporativos."
-        : "Create, review, approve and monitor the full lifecycle of corporate policies.",
-      icon: ScrollText,
-      active: true,
-      path: "/normatives",
-      count: 7,
-      isNew: true,
-      cta: language === "PT" ? "Entrar no módulo" : "Enter module",
-    },
-    {
-      id: "processes",
-      title: language === "PT" ? "Processos" : "Processes",
-      description: language === "PT" 
-        ? "Registre, documente e gerencie seus processos organizacionais com POP/SOP e BPMN" 
-        : "Register, document and manage your organizational processes with SOP and BPMN",
-      icon: Layers,
-      active: true,
-      path: "/processes",
-      count: 12,
-    },
-    {
-      id: "architecture",
-      title: language === "PT" ? "Arquitetura de Processos" : "Process Architecture",
-      description: language === "PT" 
-        ? "Desenhe e visualize a arquitetura corporativa e cadeias de valor" 
-        : "Design and visualize corporate architecture and value chains",
-      icon: Network,
-      active: true,
-      path: "/architecture",
-    },
-    {
-      id: "process-analysis",
-      title: "Process Analysis",
-      description: language === "PT"
-        ? "Visão consolidada de performance, sinergias e business case dos processos."
-        : "Consolidated view of performance, synergies and business case across processes.",
-      icon: LineChart,
-      active: true,
-      path: "/process-analysis",
-    },
-    {
-      id: "org-intelligence-hub",
-      title: "Org. Intelligence Hub",
-      description: language === "PT"
-        ? "Identifique oportunidades, priorize iniciativas e transforme processos com apoio de IA e benchmarks de mercado."
-        : "Identify opportunities, prioritize initiatives and transform processes with AI and market benchmarks.",
-      icon: Sparkles,
-      active: false,
-      path: "/org-intelligence-hub",
-      isNew: true,
-      cta: language === "PT" ? "Entrar no módulo" : "Enter module",
-    },
-  ] as Array<{
-    id: string;
-    title: string;
-    description: string;
-    icon: typeof Layers;
-    active: boolean;
-    path: string | null;
-    count?: number;
-    isNew?: boolean;
-    cta?: string;
-  }>;
-
-  // Filter processes based on search query
-  const filteredProcesses = searchQuery.trim().length > 0 
-    ? allProcesses.filter(process => 
-        process.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        process.area.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        process.description.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 6)
-    : [];
-
-  // Fetch saved use cases
-  useEffect(() => {
-    const fetchSaved = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from("saved_use_cases")
-        .select("*, use_cases(*)")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(4);
-      if (data) setSavedUseCases(data);
-    };
-    fetchSaved();
-  }, []);
-
-  // Handle click outside to close dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      setShowDropdown(false);
-      navigate(`/processes?search=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-
-  const handleTagClick = (tag: string) => {
-    setSearchQuery(tag);
-    setShowDropdown(false);
-    navigate(`/processes?search=${encodeURIComponent(tag)}`);
-  };
-
-  const handleProcessClick = (processId: number) => {
-    setShowDropdown(false);
-    setSearchQuery("");
-    navigate(`/processes/${processId}`);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setShowDropdown(e.target.value.trim().length > 0);
-  };
-
-  const handleModuleClick = (module: typeof modules[0]) => {
-    if (!module.active) return;
-    if (module.id === "usecases") {
-      setShowUseCaseDialog(true);
-      return;
-    }
-    if (module.path) navigate(module.path);
-  };
+    { title: language === "PT" ? "Processos" : "Processes", description: language === "PT" ? "Documente, consulte e mantenha POPs, SOPs e fluxos BPMN em um só lugar." : "Document, browse and maintain SOPs and BPMN flows in one place.", icon: Layers3, path: "/processes", meta: language === "PT" ? `${processes.length || 12} processos` : `${processes.length || 12} processes` },
+    { title: language === "PT" ? "Arquitetura de Processos" : "Process Architecture", description: language === "PT" ? "Entenda como áreas, cadeias de valor e processos se conectam." : "Understand how areas, value chains and processes connect.", icon: Network, path: "/architecture", meta: language === "PT" ? "Visão corporativa" : "Enterprise view" },
+    { title: language === "PT" ? "Gestão de Normativos" : "Policy Management", description: language === "PT" ? "Crie, revise e acompanhe o ciclo de vida dos normativos corporativos." : "Create, review and track the lifecycle of corporate policies.", icon: ScrollText, path: "/normatives", meta: language === "PT" ? "7 normativos ativos" : "7 active policies" },
+    { title: language === "PT" ? "Academia de Processos" : "Process Academy", description: language === "PT" ? "Transforme a documentação em trilhas, guias e avaliações." : "Turn documentation into learning paths, guides and assessments.", icon: GraduationCap, path: "/academy", meta: language === "PT" ? "1 trilha em andamento" : "1 path in progress" },
+    { title: language === "PT" ? "Análise de Processos" : "Process Analysis", description: language === "PT" ? "Acompanhe desempenho, maturidade, riscos e oportunidades de melhoria." : "Track performance, maturity, risks and improvement opportunities.", icon: BarChart3, path: "/process-analysis", meta: language === "PT" ? "Visão consolidada" : "Consolidated view" },
+  ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-[#f6f7fa]">
       <TopBar onLogout={onLogout} />
 
-      <main className="flex-1" style={{ padding: "48px 40px" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          
-          {/* SECTION 1: HERO WITH SEARCH */}
-          <section style={{ textAlign: "center", marginBottom: "40px" }}>
-            <h1 
-              style={{ 
-                fontSize: "28px", 
-                fontWeight: 600, 
-                color: "#272727", 
-                marginBottom: "24px" 
-              }}
-            >
-              {language === "PT" ? "Encontre o processo que você precisa" : "Find the process you need"}
-            </h1>
-
-            <div ref={searchContainerRef} style={{ maxWidth: "600px", margin: "0 auto 16px", position: "relative" }}>
-              <form onSubmit={handleSearch}>
-                <Search 
-                  style={{
-                    position: "absolute",
-                    left: "18px",
-                    top: "24px",
-                    transform: "translateY(-50%)",
-                    color: "#A5A7B0",
-                    width: "20px",
-                    height: "20px",
-                    zIndex: 10
-                  }}
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleInputChange}
-                  onFocus={() => {
-                    setSearchFocused(true);
-                    if (searchQuery.trim().length > 0) setShowDropdown(true);
-                  }}
-                  onBlur={() => setSearchFocused(false)}
-                  placeholder={language === "PT" ? "Buscar processos, POPs, áreas..." : "Search processes, SOPs, areas..."}
-                  style={{
-                    width: "100%",
-                    background: "#FFFFFF",
-                    border: searchFocused ? "1px solid #0C1BA8" : "1px solid #E8E8EA",
-                    borderRadius: showDropdown && filteredProcesses.length > 0 ? "12px 12px 0 0" : "12px",
-                    padding: "16px 20px 16px 48px",
-                    fontSize: "16px",
-                    color: "#272727",
-                    boxShadow: searchFocused 
-                      ? "0 2px 12px rgba(12, 27, 168, 0.1)" 
-                      : "0 2px 8px rgba(0,0,0,0.04)",
-                    transition: "all 0.2s ease",
-                    outline: "none"
-                  }}
-                />
-              </form>
-
-              {/* Search Dropdown */}
-              {showDropdown && filteredProcesses.length > 0 && (
-                <div 
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    right: 0,
-                    background: "#FFFFFF",
-                    border: "1px solid #E8E8EA",
-                    borderTop: "none",
-                    borderRadius: "0 0 12px 12px",
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                    zIndex: 50,
-                    maxHeight: "360px",
-                    overflowY: "auto"
-                  }}
-                >
-                  {filteredProcesses.map((process, index) => (
-                    <div
-                      key={process.id}
-                      onClick={() => handleProcessClick(process.id)}
-                      onMouseDown={(e) => e.preventDefault()}
-                      className="hover:bg-[#F9F9F9]"
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: "12px",
-                        padding: "14px 18px",
-                        cursor: "pointer",
-                        borderBottom: index < filteredProcesses.length - 1 ? "1px solid #F3F4F6" : "none",
-                        transition: "background 0.15s"
-                      }}
-                    >
-                      <div 
-                        style={{
-                          width: "32px",
-                          height: "32px",
-                          background: "#EEF0FF",
-                          borderRadius: "8px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                          marginTop: "2px"
-                        }}
-                      >
-                        <FileText size={14} style={{ color: "#0C1BA8" }} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                          <span 
-                            style={{ 
-                              fontSize: "14px", 
-                              fontWeight: 500, 
-                              color: "#272727",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis"
-                            }}
-                          >
-                            {process.name}
-                          </span>
-                          <span 
-                            style={{
-                              fontSize: "11px",
-                              fontWeight: 600,
-                              color: "#6B7280",
-                              background: "#F3F4F6",
-                              padding: "2px 8px",
-                              borderRadius: "4px",
-                              flexShrink: 0
-                            }}
-                          >
-                            {process.area}
-                          </span>
-                        </div>
-                        <p 
-                          style={{ 
-                            fontSize: "13px", 
-                            color: "#A5A7B0", 
-                            lineHeight: 1.4,
-                            margin: 0,
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden"
-                          }}
-                        >
-                          {process.description}
-                        </p>
-                      </div>
-                      <ChevronRight 
-                        size={16} 
-                        style={{ color: "#D1D5DB", flexShrink: 0, marginTop: "8px" }} 
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+      <main className="mx-auto w-full max-w-[1240px] px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+        <header className="mb-8">
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#777c8b]">
+              <span>{language === "PT" ? "Início" : "Home"}</span>
+              <span className="h-1 w-1 rounded-full bg-[#b9bdc8]" />
+              <span className="font-medium normal-case tracking-normal text-[#9195a1]">
+                {new Intl.DateTimeFormat(language === "PT" ? "pt-BR" : "en-US", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}
+              </span>
             </div>
+            <h1 className="text-[30px] font-semibold tracking-[-0.025em] text-[#22242b] sm:text-[34px]">{language === "PT" ? "Olá, Vini" : "Hello, Vini"}</h1>
+            <p className="mt-1 text-[15px] text-[#686d79]">{language === "PT" ? "Encontre informações, retome seu trabalho ou acesse um módulo." : "Find information, resume your work or open a module."}</p>
+          </div>
+        </header>
 
-            <div style={{ display: "flex", justifyContent: "center", gap: "8px", flexWrap: "wrap" }}>
-              {suggestionTags.map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => handleTagClick(tag)}
-                  className="hover:bg-[#E8E8EA] hover:text-[#272727]"
-                  style={{
-                    background: "#F3F4F6",
-                    color: "#6B7280",
-                    fontSize: "13px",
-                    padding: "6px 14px",
-                    borderRadius: "20px",
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                    border: "none"
-                  }}
-                >
-                  {tag}
+        <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1fr)_350px]">
+          <ProcessAssistant />
+
+          <aside className="h-full rounded-2xl border border-[#e2e4ea] bg-white p-5 shadow-[0_8px_24px_rgba(21,29,61,0.04)]" aria-labelledby="modules-title">
+            <div className="mb-4 flex items-center justify-between">
+              <div><h2 id="modules-title" className="text-base font-semibold text-[#282b33]">{language === "PT" ? "Módulos" : "Modules"}</h2><p className="mt-0.5 text-xs text-[#858995]">{language === "PT" ? "Navegue pela plataforma" : "Navigate the platform"}</p></div>
+              <Layers3 className="h-4 w-4 text-[#7b84c9]" />
+            </div>
+            <nav className="space-y-1" aria-label={language === "PT" ? "Módulos da plataforma" : "Platform modules"}>
+              {modules.map((module, index) => (
+                <button key={module.path} onClick={() => navigate(module.path)} className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition focus:outline-none focus:ring-2 focus:ring-[#0c1ba8]/20 ${index === 0 ? "bg-[#f0f2ff] hover:bg-[#e7eaff]" : "hover:bg-[#f6f7f9]"}`}>
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${index === 0 ? "bg-[#0c1ba8] text-white" : "bg-[#f0f1f4] text-[#555b69] group-hover:bg-white"}`}><module.icon className="h-4 w-4" /></span>
+                  <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-[#353842]">{module.title}</span><span className="block truncate text-xs text-[#858995]">{module.meta}</span></span>
+                  <ArrowRight className="h-4 w-4 text-[#a7aab4] transition group-hover:translate-x-0.5 group-hover:text-[#0c1ba8]" />
+                </button>
+              ))}
+            </nav>
+          </aside>
+        </div>
+
+        <div className="mt-6 grid items-stretch gap-5 lg:grid-cols-2">
+          <section className="h-full rounded-xl border border-[#e3e5ea] bg-white px-4 py-4" aria-labelledby="recent-title">
+            <div className="mb-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock3 className="h-4 w-4 text-[#7c8190]" />
+                <h2 id="recent-title" className="text-sm font-semibold text-[#343741]">{language === "PT" ? "Continue de onde parou" : "Continue where you left off"}</h2>
+              </div>
+              <button onClick={() => navigate("/processes")} className="text-xs font-semibold text-[#0c1ba8] hover:text-[#081578]">{language === "PT" ? "Ver todos" : "View all"}</button>
+            </div>
+            <div className="divide-y divide-[#eef0f3]">
+              {recentProcesses.map((process, index) => (
+                <button key={process.id} onClick={() => navigate(`/processes/${process.id}`)} className="group flex w-full min-w-0 items-center gap-3 py-2.5 text-left focus:outline-none">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f1f2f7] text-[#4853a4]"><FileText className="h-3.5 w-3.5" /></span>
+                  <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium text-[#42454e] group-hover:text-[#0c1ba8]">{process.name}</span><span className="block text-[11px] text-[#969aa5]">{process.area} · {index === 0 ? (language === "PT" ? "há 2 horas" : "2 hours ago") : index === 1 ? (language === "PT" ? "ontem" : "yesterday") : (language === "PT" ? "há 3 dias" : "3 days ago")}</span></span>
+                  <ArrowRight className="h-3.5 w-3.5 text-[#bdc0c8] group-hover:text-[#0c1ba8]" />
                 </button>
               ))}
             </div>
           </section>
 
-          {/* SECTION 2: MODULES */}
-          <section style={{ marginBottom: "40px" }}>
-            <span 
-              style={{ 
-                fontSize: "11px", 
-                fontWeight: 600, 
-                letterSpacing: "0.5px", 
-                color: "#A5A7B0", 
-                textTransform: "uppercase",
-                display: "block",
-                marginBottom: "16px"
-              }}
-            >
-              {language === "PT" ? "MÓDULOS" : "MODULES"}
-            </span>
-
-            <div 
-              className="grid gap-5"
-              style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
-            >
-              {modules.map((module) => {
-                if (module.active) {
-                  return (
-                    <div
-                      key={module.id}
-                      onClick={() => handleModuleClick(module)}
-                      className="group relative rounded-2xl hover:-translate-y-0.5"
-                      style={{
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      <GlowingEffect
-                        disabled={false}
-                        proximity={64}
-                        borderWidth={2}
-                      />
-
-                      <div
-                        className="relative rounded-2xl h-full"
-                        style={{
-                          background: "#FFFFFF",
-                          border: "1px solid #E8E8EA",
-                          padding: "28px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div 
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: "3px",
-                            background: "#0C1BA8",
-                            borderRadius: "16px 16px 0 0"
-                          }}
-                        />
-
-                        <div 
-                          style={{
-                            width: "48px",
-                            height: "48px",
-                            background: "#EEF0FF",
-                            borderRadius: "12px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            marginBottom: "20px"
-                          }}
-                        >
-                          <module.icon size={24} style={{ color: "#0C1BA8" }} />
-                        </div>
-
-                        <h3 style={{ fontSize: "18px", fontWeight: 600, color: "#272727", marginBottom: "8px" }}>
-                          {module.title}
-                        </h3>
-
-                        <p style={{ fontSize: "14px", color: "#6B7280", lineHeight: 1.5, marginBottom: "20px" }}>
-                          {module.description}
-                        </p>
-
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          {module.count ? (
-                            <span style={{ fontSize: "14px", fontWeight: 500, color: "#0C1BA8" }}>
-                              {module.count} {language === "PT" ? "processos" : "processes"}
-                            </span>
-                          ) : module.cta ? (
-                            <span style={{ fontSize: "13px", fontWeight: 500, color: "#0C1BA8" }}>
-                              {module.cta}
-                            </span>
-                          ) : (
-                            <span />
-                          )}
-                          <ArrowRight size={18} style={{ color: "#0C1BA8" }} />
-                        </div>
-
-                        {module.isNew && (
-                          <span
-                            style={{
-                              position: "absolute",
-                              top: "16px",
-                              right: "16px",
-                              fontSize: "10px",
-                              fontWeight: 700,
-                              letterSpacing: "0.5px",
-                              color: "#0C1BA8",
-                              background: "#EEF0FF",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              textTransform: "uppercase",
-                            }}
-                          >
-                            {language === "PT" ? "Novo" : "New"}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div
-                    key={module.id}
-                    className="relative rounded-2xl hover:bg-[#F5F5F5]"
-                    style={{
-                      background: "#FAFAFA",
-                      border: "1px solid #E8E8EA",
-                      padding: "28px",
-                      cursor: "default",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <div 
-                      style={{
-                        width: "48px",
-                        height: "48px",
-                        background: "#F3F4F6",
-                        borderRadius: "12px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginBottom: "20px"
-                      }}
-                    >
-                      <module.icon size={24} style={{ color: "#A5A7B0" }} />
-                    </div>
-
-                    <h3 style={{ fontSize: "18px", fontWeight: 600, color: "#6B7280", marginBottom: "8px" }}>
-                      {module.title}
-                    </h3>
-
-                    <p style={{ fontSize: "14px", color: "#A5A7B0", lineHeight: 1.5, marginBottom: "20px" }}>
-                      {module.description}
-                    </p>
-
-                    <span 
-                      style={{
-                        display: "inline-flex",
-                        fontSize: "12px",
-                        fontWeight: 500,
-                        color: "#6B7280",
-                        background: "#E8E8EA",
-                        padding: "5px 14px",
-                        borderRadius: "6px"
-                      }}
-                    >
-                      {language === "PT" ? "Em breve" : "Coming soon"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* SECTION 3: USER FAVORITES */}
-          <section style={{ marginBottom: "40px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <span 
-                style={{ 
-                  fontSize: "11px", 
-                  fontWeight: 600, 
-                  letterSpacing: "0.5px", 
-                  color: "#A5A7B0", 
-                  textTransform: "uppercase" 
-                }}
-              >
-                {language === "PT" ? "SEUS FAVORITOS" : "YOUR FAVORITES"}
-              </span>
-              <button 
-                className="hover:text-primary"
-                style={{ 
-                  fontSize: "13px", 
-                  color: "#6B7280", 
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  background: "none",
-                  border: "none",
-                  transition: "color 0.15s"
-                }}
-              >
-                {language === "PT" ? "Gerenciar" : "Manage"} <ArrowRight size={14} />
-              </button>
-            </div>
-
-            {hasFavorites ? (
-              <div 
-                className="grid gap-4"
-                style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
-              >
-                {favoriteProcesses.map((process) => (
-                  <div
-                    key={process.id}
-                    onClick={() => navigate(`/processes/${process.id}`)}
-                    className="group hover:border-primary hover:shadow-[0_4px_12px_rgba(12,27,168,0.08)] hover:-translate-y-0.5"
-                    style={{
-                      background: "#FFFFFF",
-                      border: "1px solid #E8E8EA",
-                      borderRadius: "14px",
-                      padding: "20px",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      position: "relative"
-                    }}
-                  >
-                    <Star 
-                      size={16} 
-                      fill="#FBBF24"
-                      style={{
-                        position: "absolute",
-                        top: "16px",
-                        right: "16px",
-                        color: "#FBBF24",
-                        opacity: 0.8
-                      }}
-                    />
-                    <span 
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        color: "#6B7280",
-                        background: "#F3F4F6",
-                        padding: "4px 10px",
-                        borderRadius: "6px",
-                        display: "inline-flex",
-                        marginBottom: "12px"
-                      }}
-                    >
-                      {process.area}
-                    </span>
-                    <h3 
-                      style={{
-                        fontSize: "15px",
-                        fontWeight: 600,
-                        color: "#272727",
-                        lineHeight: 1.35,
-                        marginBottom: "16px",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        minHeight: "40px"
-                      }}
-                    >
-                      {process.name}
-                    </h3>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#6B7280" }}>
-                      <span style={{ fontSize: "14px" }}>{process.docType === "BPMN" ? "🔀" : "📄"}</span>
-                      <span>{process.docType} {process.version}</span>
-                    </div>
-                  </div>
-                ))}
+          <section className="h-full rounded-xl border border-[#e3e5ea] bg-white px-4 py-4" aria-labelledby="favorites-title">
+            <div className="mb-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 fill-[#fbbf24] text-[#e7a915]" />
+                <h2 id="favorites-title" className="text-sm font-semibold text-[#343741]">{language === "PT" ? "Favoritos" : "Favorites"}</h2>
               </div>
-            ) : (
-              <div 
-                style={{
-                  background: "#FFFFFF",
-                  border: "1px dashed #D1D5DB",
-                  borderRadius: "14px",
-                  padding: "40px",
-                  textAlign: "center"
-                }}
-              >
-                <Star size={32} style={{ color: "#D1D5DB", marginBottom: "16px" }} />
-                <h3 style={{ fontSize: "15px", fontWeight: 500, color: "#6B7280", marginBottom: "8px" }}>
-                  {language === "PT" ? "Você ainda não tem processos favoritos" : "You don't have any favorite processes yet"}
-                </h3>
-                <p style={{ fontSize: "14px", color: "#A5A7B0", marginBottom: "20px" }}>
-                  {language === "PT" ? "Adicione processos aos favoritos para acessá-los rapidamente" : "Add processes to favorites for quick access"}
-                </p>
-                <button
-                  onClick={() => navigate("/processes")}
-                  className="hover:border-primary hover:text-primary"
-                  style={{
-                    background: "#FFFFFF",
-                    border: "1px solid #E8E8EA",
-                    color: "#272727",
-                    padding: "10px 20px",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    transition: "all 0.15s"
-                  }}
-                >
-                  {language === "PT" ? "Explorar processos" : "Explore processes"}
+              <button onClick={() => navigate("/processes")} className="text-xs font-semibold text-[#0c1ba8] hover:text-[#081578]">{language === "PT" ? "Gerenciar" : "Manage"}</button>
+            </div>
+            <div className="divide-y divide-[#eef0f3]">
+              {favoriteProcesses.map((process) => (
+                <button key={process.id} onClick={() => navigate(`/processes/${process.id}`)} className="group flex w-full min-w-0 items-center gap-3 py-2.5 text-left focus:outline-none">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fff8e5] text-[#d89c0d]"><Star className="h-3.5 w-3.5 fill-current" /></span>
+                  <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium text-[#42454e] group-hover:text-[#0c1ba8]">{process.name}</span><span className="block text-[11px] text-[#969aa5]">{process.area} · {process.hasDocumentation ? "SOP" : "BPMN"}</span></span>
+                  <ArrowRight className="h-3.5 w-3.5 text-[#bdc0c8] group-hover:text-[#0c1ba8]" />
                 </button>
-              </div>
-            )}
-          </section>
-
-          {/* SECTION 4: RECENTLY ACCESSED */}
-          <section style={{ marginBottom: "40px" }}>
-            <div 
-              style={{
-                background: "#FFFFFF",
-                border: "1px solid #E8E8EA",
-                borderRadius: "16px",
-                padding: "24px 28px"
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                <span 
-                  style={{ 
-                    fontSize: "11px", 
-                    fontWeight: 600, 
-                    letterSpacing: "0.5px", 
-                    color: "#A5A7B0", 
-                    textTransform: "uppercase" 
-                  }}
-                >
-                  {language === "PT" ? "ACESSADOS RECENTEMENTE" : "RECENTLY ACCESSED"}
-                </span>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                {recentProcesses.map((process) => (
-                  <div
-                    key={process.id}
-                    onClick={() => navigate(`/processes/${process.id}`)}
-                    className="group hover:bg-[#FAFAFA]"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "12px 16px",
-                      gap: "16px",
-                      borderRadius: "10px",
-                      cursor: "pointer",
-                      transition: "background 0.15s"
-                    }}
-                  >
-                    <div 
-                      style={{
-                        width: "36px",
-                        height: "36px",
-                        background: "#EEF0FF",
-                        borderRadius: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0
-                      }}
-                    >
-                      <FileText size={16} style={{ color: "#0C1BA8" }} />
-                    </div>
-                    <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "12px" }}>
-                      <span style={{ fontSize: "14px", fontWeight: 500, color: "#272727" }}>
-                        {process.name}
-                      </span>
-                      <span 
-                        style={{
-                          fontSize: "12px",
-                          color: "#6B7280",
-                          background: "#F3F4F6",
-                          padding: "2px 8px",
-                          borderRadius: "4px"
-                        }}
-                      >
-                        {process.area}
-                      </span>
-                    </div>
-                    <span style={{ fontSize: "13px", color: "#A5A7B0", marginLeft: "auto" }}>
-                      {language === "PT" ? process.timePT : process.timeEN}
-                    </span>
-                    <ChevronRight 
-                      size={16} 
-                      className="group-hover:text-muted-foreground"
-                      style={{ color: "#D1D5DB", transition: "color 0.15s" }} 
-                    />
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
           </section>
-
-          {/* SECTION 5: SAVED USE CASES */}
-          {savedUseCases.length > 0 && (
-            <section style={{ marginBottom: "40px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                <span 
-                  style={{ 
-                    fontSize: "11px", 
-                    fontWeight: 600, 
-                    letterSpacing: "0.5px", 
-                    color: "#A5A7B0", 
-                    textTransform: "uppercase" 
-                  }}
-                >
-                  {language === "PT" ? "CASOS DE USO SALVOS" : "SAVED USE CASES"}
-                </span>
-                <button 
-                  onClick={() => navigate("/saved-use-cases")}
-                  className="hover:text-primary"
-                  style={{ 
-                    fontSize: "13px", 
-                    color: "#6B7280", 
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    background: "none",
-                    border: "none",
-                    transition: "color 0.15s"
-                  }}
-                >
-                  {language === "PT" ? "Ver todos" : "View all"} <ArrowRight size={14} />
-                </button>
-              </div>
-
-              <div 
-                className="grid gap-4"
-                style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
-              >
-                {savedUseCases.map((saved) => {
-                  const uc = saved.use_cases;
-                  if (!uc) return null;
-                  return (
-                    <div
-                      key={saved.id}
-                      className="group hover:border-primary hover:shadow-[0_4px_12px_rgba(12,27,168,0.08)] hover:-translate-y-0.5"
-                      style={{
-                        background: "#FFFFFF",
-                        border: "1px solid #E8E8EA",
-                        borderRadius: "14px",
-                        padding: "20px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        position: "relative"
-                      }}
-                    >
-                      <BookmarkCheck 
-                        size={16} 
-                        style={{
-                          position: "absolute",
-                          top: "16px",
-                          right: "16px",
-                          color: "#0C1BA8",
-                          opacity: 0.6
-                        }}
-                      />
-                      <span 
-                        style={{
-                          fontSize: "11px",
-                          fontWeight: 600,
-                          color: "#6B7280",
-                          background: "#F3F4F6",
-                          padding: "4px 10px",
-                          borderRadius: "6px",
-                          display: "inline-flex",
-                          marginBottom: "12px"
-                        }}
-                      >
-                        {uc.category || "IA"}
-                      </span>
-                      <h3 
-                        style={{
-                          fontSize: "15px",
-                          fontWeight: 600,
-                          color: "#272727",
-                          lineHeight: 1.35,
-                          marginBottom: "12px",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          minHeight: "40px"
-                        }}
-                      >
-                        {uc.title}
-                      </h3>
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        {uc.impact && (
-                          <span style={{ fontSize: "11px", color: "#6B7280", background: "#F3F4F6", padding: "2px 8px", borderRadius: "4px" }}>
-                            {language === "PT" ? "Impacto" : "Impact"}: {uc.impact}
-                          </span>
-                        )}
-                        {uc.effort && (
-                          <span style={{ fontSize: "11px", color: "#6B7280", background: "#F3F4F6", padding: "2px 8px", borderRadius: "4px" }}>
-                            {language === "PT" ? "Esforço" : "Effort"}: {uc.effort}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
         </div>
+
+        <footer className="mt-10 flex flex-col gap-2 border-t border-[#e1e3e8] py-5 text-xs text-[#9296a1] sm:flex-row sm:items-center sm:justify-between">
+          <span>ProcessHub · {language === "PT" ? "Gestão inteligente de processos" : "Intelligent process management"}</span>
+          <button onClick={() => navigate("/settings")} className="text-left font-medium hover:text-[#0c1ba8]">{language === "PT" ? "Configurações da plataforma" : "Platform settings"}</button>
+        </footer>
       </main>
-
-      {/* Use Case Dialog */}
-      <Dialog open={showUseCaseDialog} onOpenChange={setShowUseCaseDialog}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 rounded-2xl">
-          <div style={{ padding: "40px 36px", textAlign: "center" }}>
-            <div 
-              style={{
-                width: "64px",
-                height: "64px",
-                background: "#EEF0FF",
-                borderRadius: "16px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px"
-              }}
-            >
-              <Lightbulb size={28} style={{ color: "#0C1BA8" }} />
-            </div>
-            <h2 style={{ fontSize: "20px", fontWeight: 600, color: "#272727", marginBottom: "8px" }}>
-              {language === "PT" ? "Casos de Uso" : "Use Cases"}
-            </h2>
-            <p style={{ fontSize: "14px", color: "#6B7280", marginBottom: "32px", lineHeight: 1.5 }}>
-              {language === "PT" 
-                ? "Explore novas oportunidades de automação e IA ou reveja os casos de uso já salvos." 
-                : "Explore new automation and AI opportunities or review your saved use cases."}
-            </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <button
-                onClick={() => {
-                  setShowUseCaseDialog(false);
-                  navigate("/use-cases");
-                }}
-                className="hover:shadow-[0_4px_16px_rgba(12,27,168,0.15)]"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "14px",
-                  width: "100%",
-                  background: "#0C1BA8",
-                  color: "#FFFFFF",
-                  border: "none",
-                  borderRadius: "14px",
-                  padding: "18px 20px",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  textAlign: "left"
-                }}
-              >
-                <div style={{ width: "40px", height: "40px", background: "rgba(255,255,255,0.15)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Sparkles size={20} style={{ color: "#FFFFFF" }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: "15px", fontWeight: 600, marginBottom: "2px" }}>
-                    {language === "PT" ? "Explorar Novos Casos de Uso" : "Explore New Use Cases"}
-                  </div>
-                  <div style={{ fontSize: "13px", opacity: 0.8 }}>
-                    {language === "PT" ? "Gere sugestões com IA para seus processos" : "Generate AI suggestions for your processes"}
-                  </div>
-                </div>
-                <ArrowRight size={18} style={{ marginLeft: "auto", opacity: 0.7 }} />
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowUseCaseDialog(false);
-                  navigate("/saved-use-cases");
-                }}
-                className="hover:border-primary hover:shadow-[0_4px_12px_rgba(12,27,168,0.08)]"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "14px",
-                  width: "100%",
-                  background: "#FFFFFF",
-                  color: "#272727",
-                  border: "1px solid #E8E8EA",
-                  borderRadius: "14px",
-                  padding: "18px 20px",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  textAlign: "left"
-                }}
-              >
-                <div style={{ width: "40px", height: "40px", background: "#EEF0FF", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <BookmarkCheck size={20} style={{ color: "#0C1BA8" }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: "15px", fontWeight: 600, marginBottom: "2px" }}>
-                    {language === "PT" ? "Ver Casos de Uso Salvos" : "View Saved Use Cases"}
-                  </div>
-                  <div style={{ fontSize: "13px", color: "#6B7280" }}>
-                    {language === "PT" ? "Acesse os casos que você já marcou" : "Access your bookmarked use cases"}
-                  </div>
-                </div>
-                <ArrowRight size={18} style={{ marginLeft: "auto", color: "#A5A7B0" }} />
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Responsive styles */}
-      <style>{`
-        @media (max-width: 1100px) {
-          .grid[style*="repeat(4, 1fr)"] {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
-        }
-        @media (max-width: 1000px) {
-          .grid[style*="repeat(3, 1fr)"] {
-            grid-template-columns: 1fr !important;
-          }
-        }
-        @media (max-width: 600px) {
-          .grid[style*="repeat(4, 1fr)"],
-          .grid[style*="repeat(2, 1fr)"] {
-            grid-template-columns: 1fr !important;
-          }
-          main {
-            padding: 32px 20px !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

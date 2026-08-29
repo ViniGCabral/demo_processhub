@@ -47,6 +47,7 @@ import {
   activeHitStepId,
 } from "@/lib/sopSearchHighlight";
 import { StepMicroAttributes } from "./StepMicroAttributes";
+import { useSearchParams } from "react-router-dom";
 
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
@@ -86,6 +87,7 @@ const isSpanLayerDemo = (name?: string) => {
 
 export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGenerated = false }: POPEditorViewProps) {
   const { t, language } = useLanguage();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [showEditor, setShowEditor] = useState(hasPOP);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -99,9 +101,10 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
   // DEMO MODE: For new processes (no explicit data), use IT Prepaid mock data
   // For "Span & Layer" demo process, use the dedicated mock SOP
   const getSOP = useSopStore(state => state.getSOP);
+  const sopMap = useSopStore(state => state.sopMap);
   const upsertSOP = useSopStore(state => state.upsertSOP);
   const lookupId = isSpanLayerDemo(processName) ? "span-layer" : processId;
-  const currentSopData: SOPData = getSOP(lookupId) || { id: '', title: '', code: '', area: '', objective: '', steps: [] };
+  const currentSopData: SOPData = sopMap[processId] || getSOP(lookupId) || { id: '', title: '', code: '', area: '', objective: '', steps: [] };
   
   // Editable state
   const [editableTitle, setEditableTitle] = useState(currentSopData.title);
@@ -115,6 +118,7 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
   const scrollRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const stepRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const sourceFocusHandled = useRef(false);
   
   // Editable metadata state
   const [editableMetadata, setEditableMetadata] = useState({
@@ -148,7 +152,7 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
   // Reset data when processId changes
   useEffect(() => {
     const targetId = isSpanLayerDemo(processName) ? "span-layer" : processId;
-    const newSopData = getSOP(targetId) || { id: '', title: '', code: '', area: '', objective: '', steps: [] as SOPStep[], metadata: undefined };
+    const newSopData = sopMap[processId] || getSOP(targetId) || { id: '', title: '', code: '', area: '', objective: '', steps: [] as SOPStep[], metadata: undefined };
     setEditableTitle(newSopData.title);
     setEditableProcessId(newSopData.processId || "");
     setEditableObjective(newSopData.objective);
@@ -167,6 +171,31 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
     });
     setHasUnsavedChanges(false);
   }, [processId, processName]);
+
+  // Deep-link from the process assistant: open, highlight and focus the cited SOP excerpt.
+  useEffect(() => {
+    if (sourceFocusHandled.current || editableSteps.length === 0) return;
+    const stepId = searchParams.get("step");
+    const substepId = searchParams.get("substep");
+    const highlight = searchParams.get("highlight");
+    if (!stepId && !substepId && !highlight) return;
+
+    sourceFocusHandled.current = true;
+    if (highlight) setSearch(highlight);
+    if (stepId) {
+      setActiveSection(stepId);
+      setExpandedSteps((prev) => ({ ...prev, [stepId]: true }));
+    }
+
+    window.setTimeout(() => {
+      const target = substepId
+        ? scrollRef.current?.querySelector<HTMLElement>(`[data-substep-id="${substepId}"]`)
+        : stepId
+          ? stepRefs.current[stepId]
+          : null;
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 180);
+  }, [editableSteps, searchParams]);
 
   // Search matches per step (title + substeps + nested)
   const searchMatches: Record<string, number> = {};

@@ -20,6 +20,7 @@ import { ProcessAnalysis } from "./pages/ProcessAnalysis";
 import { DiscoverOpportunities } from "./pages/DiscoverOpportunities";
 import { TransformProcesses } from "./pages/TransformProcesses";
 import { Normatives } from "./pages/Normatives";
+import { ProcessAcademy } from "./pages/ProcessAcademy";
 import NotFound from "./pages/NotFound";
 import { supabase } from "@/integrations/supabase/client";
 import { useProcessStore } from "@/stores/processStore";
@@ -125,6 +126,7 @@ const App = () => {
                 <Route path="/org-intelligence-hub/transform" element={<TransformProcesses onLogout={handleLogout} />} />
                 <Route path="/settings" element={<Settings onLogout={handleLogout} />} />
                 <Route path="/normatives/*" element={<Normatives onLogout={handleLogout} />} />
+                <Route path="/academy/*" element={<ProcessAcademy onLogout={handleLogout} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             )}

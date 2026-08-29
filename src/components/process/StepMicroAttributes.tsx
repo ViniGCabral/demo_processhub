@@ -1,5 +1,7 @@
-import { User, Monitor, Timer, Hourglass, Plus, X, Cpu } from "lucide-react";
+import { User, Monitor, Timer, Hourglass, Plus, X, Cpu, Flag, Wrench } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { SOPStep, SOPAutomationClass } from "@/stores/sopStore";
@@ -29,7 +31,7 @@ export function StepMicroAttributes({ step, isEditMode, onChange }: StepMicroAtt
   const showWait = step.hasWaitTime || !!step.waitTime;
 
   if (!isEditMode) {
-    const hasAny = step.executor || step.system || cls || step.executionTime || step.waitTime;
+    const hasAny = step.executor || step.system || cls || step.executionTime || step.waitTime || step.hasSystemCustomization;
     if (!hasAny) return null;
     return (
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 mt-2">
@@ -51,6 +53,13 @@ export function StepMicroAttributes({ step, isEditMode, onChange }: StepMicroAtt
           <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded text-[11px] font-medium bg-[#FEF3C7] text-[#92400E]">
             <Hourglass className="h-3 w-3" />
             {pt ? "Espera" : "Wait"}: {step.waitTime}
+          </span>
+        )}
+        {step.hasSystemCustomization && (
+          <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded text-[11px] font-semibold bg-violet-100 text-violet-700 border border-violet-200">
+            <Flag className="h-3 w-3 fill-current" />
+            {pt ? "Sistema personalizado" : "Customized system"}
+            {step.customizationSystem ? ` · ${step.customizationSystem}` : ""}
           </span>
         )}
       </div>
@@ -133,6 +142,80 @@ export function StepMicroAttributes({ step, isEditMode, onChange }: StepMicroAtt
           {pt ? "Adicionar tempo de espera (validação / contato externo)" : "Add wait time (validation / external contact)"}
         </button>
       )}
+
+      <div className="mt-3 pt-3 border-t border-border">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-start gap-2">
+            <div className={cn(
+              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+              step.hasSystemCustomization ? "bg-violet-100 text-violet-700" : "bg-muted text-muted-foreground"
+            )}>
+              <Flag className={cn("h-4 w-4", step.hasSystemCustomization && "fill-current")} />
+            </div>
+            <div>
+              <p className="text-[13px] font-semibold text-foreground">
+                {pt ? "Personalização de sistema" : "System customization"}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                {pt ? "Marque quando este step depender de uma modificação que precisa ser acompanhada." : "Flag when this step depends on a modification that must be tracked."}
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={!!step.hasSystemCustomization}
+            onCheckedChange={(checked) => onChange("hasSystemCustomization", checked)}
+            aria-label={pt ? "Marcar personalização de sistema" : "Flag system customization"}
+          />
+        </div>
+
+        {step.hasSystemCustomization && (
+          <div className="mt-3 rounded-lg border border-violet-200 bg-violet-50/60 p-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={pt ? "Sistema modificado" : "Modified system"}>
+                <Input
+                  value={step.customizationSystem || ""}
+                  onChange={(e) => onChange("customizationSystem", e.target.value)}
+                  placeholder={pt ? "Ex: SAP S/4HANA" : "Ex: SAP S/4HANA"}
+                  className="h-8 text-[13px] bg-card"
+                />
+              </Field>
+              <Field label={pt ? "Responsável" : "Owner"}>
+                <Input
+                  value={step.customizationOwner || ""}
+                  onChange={(e) => onChange("customizationOwner", e.target.value)}
+                  placeholder={pt ? "Ex: TI Corporativa" : "Ex: Corporate IT"}
+                  className="h-8 text-[13px] bg-card"
+                />
+              </Field>
+              <Field label={pt ? "Status do acompanhamento" : "Tracking status"}>
+                <select
+                  value={step.customizationStatus || "identified"}
+                  onChange={(e) => onChange("customizationStatus", e.target.value)}
+                  className="w-full h-8 px-2 bg-card border border-input rounded-md text-[13px] text-foreground"
+                >
+                  <option value="identified">{pt ? "Identificada" : "Identified"}</option>
+                  <option value="monitoring">{pt ? "Em acompanhamento" : "Monitoring"}</option>
+                  <option value="validated">{pt ? "Validada" : "Validated"}</option>
+                </select>
+              </Field>
+              <div className="flex items-end pb-1 text-[11px] text-violet-700">
+                <Wrench className="h-3.5 w-3.5 mr-1.5" />
+                {pt ? "Visível na aba Modificações" : "Visible in the Modifications tab"}
+              </div>
+            </div>
+            <div className="mt-3">
+              <Field label={pt ? "Descrição da personalização" : "Customization description"}>
+                <Textarea
+                  value={step.customizationDescription || ""}
+                  onChange={(e) => onChange("customizationDescription", e.target.value)}
+                  placeholder={pt ? "Descreva o que foi alterado e o que precisa ser acompanhado..." : "Describe what changed and what must be tracked..."}
+                  className="min-h-[64px] text-[13px] bg-card resize-none"
+                />
+              </Field>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

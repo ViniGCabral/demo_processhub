@@ -25,6 +25,12 @@ export interface SOPStep {
   /** Optional: average waiting time for validations / external contact */
   waitTime?: string;
   hasWaitTime?: boolean;
+  /** Flags system customizations that must be tracked for this step. */
+  hasSystemCustomization?: boolean;
+  customizationSystem?: string;
+  customizationDescription?: string;
+  customizationOwner?: string;
+  customizationStatus?: "identified" | "monitoring" | "validated";
 }
 
 export interface SOPInputOutput {
@@ -141,6 +147,11 @@ export const sopS2P35: SOPData = {
     {
       id: "2",
       title: "Cálculo do Frete",
+      hasSystemCustomization: true,
+      customizationSystem: "Calculadora de fretes (Excel)",
+      customizationDescription: "Planilha com regras e fórmulas customizadas para cálculo e comparação das modalidades de frete.",
+      customizationOwner: "Operações de Logística",
+      customizationStatus: "monitoring",
       substeps: [
         {
           id: "2.1",
@@ -196,6 +207,11 @@ export const sopS2P35: SOPData = {
     {
       id: "4",
       title: "Registro e Finalização",
+      hasSystemCustomization: true,
+      customizationSystem: "ServiceNow",
+      customizationDescription: "Campos e fluxo de status configurados especificamente para o atendimento de fretes emergenciais.",
+      customizationOwner: "TI Corporativa",
+      customizationStatus: "validated",
       substeps: [
         {
           id: "4.1",

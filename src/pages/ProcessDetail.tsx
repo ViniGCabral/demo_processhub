@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { FileText, GitBranch, ChevronRight, Info, TrendingUp, TrendingDown, Sparkles } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { ProcessSidebar } from "@/components/layout/ProcessSidebar";
@@ -13,12 +13,14 @@ import { DocumentUploadFlow } from "@/components/onboarding/DocumentUploadFlow";
 import { PreMappingView, buildMockPreMapping, type PreMappingData } from "@/components/process/PreMappingView";
 import { TransformProcesses } from "@/pages/TransformProcesses";
 import { ProcessAIChat } from "@/components/process/ProcessAIChat";
+import { ProcessModifications } from "@/components/process/ProcessModifications";
 import { ToBeOverview } from "@/components/process/tobe/ToBeOverview";
 import { ToBeBPMN } from "@/components/process/tobe/ToBeBPMN";
 import { ToBeFields, FieldRow } from "@/components/process/tobe/ToBeFields";
 import { ToBeUserStories } from "@/components/process/tobe/ToBeUserStories";
 import { ToBeIntegrations } from "@/components/process/tobe/ToBeIntegrations";
 import { useProcessStore } from "@/stores/processStore";
+import { useSopStore } from "@/stores/sopStore";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import {
@@ -160,13 +162,19 @@ const defaultProcess = mockProcessesMap["1"];
 export function ProcessDetail({ onLogout }: ProcessDetailProps) {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const { language } = useLanguage();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(() => searchParams.get("tab") || "overview");
   const [mode, setMode] = useState<"as-is" | "to-be">("as-is");
   const [toBeGenerated, setToBeGenerated] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [externalFields, setExternalFields] = useState<FieldRow[]>([]);
   let fieldIdCounter = useRef(100);
+
+  useEffect(() => {
+    const requestedTab = searchParams.get("tab");
+    if (requestedTab) setActiveTab(requestedTab);
+  }, [searchParams]);
 
   const handleAddFieldFromChat = (fieldData: Omit<FieldRow, "id">) => {
     const newField: FieldRow = { ...fieldData, id: `ai-${++fieldIdCounter.current}` };
@@ -175,6 +183,8 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
   
   // Get process from store
   const { processes, updateProcessDocumentation } = useProcessStore();
+  const sopMap = useSopStore(state => state.sopMap);
+  const getSOP = useSopStore(state => state.getSOP);
   const storeProcess = processes.find(p => p.id === id);
   
   // Get process data based on ID (check store first, then mock data)
@@ -245,6 +255,10 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
     }
     return rawProcess;
   }, [rawProcess]);
+
+  const sopLookupId = process.name?.toLowerCase().includes("span") && process.name?.toLowerCase().includes("layer") ? "span-layer" : (id || "1");
+  const processSop = sopMap[id || "1"] || sopMap[sopLookupId] || getSOP(sopLookupId);
+  const customizationCount = processSop?.steps.filter(step => step.hasSystemCustomization).length || 0;
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [preMapping, setPreMapping] = useState<PreMappingData | null>(null);
@@ -444,6 +458,10 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
         ) : <ProcessOverview process={process} onNavigate={setActiveTab} onGenerateDocs={handleStartFullDocumentation} />;
       case "pop-sop":
         return <POPEditorView hasPOP={process.hasPOP} processId={id} processName={process.name} isNewlyGenerated={process.isNewlyGenerated} />;
+      case "modifications":
+        return <ProcessModifications processId={id || "1"} processName={process.name} onOpenStep={(stepId) => {
+          navigate(`/processes/${id || "1"}?tab=pop-sop&step=${encodeURIComponent(stepId)}`);
+        }} />;
       case "bpmn":
         return (
           <BPMNEditor
@@ -519,6 +537,7 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
           onModeChange={handleModeChange}
           toBeGenerated={toBeGenerated}
           onOpenTransformPipeline={() => requestTabChange("transform-pipeline")}
+          customizationCount={customizationCount}
         />
 
         <main className={cn("flex-1 ml-[220px] overflow-auto", showChat && (chatOpen ? "mr-[320px]" : "mr-12"))}>

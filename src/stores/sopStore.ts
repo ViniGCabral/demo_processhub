@@ -107,6 +107,16 @@ export const useSopStore = create<SOPStore>()((set, get) => ({
   },
 
   upsertSOP: async (processId: string, sop: Omit<SOPData, 'id'>) => {
+    // Keep the sidebar counter and modifications view in sync immediately,
+    // even while the remote save is still in progress.
+    const current = get().sopMap[processId];
+    set({
+      sopMap: {
+        ...get().sopMap,
+        [processId]: { ...sop, id: current?.id || processId },
+      },
+    });
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
