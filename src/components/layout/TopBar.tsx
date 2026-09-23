@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
+import contextusLogo from "@/assets/contextus-logo.png";
 
 interface TopBarProps {
   onLogout?: () => void;
@@ -22,11 +23,12 @@ export function TopBar({ onLogout }: TopBarProps) {
   return (
     <header className="h-14 border-b border-border bg-card px-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-            <span className="text-primary-foreground font-semibold text-sm">P</span>
-          </div>
-          <span className="font-semibold text-foreground">ProcessHub</span>
+        <button onClick={() => navigate("/")} className="flex items-center" aria-label="Ir para o início">
+          <img
+            src={contextusLogo}
+            alt="Contextus"
+            className="h-8 w-auto"
+          />
         </button>
       </div>
 

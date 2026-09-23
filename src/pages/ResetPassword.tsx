@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import eloprocessLogo from "@/assets/eloprocess-logo-white.png";
+import contextusLogo from "@/assets/contextus-logo.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,11 +48,8 @@ export function ResetPassword() {
     return (
       <div className="min-h-screen flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-sm text-center space-y-4">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#0C1BA8' }}>
-              <img src={eloprocessLogo} alt="ProcessHub" className="w-6 h-6" />
-            </div>
-            <span className="font-semibold text-xl" style={{ color: '#272727' }}>ProcessHub</span>
+          <div className="flex items-center justify-center mb-6">
+            <img src={contextusLogo} alt="Contextus" className="h-10 w-auto" />
           </div>
           <h2 className="text-2xl font-semibold" style={{ color: '#272727' }}>{t.resetPasswordSuccess}</h2>
           <p className="text-sm" style={{ color: '#6B7280' }}>{t.resetPasswordSuccessDesc}</p>
@@ -74,11 +71,8 @@ export function ResetPassword() {
         <LanguageToggle variant="dark" />
       </div>
       <div className="w-full max-w-sm">
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#0C1BA8' }}>
-            <img src={eloprocessLogo} alt="ProcessHub" className="w-6 h-6" />
-          </div>
-          <span className="font-semibold text-xl" style={{ color: '#272727' }}>ProcessHub</span>
+        <div className="flex items-center justify-center mb-6">
+          <img src={contextusLogo} alt="Contextus" className="h-10 w-auto" />
         </div>
 
         <div className="mb-6 text-center">

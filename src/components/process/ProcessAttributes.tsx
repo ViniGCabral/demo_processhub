@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { TrendingUp, Shield, Database, FileText, AlertTriangle, CheckCircle2, XCircle, AlertCircle, Sparkles, ChevronRight, ChevronDown } from "lucide-react";
+import { TrendingUp, Shield, Database, FileText, AlertTriangle, CheckCircle2, XCircle, AlertCircle, Sparkles, ChevronRight, ChevronDown, Cpu, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { AutomationDetailView } from "./automation/AutomationDetailView";
+import { getProcessAutomationDetail } from "./automation/automationDetailAdapter";
 
 // ==== Details mocks per pillar (currently focused on Span & Layer demo) ====
 type Classification = "ME" | "MS" | "MA" | "SA" | "AU" | "MNA";
@@ -123,6 +126,8 @@ interface ProcessAttributesProps {
   dataIntegrity?: { maturity: number; risk: number };
   governance?: { maturity: number; risk: number };
   processName?: string;
+  processId?: string;
+  initialView?: "summary" | "detail";
 }
 
 const isSpanLayerDemo = (name?: string) => {
@@ -390,8 +395,17 @@ function RiskScoreDisplay({ label, value, hint, legendLow, legendMedium, legendH
   );
 }
 
-export function ProcessAttributes({ hasPOP, automation: automationScores, dataIntegrity: dataIntegrityScores, governance: governanceScores, processName }: ProcessAttributesProps) {
+export function ProcessAttributes({
+  hasPOP,
+  automation: automationScores,
+  dataIntegrity: dataIntegrityScores,
+  governance: governanceScores,
+  processName,
+  processId,
+  initialView = "summary",
+}: ProcessAttributesProps) {
   const { language, t } = useLanguage();
+  const [viewMode, setViewMode] = useState<"summary" | "detail">(initialView);
 
   if (!hasPOP) {
     return (
@@ -419,6 +433,24 @@ export function ProcessAttributes({ hasPOP, automation: automationScores, dataIn
   const [showAutoDetails, setShowAutoDetails] = useState(false);
   const [showDataDetails, setShowDataDetails] = useState(false);
   const [showGovDetails, setShowGovDetails] = useState(false);
+
+  // Se estiver no modo detalhado de automação, renderiza a visão completa do Mapa de Processos e Soluções Digitais
+  if (viewMode === "detail") {
+    const detailData = getProcessAutomationDetail(
+      processId,
+      processName,
+      pillarDetails?.automation
+    );
+    return (
+      <div className="animate-fade-in -mx-6 -mt-6">
+        <AutomationDetailView
+          data={detailData}
+          onBackToAssessment={() => setViewMode("summary")}
+        />
+      </div>
+    );
+  }
+
   const isPT = language === "PT";
   const L = {
     seeDetails: isPT ? "Abrir detalhamento" : "Open details",
@@ -541,9 +573,32 @@ export function ProcessAttributes({ hasPOP, automation: automationScores, dataIn
           </div>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
           <div className="text-sm font-medium text-blue-800 mb-1">💡 {t.insightLabel}</div>
           <div className="text-sm text-blue-700">{automation.insight}</div>
+        </div>
+
+        {/* Action Button: Abrir Mapa de Processo e Soluções Digitais */}
+        <div className="p-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-violet-500/5 to-transparent flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+          <div className="space-y-0.5">
+            <div className="text-sm font-bold text-foreground flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4 text-violet-500" />
+              {isPT ? "Mapa de processo e soluções digitais" : "Process map & digital solutions"}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {isPT
+                ? "Explore os macroblocos do processo, capacidades de negócio, propostas de soluções futuras e tecnologias candidatas."
+                : "Explore process macroblocks, business capabilities, future solution proposals and candidate technologies."}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setViewMode("detail")}
+            className="text-xs gap-1.5 shrink-0 shadow-xs"
+          >
+            {isPT ? "Abrir detalhamento" : "Open detailing"}
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </Button>
         </div>
 
         {pillarDetails && (
@@ -552,7 +607,7 @@ export function ProcessAttributes({ hasPOP, automation: automationScores, dataIn
               open={showAutoDetails}
               onToggle={() => setShowAutoDetails((v) => !v)}
               labelOpen={L.hideDetails}
-              labelClosed={L.seeDetails}
+              labelClosed={isPT ? "Visualizar tabela resumida de steps" : "View summary steps table"}
             />
             {showAutoDetails && (
               <div className="mt-4 border border-border rounded-lg overflow-hidden">

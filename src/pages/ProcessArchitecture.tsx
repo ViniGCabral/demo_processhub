@@ -1,14 +1,18 @@
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ChevronLeft, Layers, Network } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ValueChainOnboarding } from "@/components/architecture/ValueChainOnboarding";
 import { ArchitectureCanvas } from "@/components/architecture/ArchitectureCanvas";
+import { ArchitectureHeader } from "@/components/architecture/ArchitectureHeader";
 import {
   useValueChainStore,
   generateAIValueChainForCompany,
 } from "@/stores/valueChainStore";
+import { useJourneyStore } from "@/stores/journeyStore";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface ProcessArchitectureProps {
   onLogout: () => void;
@@ -16,14 +20,16 @@ interface ProcessArchitectureProps {
 
 export function ProcessArchitecture({ onLogout }: ProcessArchitectureProps) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { language } = useLanguage();
+  const pt = language === "PT";
   const { l1Processes, isFirstAccess, setFirstAccessComplete, setL1Processes } =
     useValueChainStore();
 
   const handleCreateFromScratch = () => {
     setFirstAccessComplete();
     toast.success(
-      language === "PT"
+      pt
         ? "Comece a criar sua cadeia de valor!"
         : "Start creating your value chain!"
     );
@@ -33,9 +39,9 @@ export function ProcessArchitecture({ onLogout }: ProcessArchitectureProps) {
     const generatedProcesses = generateAIValueChainForCompany(companyName);
     setL1Processes(generatedProcesses);
     toast.success(
-      language === "PT"
-        ? `Cadeia de valor gerada para ${companyName}!`
-        : `Value chain generated for ${companyName}!`
+      pt
+        ? `Cadeia de valor gerada para "${companyName}"!`
+        : `Value chain generated for "${companyName}"!`
     );
   };
 
@@ -50,7 +56,7 @@ export function ProcessArchitecture({ onLogout }: ProcessArchitectureProps) {
       const generatedProcesses = generateAIValueChainForCompany("Company");
       setL1Processes(generatedProcesses);
       toast.success(
-        language === "PT"
+        pt
           ? "Cadeia de valor completa gerada!"
           : "Full value chain generated!"
       );
@@ -64,7 +70,7 @@ export function ProcessArchitecture({ onLogout }: ProcessArchitectureProps) {
         ];
         updateL1(targetL1Id, { l2Processes: sampleL2s });
         toast.success(
-          language === "PT" ? "E2E regenerado com sucesso!" : "E2E regenerated!"
+          pt ? "E2E regenerado com sucesso!" : "E2E regenerated!"
         );
       }
     } else if (option === "new" && newE2EName) {
@@ -84,7 +90,7 @@ export function ProcessArchitecture({ onLogout }: ProcessArchitectureProps) {
         .l1Processes.find((l1) => l1.nameEN === newE2EName);
       if (newL1) updateL1(newL1.id, { l2Processes: sampleL2s });
       toast.success(
-        language === "PT"
+        pt
           ? `Novo E2E "${newE2EName}" criado!`
           : `New E2E "${newE2EName}" created!`
       );
@@ -93,20 +99,33 @@ export function ProcessArchitecture({ onLogout }: ProcessArchitectureProps) {
 
   const showOnboarding = isFirstAccess && l1Processes.length === 0;
 
+  // Exibir header global apenas na tela inicial de arquitetura (ocultando em subtelas de L1, L2, L3, L4, processo ou detalhe de jornada)
+  const isSubScreen = Boolean(
+    searchParams.get("l1") || 
+    searchParams.get("l2") || 
+    searchParams.get("l3") || 
+    searchParams.get("l4") || 
+    searchParams.get("processId")
+  );
+  const showHeader = !showOnboarding && !isSubScreen;
+
   return (
     <div className="min-h-screen bg-[#f9f9f9] flex flex-col">
       <TopBar onLogout={onLogout} />
 
-      <main className="flex-1 p-6 lg:p-10">
-        <div className="max-w-[1400px] mx-auto">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 text-sm mb-6 transition-colors hover:text-[#0C1BA8] text-[#A5A7B0]"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            {language === "PT" ? "Voltar para a tela inicial" : "Back to Home"}
-          </button>
+      <main className="flex-1 p-4 lg:p-8">
+        <div className="w-full mx-auto">
+          
+          {/* ── View Toggle & Header (apenas na tela inicial de arquitetura) ────────────────── */}
+          {showHeader && (
+            <ArchitectureHeader 
+              onImportBpmn={() => toast.info(pt ? "Funcionalidade de importação BPMN em breve." : "BPMN import coming soon.")}
+              onGenerateAI={() => handleAIGeneration("full")}
+              onCreate={() => toast.info(pt ? "Modal de criação L1" : "L1 creation modal")}
+            />
+          )}
 
+          {/* ── Content ──────────────────────────────────────────── */}
           {showOnboarding ? (
             <ValueChainOnboarding
               onCreateFromScratch={handleCreateFromScratch}

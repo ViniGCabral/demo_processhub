@@ -21,6 +21,7 @@ import { DiscoverOpportunities } from "./pages/DiscoverOpportunities";
 import { TransformProcesses } from "./pages/TransformProcesses";
 import { Normatives } from "./pages/Normatives";
 import { ProcessAcademy } from "./pages/ProcessAcademy";
+import { ProcessCanvasPage } from "./pages/ProcessCanvasPage";
 import NotFound from "./pages/NotFound";
 import { supabase } from "@/integrations/supabase/client";
 import { useProcessStore } from "@/stores/processStore";
@@ -117,6 +118,7 @@ const App = () => {
                 <Route path="/processes" element={<ProcessList onLogout={handleLogout} />} />
                 <Route path="/processes/new" element={<NewProcess onLogout={handleLogout} />} />
                 <Route path="/processes/:id" element={<ProcessDetail onLogout={handleLogout} />} />
+                <Route path="/processes/:id/canvas" element={<ProcessCanvasPage onLogout={handleLogout} />} />
                 <Route path="/architecture" element={<ProcessArchitecture onLogout={handleLogout} />} />
                 <Route path="/use-cases" element={<UseCases onLogout={handleLogout} />} />
                 <Route path="/saved-use-cases" element={<SavedUseCases onLogout={handleLogout} />} />

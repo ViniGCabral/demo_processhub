@@ -1,4 +1,4 @@
-import { List, FileText, GitBranch, SlidersHorizontal, ArrowLeft, Check, Settings2, Database, BookOpen, Wand2, Workflow, Wrench, type LucideIcon } from "lucide-react";
+import { List, FileText, GitBranch, SlidersHorizontal, ArrowLeft, Check, Settings2, Database, BookOpen, Wand2, Wrench, Workflow, Layers, Sparkles, BarChart3, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -43,27 +43,54 @@ export function ProcessSidebar({
 }: ProcessSidebarProps) {
   const { language } = useLanguage();
 
-  const asIsItems: SidebarItem[] = [
-    { id: "overview", label: language === "PT" ? "Visão Geral" : "Overview", icon: List, hasContent: false },
-    { id: "pre-mapping", label: language === "PT" ? "Pré-Mapeamento" : "Pre-Mapping", icon: Wand2, hasContent: hasPreMapping },
-    { id: "pop-sop", label: language === "PT" ? "POP" : "SOP", icon: FileText, hasContent: hasPOP },
-    { id: "modifications", label: language === "PT" ? "Modificações" : "Modifications", icon: Wrench, hasContent: false, count: customizationCount },
-    { id: "bpmn", label: "BPMN", icon: GitBranch, hasContent: hasBPMN },
-    { id: "assessment", label: "Assessment", icon: SlidersHorizontal, hasContent: hasAttributes },
-    { id: "process-attributes", label: language === "PT" ? "Atributos" : "Attributes", icon: Settings2, hasContent: false },
+  const asIsGroups = [
+    {
+      name: "",
+      items: [
+        { id: "overview", label: language === "PT" ? "Visão Geral" : "Overview", icon: List, hasContent: false },
+      ]
+    },
+    {
+      name: language === "PT" ? "Diagnóstico & Contexto" : "Diagnosis & Context",
+      items: [
+        { id: "context", label: language === "PT" ? "Contexto" : "Context", icon: Layers, hasContent: true },
+        { id: "assessment", label: "Assessment", icon: SlidersHorizontal, hasContent: hasAttributes },
+        { id: "pre-mapping", label: language === "PT" ? "Pré-Mapeamento" : "Pre-Mapping", icon: Wand2, hasContent: hasPreMapping },
+      ]
+    },
+    {
+      name: language === "PT" ? "Processos & Documentação" : "Processes & Documentation",
+      items: [
+        { id: "bpmn", label: "BPMN", icon: GitBranch, hasContent: hasBPMN },
+        { id: "pop-sop", label: language === "PT" ? "POP" : "SOP", icon: FileText, hasContent: hasPOP },
+        { id: "process-attributes", label: language === "PT" ? "Atributos" : "Attributes", icon: Settings2, hasContent: false },
+      ]
+    },
+    {
+      name: language === "PT" ? "Gestão & Melhoria" : "Management & Improvement",
+      items: [
+        { id: "indicators", label: language === "PT" ? "Indicadores" : "Indicators", icon: BarChart3, hasContent: true },
+        { id: "modifications", label: language === "PT" ? "Modificações" : "Modifications", icon: Wrench, hasContent: false, count: customizationCount },
+        { id: "transformation", label: language === "PT" ? "Transformação" : "Transformation", icon: Sparkles, hasContent: true },
+      ]
+    }
   ];
 
-  const toBeItems: SidebarItem[] = [
-    { id: "tobe-bpmn", label: "BPMN (TO-BE)", icon: GitBranch, hasContent: false },
-    { id: "tobe-fields", label: "Fields", icon: Database, hasContent: false },
-    { id: "tobe-user-stories", label: "User Stories", icon: BookOpen, hasContent: false },
-    // { id: "tobe-integrations", label: "Integrations", icon: Plug, hasContent: false },
+  const toBeGroups = [
+    {
+      name: "",
+      items: [
+        { id: "tobe-bpmn", label: "BPMN (TO-BE)", icon: GitBranch, hasContent: false },
+        { id: "tobe-fields", label: "Fields", icon: Database, hasContent: false },
+        { id: "tobe-user-stories", label: "User Stories", icon: BookOpen, hasContent: false },
+      ]
+    }
   ];
 
-  const navItems = mode === "to-be" ? (toBeGenerated ? toBeItems : []) : asIsItems;
+  const navGroups = mode === "to-be" ? (toBeGenerated ? toBeGroups : []) : asIsGroups;
 
   return (
-    <aside className="w-[220px] shrink-0 border-r border-border bg-card flex flex-col fixed h-[calc(100vh-56px)] z-10">
+    <aside className="w-[240px] shrink-0 border-r border-border bg-card flex flex-col fixed h-[calc(100vh-56px)] z-10">
       <div className="p-4 pt-5">
         {/* Breadcrumb */}
         <button 
@@ -82,33 +109,44 @@ export function ProcessSidebar({
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 px-3">
-        <div className="space-y-1">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onTabChange(item.id)}
-              className={cn(
-                "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[14px] transition-all duration-150",
-                activeTab === item.id
-                  ? "bg-sidebar-accent text-primary border-l-[3px] border-primary pl-[9px] font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+      <nav className="flex-1 overflow-y-auto px-3 pb-4">
+        <div className="space-y-5">
+          {navGroups.map((group, groupIdx) => (
+            <div key={groupIdx}>
+              {group.name && (
+                <h3 className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.06em] mb-1.5">
+                  {group.name}
+                </h3>
               )}
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
-              <span className="flex-1 text-left">{item.label}</span>
-              {typeof item.count === "number" && item.count > 0 && (
-                <span className={cn(
-                  "min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[11px] font-semibold",
-                  activeTab === item.id ? "bg-primary text-primary-foreground" : "bg-violet-100 text-violet-700"
-                )}>
-                  {item.count}
-                </span>
-              )}
-              {item.hasContent && (
-                <Check className="h-4 w-4 text-green-500 shrink-0" />
-              )}
-            </button>
+              <div className="space-y-1">
+                {group.items.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => onTabChange(item.id)}
+                    className={cn(
+                      "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150",
+                      activeTab === item.id
+                        ? "bg-sidebar-accent text-primary border-l-[3px] border-primary pl-[9px]"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {typeof item.count === "number" && item.count > 0 && (
+                      <span className={cn(
+                        "min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-semibold",
+                        activeTab === item.id ? "bg-primary text-primary-foreground" : "bg-violet-100 text-violet-700"
+                      )}>
+                        {item.count}
+                      </span>
+                    )}
+                    {item.hasContent && (
+                      <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </nav>

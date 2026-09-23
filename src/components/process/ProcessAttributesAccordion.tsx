@@ -1,11 +1,18 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Save, X, Plus, Download, History } from "lucide-react";
+import { Save, X, Plus, Download, History, GitFork, ArrowRight, ArrowLeft, Trash2, Edit2, CheckCircle2, Clock, MapPin } from "lucide-react";
 import { ExecutionEffortTable, PositionEffort } from "./ExecutionEffortTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  useProcessConnectionStore,
+  ProcessConnection,
+  RELATIONSHIP_LABELS,
+} from "@/stores/processConnectionStore";
+import { CreateEditConnectionModal } from "./connections/CreateEditConnectionModal";
+import { ProcessConnectionMapModal } from "./connections/ProcessConnectionMapModal";
 import {
   Select,
   SelectContent,
@@ -147,11 +154,23 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
   const [pendingExit, setPendingExit] = useState(false);
   const [newSystem, setNewSystem] = useState("");
 
+  // Process Connections Store & Modals State
+  const { getPredecessors, getSuccessors, deleteConnection: deleteProcessConnection } = useProcessConnectionStore();
+  const processIdForConn = process.id || "1";
+  const predecessors = getPredecessors(processIdForConn);
+  const successors = getSuccessors(processIdForConn);
+
+  const [isConnModalOpen, setIsConnModalOpen] = useState(false);
+  const [isConnMapModalOpen, setIsConnMapModalOpen] = useState(false);
+  const [editingConn, setEditingConn] = useState<ProcessConnection | null>(null);
+  const [connDefaultDir, setConnDefaultDir] = useState<"predecessor" | "successor">("predecessor");
+
   // All accordion sections expanded by default
   const [expandedSections, setExpandedSections] = useState<string[]>([
     "basic-info",
     "stakeholders",
     "value-chain",
+    "connections",
     "execution",
     "compliance",
     "systems",
@@ -877,6 +896,271 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
                 </AccordionContent>
               </AccordionItem>
 
+              {/* CONEXÕES DO PROCESSO (PREDECESSORES E SUCESSORES) */}
+              <AccordionItem
+                value="connections"
+                className="bg-[#F8FAFB] border border-[#E5EAED] rounded-xl overflow-hidden"
+              >
+                <AccordionTrigger className="px-5 py-4 hover:no-underline hover:bg-muted/30 transition-colors duration-300">
+                  <div className="flex items-center justify-between w-full pr-4">
+                    <div className="flex items-center gap-2">
+                      <GitFork className="w-4 h-4 text-[#0C1BA8]" />
+                      <span className="text-sm font-semibold uppercase tracking-wide text-foreground">
+                        {language === "PT" ? "Conexões do Processo" : "Process Connections"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-normal">
+                      <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-[11px] font-medium">
+                        {predecessors.length} {language === "PT" ? "predecessores" : "predecessors"}
+                      </span>
+                      <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-[11px] font-medium">
+                        {successors.length} {language === "PT" ? "sucessores" : "successors"}
+                      </span>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-5 pb-5 pt-2">
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg">
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-800">
+                          {language === "PT"
+                            ? "Relacionamentos Locais de Causa, Handoff e Efeito"
+                            : "Local Cause, Handoff and Effect Relationships"}
+                        </h4>
+                        <p className="text-[11px] text-gray-500">
+                          {language === "PT"
+                            ? "Mapeie quem fornece insumos para este processo e quem consome suas entregas."
+                            : "Map who supplies inputs to this process and who receives its deliverables."}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsConnMapModalOpen(true)}
+                          className="h-8 text-xs gap-1.5 border-[#0C1BA8]/30 text-[#0C1BA8] hover:bg-[#0C1BA8]/5"
+                        >
+                          <GitFork className="w-3.5 h-3.5" />
+                          {language === "PT" ? "Ver Mapa de Conexões" : "View Connection Map"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {/* Bloco Predecessores */}
+                      <div className="bg-white p-3.5 rounded-lg border border-gray-200 space-y-3">
+                        <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                          <div className="flex items-center gap-1.5">
+                            <ArrowLeft className="w-4 h-4 text-blue-600" />
+                            <h5 className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                              {language === "PT" ? "Predecessores (Origem)" : "Predecessors (Source)"}
+                            </h5>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingConn(null);
+                              setConnDefaultDir("predecessor");
+                              setIsConnModalOpen(true);
+                            }}
+                            className="h-7 text-[11px] px-2 text-[#0C1BA8] hover:bg-[#0C1BA8]/5 font-semibold gap-1"
+                          >
+                            <Plus className="w-3 h-3" />
+                            {language === "PT" ? "Adicionar" : "Add"}
+                          </Button>
+                        </div>
+
+                        {predecessors.length === 0 ? (
+                          <p className="text-xs text-gray-400 italic py-3 text-center">
+                            {language === "PT"
+                              ? "Nenhum processo predecessor registrado."
+                              : "No predecessor registered."}
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            {predecessors.map((c) => {
+                              const relLabel = RELATIONSHIP_LABELS[c.relationshipType] || { pt: c.relationshipType, en: c.relationshipType };
+                              return (
+                                <div
+                                  key={c.id}
+                                  className="p-2.5 rounded-md border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors space-y-1.5"
+                                >
+                                  <div className="flex items-start justify-between gap-1">
+                                    <div>
+                                      <span className="text-[10px] text-[#0C1BA8] font-semibold block uppercase">
+                                        {c.sourceDomain || "Geral"}
+                                      </span>
+                                      <h6 className="text-xs font-bold text-gray-800">
+                                        {c.sourceProcessName}
+                                      </h6>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setEditingConn(c);
+                                          setIsConnModalOpen(true);
+                                        }}
+                                        className="p-1 text-gray-400 hover:text-blue-600 rounded"
+                                        title={language === "PT" ? "Editar" : "Edit"}
+                                      >
+                                        <Edit2 className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (confirm(language === "PT" ? "Excluir conexão?" : "Delete connection?")) {
+                                            deleteProcessConnection(c.id);
+                                            toast.success(language === "PT" ? "Conexão excluída" : "Connection deleted");
+                                          }
+                                        }}
+                                        className="p-1 text-gray-400 hover:text-red-600 rounded"
+                                        title={language === "PT" ? "Excluir" : "Delete"}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                                    <span className="bg-purple-100 text-purple-700 font-medium px-1.5 py-0.5 rounded">
+                                      {language === "PT" ? relLabel.pt : relLabel.en}
+                                    </span>
+                                    {c.transferredObject && (
+                                      <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
+                                        {c.transferredObject}
+                                      </span>
+                                    )}
+                                    <span
+                                      className={`px-1.5 py-0.5 rounded font-medium ${
+                                        c.validationStatus === "validada"
+                                          ? "bg-emerald-50 text-emerald-700"
+                                          : "bg-amber-50 text-amber-700"
+                                      }`}
+                                    >
+                                      {c.validationStatus === "validada"
+                                        ? language === "PT" ? "Validada" : "Validated"
+                                        : language === "PT" ? "Pendente" : "Pending"}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Bloco Sucessores */}
+                      <div className="bg-white p-3.5 rounded-lg border border-gray-200 space-y-3">
+                        <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                          <div className="flex items-center gap-1.5">
+                            <ArrowRight className="w-4 h-4 text-purple-600" />
+                            <h5 className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                              {language === "PT" ? "Sucessores (Destino)" : "Successors (Target)"}
+                            </h5>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingConn(null);
+                              setConnDefaultDir("successor");
+                              setIsConnModalOpen(true);
+                            }}
+                            className="h-7 text-[11px] px-2 text-[#0C1BA8] hover:bg-[#0C1BA8]/5 font-semibold gap-1"
+                          >
+                            <Plus className="w-3 h-3" />
+                            {language === "PT" ? "Adicionar" : "Add"}
+                          </Button>
+                        </div>
+
+                        {successors.length === 0 ? (
+                          <p className="text-xs text-gray-400 italic py-3 text-center">
+                            {language === "PT"
+                              ? "Nenhum processo sucessor registrado."
+                              : "No successor registered."}
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            {successors.map((c) => {
+                              const relLabel = RELATIONSHIP_LABELS[c.relationshipType] || { pt: c.relationshipType, en: c.relationshipType };
+                              return (
+                                <div
+                                  key={c.id}
+                                  className="p-2.5 rounded-md border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors space-y-1.5"
+                                >
+                                  <div className="flex items-start justify-between gap-1">
+                                    <div>
+                                      <span className="text-[10px] text-[#0C1BA8] font-semibold block uppercase">
+                                        {c.targetDomain || "Geral"}
+                                      </span>
+                                      <h6 className="text-xs font-bold text-gray-800">
+                                        {c.targetProcessName}
+                                      </h6>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setEditingConn(c);
+                                          setIsConnModalOpen(true);
+                                        }}
+                                        className="p-1 text-gray-400 hover:text-blue-600 rounded"
+                                        title={language === "PT" ? "Editar" : "Edit"}
+                                      >
+                                        <Edit2 className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (confirm(language === "PT" ? "Excluir conexão?" : "Delete connection?")) {
+                                            deleteProcessConnection(c.id);
+                                            toast.success(language === "PT" ? "Conexão excluída" : "Connection deleted");
+                                          }
+                                        }}
+                                        className="p-1 text-gray-400 hover:text-red-600 rounded"
+                                        title={language === "PT" ? "Excluir" : "Delete"}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                                    <span className="bg-purple-100 text-purple-700 font-medium px-1.5 py-0.5 rounded">
+                                      {language === "PT" ? relLabel.pt : relLabel.en}
+                                    </span>
+                                    {c.transferredObject && (
+                                      <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
+                                        {c.transferredObject}
+                                      </span>
+                                    )}
+                                    <span
+                                      className={`px-1.5 py-0.5 rounded font-medium ${
+                                        c.validationStatus === "validada"
+                                          ? "bg-emerald-50 text-emerald-700"
+                                          : "bg-amber-50 text-amber-700"
+                                      }`}
+                                    >
+                                      {c.validationStatus === "validada"
+                                        ? language === "PT" ? "Validada" : "Validated"
+                                        : language === "PT" ? "Pendente" : "Pending"}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
               {/* EXECUÇÃO */}
               <AccordionItem
                 value="execution"
@@ -1207,6 +1491,25 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modais de Conexões */}
+      <CreateEditConnectionModal
+        open={isConnModalOpen}
+        onOpenChange={setIsConnModalOpen}
+        currentProcessId={processIdForConn}
+        currentProcessName={process.name}
+        currentDomain={formData.area || formData.l1 || "Processos"}
+        defaultDirection={connDefaultDir}
+        editingConnection={editingConn}
+      />
+
+      <ProcessConnectionMapModal
+        open={isConnMapModalOpen}
+        onOpenChange={setIsConnMapModalOpen}
+        initialProcessId={processIdForConn}
+        initialProcessName={process.name}
+        initialDomain={formData.area || formData.l1 || "Processos"}
+      />
     </>
   );
 }

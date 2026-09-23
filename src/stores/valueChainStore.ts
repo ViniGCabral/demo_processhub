@@ -106,8 +106,11 @@ interface ValueChainState {
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// Mocked demo chain based on the São Martinho L1-L4 reference spreadsheet.
-const initialL1Processes: L1Process[] = buildSaoMartinhoValueChain();
+import { buildDemoValueChain } from "@/data/canonicalValueChain";
+import { buildNaturaValueChain } from "@/data/naturaValueChain";
+
+// Mocked demo chain aligned with consistent 3-tier architecture scenarios
+const initialL1Processes: L1Process[] = [...buildDemoValueChain(), ...buildNaturaValueChain()];
 
 export const useValueChainStore = create<ValueChainState>()(
   persist(
@@ -459,10 +462,10 @@ export const useValueChainStore = create<ValueChainState>()(
     }),
     {
       name: "value-chain-storage",
-      version: 5,
-      // Reseed persisted demos when the bundled São Martinho chain changes.
+      version: 6,
+      // Reseed persisted demos when the architecture scenarios change.
       migrate: () =>
-        ({ l1Processes: buildSaoMartinhoValueChain(), isFirstAccess: false }) as never,
+        ({ l1Processes: buildDemoValueChain(), isFirstAccess: false }) as never,
     }
   )
 );

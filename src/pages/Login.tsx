@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import eloprocessLogo from "@/assets/eloprocess-logo-white.png";
+import contextusLogo from "@/assets/contextus-logo.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { supabase } from "@/integrations/supabase/client";
@@ -140,13 +140,12 @@ export function Login() {
         }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <div className="inline-flex items-center rounded-lg bg-white px-3 py-2">
           <img 
-            src={eloprocessLogo} 
-            alt="ProcessHub" 
-            className="w-8 h-8"
+            src={contextusLogo} 
+            alt="Contextus" 
+            className="h-8 w-auto"
           />
-          <span className="text-white font-semibold text-xl">ProcessHub</span>
         </div>
 
         {/* Centered typewriter content */}
@@ -174,20 +173,12 @@ export function Login() {
           {/* Mobile header with logo and language toggle */}
           <div className="lg:hidden mb-8">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div 
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: '#0C1BA8' }}
-                >
-                  <img 
-                    src={eloprocessLogo} 
-                    alt="ProcessHub" 
-                    className="w-6 h-6"
-                  />
-                </div>
-                <span className="font-semibold text-xl" style={{ color: '#272727' }}>
-                  ProcessHub
-                </span>
+              <div className="flex items-center">
+                <img 
+                  src={contextusLogo} 
+                  alt="Contextus" 
+                  className="h-9 w-auto"
+                />
               </div>
               <LanguageToggle variant="dark" />
             </div>

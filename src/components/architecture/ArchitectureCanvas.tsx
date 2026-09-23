@@ -43,41 +43,58 @@ import {
 } from "@/stores/valueChainStore";
 import { useValueChainCounts, CumulativeCounts } from "@/hooks/useValueChainCounts";
 import { useTaxonomy, TaxonomyLevel } from "@/stores/taxonomyStore";
-import { useProcessStore } from "@/stores/processStore";
+import { useProcessStore, ProcessData } from "@/stores/processStore";
 import { CreateEditL1Modal } from "./modals/CreateEditL1Modal";
 import { CreateEditL2Modal } from "./modals/CreateEditL2Modal";
 import { CreateEditL3Modal } from "./modals/CreateEditL3Modal";
 import { CreateEditL4Modal } from "./modals/CreateEditL4Modal";
+import { ProcessActionDialog } from "./modals/ProcessActionDialog";
+import { ProcessConnectionMapModal } from "@/components/process/connections/ProcessConnectionMapModal";
 import { AIGenerationModal } from "./AIGenerationModal";
 import { DetailsSidePanel, DetailsTarget } from "./DetailsSidePanel";
+import { ValueChainSummaryBar } from "./ValueChainSummaryBar";
+import { L1DetailView } from "./L1DetailView";
+import { DomainContextRibbon } from "./DomainContextRibbon";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ScopeContextSheet, BreadcrumbStep, ChildComponentCard } from "./ScopeContextSheet";
+import { OperationalProcessView } from "./OperationalProcessView";
+import { mockArchitectureData } from "@/data/architectureContextMock";
+import { 
+  getBusinessIndicatorsByDomain, 
+  findDomainNode, 
+  findL2Node, 
+  findL3Node, 
+  findL4Node, 
+  getOperationalProcessDetails, 
+  getProcessById, 
+  getSystemsByDomain 
+} from "@/data/architectureContextUtils";
 
 interface ArchitectureCanvasProps {
   onGenerateAI: (option: "full" | "existing" | "new", targetL1Id?: string, newE2EName?: string) => void;
 }
 
 // ============================================================
-// Main canvas — root shows L1 + their L2s; selecting an L2 opens
-// the detail screen with L3/L4.
+// Main canvas — root shows Value Chain; clicking any element
+// opens its standardized Scope & Context Sheet; clicking an
+// operational process opens the dedicated BPMN / SOP operational view.
 // ============================================================
 export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { l1Processes } = useValueChainStore();
+  const { language } = useLanguage();
+  const pt = language === "PT";
+  const { label: lvl, maxLevel, hasLevel } = useTaxonomy();
 
   const l1Id = searchParams.get("l1") || null;
-  const l1 = useMemo(
-    () => l1Processes.find((x) => x.id === l1Id) || null,
-    [l1Processes, l1Id]
-  );
-
   const l2Id = searchParams.get("l2") || null;
-  const l2 = useMemo(
-    () => (l1 ? l1.l2Processes.find((x) => x.id === l2Id) || null : null),
-    [l1, l2Id]
-  );
+  const l3Id = searchParams.get("l3") || null;
+  const l4Id = searchParams.get("l4") || null;
+  const processId = searchParams.get("processId") || null;
 
-  const level: "l1" | "l2detail" = l1 && l2 ? "l2detail" : "l1";
+  const [selectedProcessForAction, setSelectedProcessForAction] = useState<ProcessData | null>(null);
+  const [connectionMapProcess, setConnectionMapProcess] = useState<{ id: string; name: string; domain?: string } | null>(null);
 
   const setParams = (params: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
@@ -88,39 +105,519 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
     setSearchParams(next, { replace: false });
   };
 
-  const goRoot = () => setParams({ l1: null, l2: null, l3: null, bu: null });
+  const goRoot = () => setParams({ l1: null, l2: null, l3: null, l4: null, processId: null, bu: null });
+
+  // Resolve L1
+  const l1 = useMemo(() => {
+    if (!l1Id) return null;
+    return l1Processes.find((x) => x.id === l1Id) || 
+           mockArchitectureData.domainsL1.find((d) => d.id === l1Id || d.name.toLowerCase() === l1Id.toLowerCase()) || 
+           null;
+  }, [l1Processes, l1Id]);
+
+  const l1DomainName = useMemo(() => {
+    if (!l1) return "";
+    return "namePT" in l1 ? (pt ? l1.namePT : l1.nameEN) : l1.name;
+  }, [l1, pt]);
+
+  const mockDomain = useMemo(() => {
+    if (!l1) return null;
+    return findDomainNode(mockArchitectureData, l1DomainName) || 
+           findDomainNode(mockArchitectureData, l1.id) || 
+           null;
+  }, [l1, l1DomainName]);
+
+  // Resolve L2
+  const l2 = useMemo(() => {
+    if (!l2Id) return null;
+    if (l1 && "l2Processes" in l1) {
+      const found = l1.l2Processes.find((x) => x.id === l2Id);
+      if (found) return found;
+    }
+    const fromMock = findL2Node(mockArchitectureData, l2Id);
+    return fromMock?.l2 || null;
+  }, [l1, l2Id]);
+
+  const mockL2 = useMemo(() => {
+    if (!l2Id) return null;
+    const fromMock = findL2Node(mockArchitectureData, l2Id);
+    return fromMock?.l2 || null;
+  }, [l2Id]);
+
+  // Resolve L3
+  const l3 = useMemo(() => {
+    if (!l3Id) return null;
+    if (l2 && "l3Processes" in l2) {
+      const found = l2.l3Processes.find((x) => x.id === l3Id);
+      if (found) return found;
+    }
+    const fromMock = findL3Node(mockArchitectureData, l3Id);
+    return fromMock?.l3 || null;
+  }, [l2, l3Id]);
+
+  const mockL3 = useMemo(() => {
+    if (!l3Id) return null;
+    const fromMock = findL3Node(mockArchitectureData, l3Id);
+    return fromMock?.l3 || null;
+  }, [l3Id]);
+
+  // Resolve L4
+  const l4 = useMemo(() => {
+    if (!l4Id) return null;
+    if (l3 && "l4Tasks" in l3) {
+      const found = l3.l4Tasks.find((x) => x.id === l4Id);
+      if (found) return found;
+    }
+    const fromMock = findL4Node(mockArchitectureData, l4Id);
+    return fromMock?.l4 || null;
+  }, [l3, l4Id]);
+
+  const mockL4 = useMemo(() => {
+    if (!l4Id) return null;
+    const fromMock = findL4Node(mockArchitectureData, l4Id);
+    return fromMock?.l4 || null;
+  }, [l4Id]);
+
+  // Resolve Operational Process
+  const opProcess = useMemo(() => {
+    if (!processId) return null;
+    return getOperationalProcessDetails(mockArchitectureData, processId);
+  }, [processId]);
+
+  const rootLabel = pt ? "Cadeia de Valor" : "Value Chain";
+
+  // Breadcrumbs com navegação completa por toda a árvore
+  const breadcrumbs: BreadcrumbStep[] = useMemo(() => {
+    const crumbs: BreadcrumbStep[] = [
+      { label: rootLabel, onClick: goRoot }
+    ];
+
+    if (l1) {
+      crumbs.push({
+        label: l1DomainName,
+        levelLabel: lvl("l1"),
+        onClick: () => setParams({ l1: l1.id, l2: null, l3: null, l4: null, processId: null })
+      });
+    }
+    if (l2) {
+      crumbs.push({
+        label: l2.name,
+        levelLabel: lvl("l2"),
+        onClick: () => setParams({ l1: l1?.id || null, l2: l2.id, l3: null, l4: null, processId: null })
+      });
+    }
+    if (l3) {
+      crumbs.push({
+        label: l3.name,
+        levelLabel: lvl("l3"),
+        onClick: () => setParams({ l1: l1?.id || null, l2: l2?.id || null, l3: l3.id, l4: null, processId: null })
+      });
+    }
+    if (l4) {
+      crumbs.push({
+        label: l4.name,
+        levelLabel: lvl("l4"),
+        onClick: () => setParams({ l1: l1?.id || null, l2: l2?.id || null, l3: l3?.id || null, l4: l4.id, processId: null })
+      });
+    }
+    if (opProcess) {
+      crumbs.push({
+        label: opProcess.name,
+        levelLabel: pt ? "Processo" : "Process",
+        onClick: () => {}
+      });
+    }
+
+    return crumbs;
+  }, [l1, l1DomainName, l2, l3, l4, opProcess, pt, lvl]);
 
   return (
     <div className="w-full">
-      <DrilldownBreadcrumb
-        level={level}
-        l1={l1}
-        l2={l2}
-        onGoRoot={goRoot}
-      />
-
       <AnimatePresence mode="wait">
         <motion.div
-          key={level + (l1?.id || "") + (l2?.id || "")}
-          initial={{ opacity: 0, scale: 0.985 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.015 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
+          key={(processId || "") + (l4Id || "") + (l3Id || "") + (l2Id || "") + (l1Id || "root")}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
         >
-          {level === "l1" && (
-            <L1ValueChainView
-              l1Processes={l1Processes}
-              onSelectL2={(l1Id2, l2Id2) =>
-                setParams({ l1: l1Id2, l2: l2Id2, l3: null })
-              }
-              onGenerateAI={onGenerateAI}
+          {/* 1. VISÃO DO PROCESSO OPERACIONAL */}
+          {opProcess ? (
+            <OperationalProcessView
+              processDetail={opProcess}
+              breadcrumbs={breadcrumbs}
             />
-          )}
-          {level === "l2detail" && l1 && l2 && (
-            <L2DetailView l1={l1} l2Id={l2.id} />
+          ) : l4 ? (
+            /* 2. FICHA DE ESCOPO L4 (IMEDIATAMENTE ACIMA DO PROCESSO OPERACIONAL) */
+            (() => {
+              const processes: ChildComponentCard[] = (mockL4?.processes || []).map((p) => ({
+                id: p.id,
+                name: p.name,
+                description: p.description,
+                levelKey: "process",
+                levelLabel: pt ? "Processo" : "Process",
+                isOperationalProcess: true,
+                bpmnAvailable: true,
+                statsText: pt ? "BPMN disponível · SOP vinculado" : "BPMN available · SOP linked",
+                onClick: () => {
+                  console.log("Processo clicado:", p);
+                  setSelectedProcessForAction(p as any);
+                },
+              }));
+
+              if (processes.length === 0) {
+                processes.push({
+                  id: "proc-qualificar-b2b",
+                  name: "Qualificar Oportunidade B2B",
+                  description: "BPMN disponível · 5 atividades · 4 sistemas · exceções modeladas.",
+                  levelKey: "process",
+                  levelLabel: pt ? "Processo" : "Process",
+                  isOperationalProcess: true,
+                  bpmnAvailable: true,
+                  statsText: pt ? "BPMN disponível · SOP-042" : "BPMN available · SOP-042",
+                  onClick: () => setSelectedProcessForAction({ id: "proc-qualificar-b2b", name: "Qualificar Oportunidade B2B", description: "BPMN disponível · 5 atividades · 4 sistemas · exceções modeladas." } as any),
+                });
+                processes.push({
+                  id: "proc-requalificar-inativo",
+                  name: "Requalificar Oportunidade Inativa",
+                  description: "BPMN disponível · 7 atividades · 3 sistemas · 1 exceção.",
+                  levelKey: "process",
+                  levelLabel: pt ? "Processo" : "Process",
+                  isOperationalProcess: true,
+                  bpmnAvailable: true,
+                  statsText: pt ? "BPMN disponível · SOP-043" : "BPMN available · SOP-043",
+                  onClick: () => setSelectedProcessForAction({ id: "proc-requalificar-inativo", name: "Requalificar Oportunidade Inativa", description: "BPMN disponível · 7 atividades · 3 sistemas · 1 exceção." } as any),
+                });
+              }
+
+              return (
+                <ScopeContextSheet
+                  id={l4.id}
+                  name={l4.name}
+                  description={mockL4?.description || ("description" in l4 ? (l4 as any).description : "") || "Unidade arquitetural de execução que agrupa os processos operacionais de avaliação e decisão."}
+                  levelKey="l4"
+                  code={"code" in l4 ? (l4 as any).code : undefined}
+                  breadcrumbs={breadcrumbs}
+                  responsible={mockL4?.responsibleDetail || ("responsible" in l4 ? (l4 as any).responsible : undefined) || "Liderança de SDR"}
+                  businessUnit={mockL4?.businessUnit || ("businessUnit" in l4 ? (l4 as any).businessUnit : undefined) || "Diretoria Comercial"}
+                  dimensioning={mockL4?.dimensioning || { allocatedFte: 1, unit: "FTE", referenceDate: "14 set 2026", validationStatus: "validado" }}
+                  lastUpdate={mockL4?.lastUpdate || "14 de Setembro de 2026"}
+                  validationPercent={mockL4?.contextValidationPercent || 80}
+                  objective={mockL4?.objective || "Assegurar que somente oportunidades com potencial comprovado avancem para o time de vendas."}
+                  valueProposition={mockL4?.valueProposition || "Uma decisão de encaminhamento rápida, rastreável e baseada em critérios consistentes."}
+                  scopeBoundary={mockL4?.scopeBoundary || "Recebe leads priorizados; interage com SDR, Marketing e Executivos de Conta; entrega encaminhamento qualificado."}
+                  stakeholders={mockL4?.stakeholders || "SDR, Executivos de Contas, Marketing, Liderança de Vendas"}
+                  centralMapType="leaf_parent"
+                  childrenComponents={processes}
+                  policies={mockL4?.policies || [
+                    { id: "pol-1", name: "Política Comercial Corporativa", type: "Política Interna", version: "Rev. 2026", status: "vigente", complianceStatus: "conforme" },
+                    { id: "pol-2", name: "LGPD — Tratamento de Dados Comerciais", type: "Norma Regulatória", version: "v2.1", status: "vigente", complianceStatus: "conforme" }
+                  ]}
+                  indicators={[
+                    { name: "SLA de Primeiro Contato", currentValue: "4h", target: "6h", status: "dentro_da_meta" },
+                    { name: "Taxa de Qualificação", currentValue: "42%", target: "48%", status: "atencao" }
+                  ]}
+                  systems={["CRM Salesforce", "HubSpot", "Apollo.io", "Google Calendar"]}
+                  painPoints={[
+                    "Motivos de perda preenchidos de forma inconsistente no CRM",
+                    "Informações de contexto não chegam ao Executivo de Contas"
+                  ]}
+                />
+              );
+            })()
+          ) : l3 ? (
+            /* 3. FICHA DE ESCOPO L3 */
+            (() => {
+              const childL4s: ChildComponentCard[] = [];
+              const isProc = !hasLevel("l4");
+
+              if ("childrenL4" in l3 && l3.childrenL4) {
+                l3.childrenL4.forEach((c) => {
+                  childL4s.push({
+                    id: c.id,
+                    name: c.name,
+                    description: c.description || (isProc ? (pt ? "Processo Operacional" : "Operational Process") : (pt ? `${c.processes?.length || 0} processos vinculados` : `${c.processes?.length || 0} processes linked`)),
+                    levelKey: isProc ? "process" : "l4",
+                    levelLabel: isProc ? (pt ? "Processo" : "Process") : lvl("l4"),
+                    isOperationalProcess: isProc,
+                    bpmnAvailable: isProc,
+                    statsText: isProc ? (pt ? "BPMN disponível · SOP vinculado" : "BPMN available · SOP linked") : (pt ? `${c.processes?.length || 0} processos operacionais` : `${c.processes?.length || 0} operational processes`),
+                    onClick: () => {
+                      if (isProc) {
+                        setSelectedProcessForAction(c as any);
+                      } else {
+                        setParams({ l1: l1Id, l2: l2Id, l3: l3.id, l4: c.id });
+                      }
+                    },
+                  });
+                });
+              } else if ("l4Tasks" in l3 && (l3 as any).l4Tasks) {
+                (l3 as any).l4Tasks.forEach((t: any) => {
+                  childL4s.push({
+                    id: t.id,
+                    name: t.name,
+                    description: t.description,
+                    levelKey: isProc ? "process" : "l4",
+                    levelLabel: isProc ? (pt ? "Processo" : "Process") : lvl("l4"),
+                    isOperationalProcess: isProc,
+                    bpmnAvailable: isProc,
+                    statsText: isProc ? (pt ? "BPMN disponível · SOP vinculado" : "BPMN available · SOP linked") : lvl("l4"),
+                    onClick: () => {
+                      if (isProc) {
+                        setSelectedProcessForAction(t as any);
+                      } else {
+                        setParams({ l1: l1Id, l2: l2Id, l3: l3.id, l4: t.id });
+                      }
+                    },
+                  });
+                });
+              }
+
+              return (
+                <ScopeContextSheet
+                  id={l3.id}
+                  name={l3.name}
+                  description={mockL3?.description || ("description" in l3 ? (l3 as any).description : "") || "Avalia aderência, contexto e prontidão do lead para definir o encaminhamento comercial mais adequado."}
+                  levelKey="l3"
+                  code={"code" in l3 ? (l3 as any).code : undefined}
+                  breadcrumbs={breadcrumbs}
+                  responsible={mockL3?.responsibleDetail || ("responsible" in l3 ? (l3 as any).responsible : undefined) || "Coordenação de SDR"}
+                  businessUnit={mockL3?.businessUnit || ("businessUnit" in l3 ? (l3 as any).businessUnit : undefined) || "Diretoria Comercial"}
+                  dimensioning={mockL3?.dimensioning || { allocatedFte: 2, unit: "FTE", referenceDate: "14 set 2026", validationStatus: "validado" }}
+                  lastUpdate={mockL3?.lastUpdate || "14 de Setembro de 2026"}
+                  validationPercent={mockL3?.contextValidationPercent || 70}
+                  objective={mockL3?.objective || "Confirmar aderência ao perfil, necessidade, urgência e autoridade para avançar a oportunidade."}
+                  valueProposition={mockL3?.valueProposition || "Dar ao time comercial uma oportunidade contextualizada, com próximo passo claro e dados consistentes."}
+                  startCondition={mockL3?.startCondition || "Lead priorizado disponível para contato."}
+                  endCondition={mockL3?.endCondition || "Reunião agendada, oportunidade desqualificada ou enviada à nutrição."}
+                  scopeBoundary={mockL3?.scopeBoundary}
+                  stakeholders={mockL3?.stakeholders || "SDR, Marketing, Executivos de Contas (AE)"}
+                  centralMapType="intermediate"
+                  childrenComponents={childL4s}
+                  explicitRelations={mockL3?.explicitRelations || []}
+                  policies={mockL3?.policies || [
+                    { id: "pol-1", name: "Política Comercial Corporativa", type: "Política Interna", version: "Rev. 2026", status: "vigente", complianceStatus: "conforme" },
+                    { id: "pol-2", name: "Política de Privacidade e LGPD", type: "Norma Regulatória", version: "v2.1", status: "vigente", complianceStatus: "conforme" }
+                  ]}
+                  indicators={[
+                    { name: "Tempo até primeiro contato", currentValue: "4h", target: "6h", status: "dentro_da_meta" },
+                    { name: "Taxa de qualificação", currentValue: "42%", target: "48%", status: "atencao" },
+                    { name: "Show rate de demonstração", currentValue: "78%", target: "75%", status: "dentro_da_meta" }
+                  ]}
+                  systems={["CRM Salesforce", "Google Calendar", "HubSpot", "Apollo.io"]}
+                  evidences={["Regra BANT confirmada pelo Process Owner", "Integração CRM/agenda observada"]}
+                  openQuestions={["Critério de priorização para contas estratégicas fora do expediente comercial"]}
+                />
+              );
+            })()
+          ) : l2 ? (
+            /* 4. FICHA DE ESCOPO L2 */
+            (() => {
+              const childL3s: ChildComponentCard[] = [];
+              const isProc = !hasLevel("l3");
+
+              if ("childrenL3" in l2 && l2.childrenL3) {
+                l2.childrenL3.forEach((c) => {
+                  childL3s.push({
+                    id: c.id,
+                    name: c.name,
+                    description: c.description || (isProc ? (pt ? "Processo Operacional" : "Operational Process") : (pt ? `${c.childrenL4?.length || 0} componentes ${lvl("l4")}` : `${c.childrenL4?.length || 0} ${lvl("l4")} components`)),
+                    levelKey: isProc ? "process" : "l3",
+                    levelLabel: isProc ? (pt ? "Processo" : "Process") : lvl("l3"),
+                    isOperationalProcess: isProc,
+                    bpmnAvailable: isProc,
+                    statsText: isProc ? (pt ? "BPMN disponível · SOP vinculado" : "BPMN available · SOP linked") : (pt ? `${c.childrenL4?.length || 0} ${lvl("l4")}` : `${c.childrenL4?.length || 0} ${lvl("l4")}`),
+                    onClick: () => {
+                      if (isProc) {
+                        setSelectedProcessForAction(c as any);
+                      } else {
+                        setParams({ l1: l1Id, l2: l2.id, l3: c.id, l4: null });
+                      }
+                    },
+                  });
+                });
+              } else if ("l3Processes" in l2 && (l2 as any).l3Processes) {
+                (l2 as any).l3Processes.forEach((p: any) => {
+                  childL3s.push({
+                    id: p.id,
+                    name: p.name,
+                    description: p.description,
+                    levelKey: isProc ? "process" : "l3",
+                    levelLabel: isProc ? (pt ? "Processo" : "Process") : lvl("l3"),
+                    isOperationalProcess: isProc,
+                    bpmnAvailable: isProc,
+                    statsText: isProc ? (pt ? "BPMN disponível · SOP vinculado" : "BPMN available · SOP linked") : (pt ? `${p.l4Tasks?.length || 0} ${lvl("l4")}` : `${p.l4Tasks?.length || 0} ${lvl("l4")}`),
+                    onClick: () => {
+                      if (isProc) {
+                        setSelectedProcessForAction(p as any);
+                      } else {
+                        setParams({ l1: l1Id, l2: l2.id, l3: p.id, l4: null });
+                      }
+                    },
+                  });
+                });
+              }
+
+              return (
+                <ScopeContextSheet
+                  id={l2.id}
+                  name={l2.name}
+                  description={mockL2?.description || ("description" in l2 ? (l2 as any).description : "") || "Geração de demanda, prospecção ativa e qualificação de oportunidades comerciais."}
+                  levelKey="l2"
+                  code={"code" in l2 ? (l2 as any).code : undefined}
+                  breadcrumbs={breadcrumbs}
+                  responsible={mockL2?.responsibleDetail || ("responsible" in l2 ? (l2 as any).responsible : undefined) || "Gerência de Novos Negócios"}
+                  businessUnit={mockL2?.businessUnit || ("businessUnit" in l2 ? (l2 as any).businessUnit : undefined) || "Diretoria Comercial"}
+                  dimensioning={mockL2?.dimensioning || { allocatedFte: 3, unit: "FTE", referenceDate: "14 set 2026", validationStatus: "validado" }}
+                  lastUpdate={mockL2?.lastUpdate || "14 de Setembro de 2026"}
+                  validationPercent={mockL2?.contextValidationPercent || 65}
+                  objective={mockL2?.objective || "Transformar sinais de mercado em oportunidades qualificadas, priorizadas e prontas para abordagem."}
+                  valueProposition={mockL2?.valueProposition || "Entregar oportunidades com aderência ao perfil ideal, contexto suficiente e velocidade de encaminhamento."}
+                  startCondition={mockL2?.startCondition || "Campanha, sinal de intenção, indicação, evento ou lista de contas priorizadas disponível."}
+                  endCondition={mockL2?.endCondition || "Oportunidade qualificada encaminhada, descartada com motivo ou direcionada para nutrição."}
+                  inputs={mockL2?.inputs || "ICP, listas de contas, dados de enriquecimento, respostas de campanhas."}
+                  outputs={mockL2?.outputs || "Lead qualificado, reunião agendada, registro atualizado no CRM."}
+                  stakeholders={mockL2?.stakeholders || "SDR, Executivo de Contas e Marketing"}
+                  centralMapType="intermediate"
+                  childrenComponents={childL3s}
+                  explicitRelations={mockL2?.explicitRelations || [
+                    { id: "rel-1", sourceProcessId: "Geração e Enriquecimento", targetProcessId: "Qualificação e Agendamento", type: "fornece_entrada_para", description: "Geração e Enriquecimento fornece entrada para Qualificação", validationStatus: "validated", confidence: 92 }
+                  ]}
+                  policies={mockL2?.policies || [
+                    { id: "pol-1", name: "Política Comercial Corporativa", type: "Política Interna", version: "Rev. 2026", status: "vigente", complianceStatus: "conforme" },
+                    { id: "pol-2", name: "LGPD — Governança de Dados Comerciais", type: "Norma Regulatória", version: "v2.1", status: "vigente", complianceStatus: "conforme" }
+                  ]}
+                  indicators={[
+                    { name: "SLA de Fechamento", currentValue: "92%", target: "95%", status: "atencao" },
+                    { name: "Tempo Médio de Ciclo", currentValue: "18 dias", target: "15 dias", status: "atencao" },
+                    { name: "Taxa de Conversão", currentValue: "34%", target: "30%", status: "dentro_da_meta" }
+                  ]}
+                  systems={["CRM Salesforce", "HubSpot Marketing", "Apollo.io"]}
+                  painPoints={[
+                    "Dados incompletos na passagem Marketing → SDR",
+                    "Priorizações manuais sem critério consolidado",
+                    "Oportunidade: enriquecimento e roteamento automatizados"
+                  ]}
+                />
+              );
+            })()
+          ) : l1 ? (
+            /* 5. FICHA DE ESCOPO L1 (DOMÍNIO) */
+            (() => {
+              const childL2s: ChildComponentCard[] = [];
+              if ("childrenL2" in l1 && l1.childrenL2) {
+                l1.childrenL2.forEach((c) => {
+                  childL2s.push({
+                    id: c.id,
+                    name: c.name,
+                    description: c.description || (pt ? `${c.childrenL3?.length || 0} componentes ${lvl("l3")}` : `${c.childrenL3?.length || 0} ${lvl("l3")} components`),
+                    levelKey: "l2",
+                    levelLabel: lvl("l2"),
+                    statsText: pt ? `${c.childrenL3?.length || 0} ${lvl("l3")}` : `${c.childrenL3?.length || 0} ${lvl("l3")}`,
+                    onClick: () => setParams({ l1: l1.id, l2: c.id, l3: null, l4: null }),
+                  });
+                });
+              } else if ("l2Processes" in l1 && (l1 as any).l2Processes) {
+                (l1 as any).l2Processes.forEach((p: any) => {
+                  childL2s.push({
+                    id: p.id,
+                    name: p.name,
+                    description: p.description,
+                    levelKey: "l2",
+                    levelLabel: lvl("l2"),
+                    statsText: pt ? `${p.l3Processes?.length || 0} ${lvl("l3")}` : `${p.l3Processes?.length || 0} ${lvl("l3")}`,
+                    onClick: () => setParams({ l1: l1.id, l2: p.id, l3: null, l4: null }),
+                  });
+                });
+              }
+
+              return (
+                <ScopeContextSheet
+                  id={l1.id}
+                  name={l1DomainName}
+                  description={mockDomain?.description || ("description" in l1 ? (l1 as any).description : "") || "Orquestra a geração de receita, da prospecção ao sucesso do cliente."}
+                  levelKey="l1"
+                  code={"code" in l1 ? (l1 as any).code : undefined}
+                  breadcrumbs={breadcrumbs}
+                  responsible={mockDomain?.responsibleDetail || ("responsible" in l1 ? (l1 as any).responsible : undefined) || "Mariana Vasconcelos"}
+                  businessUnit={mockDomain?.businessUnit || ("businessUnit" in l1 ? (l1 as any).businessUnit : undefined) || "Divisão Corporativa"}
+                  dimensioning={mockDomain?.dimensioning || { allocatedFte: 4, unit: "FTE", referenceDate: "14 set 2026", validationStatus: "validado" }}
+                  lastUpdate={mockDomain?.lastUpdate || "14 de Setembro de 2026"}
+                  validationPercent={mockDomain?.contextValidationPercent || 75}
+                  objective={mockDomain?.objective || "Gerar receita sustentável, conectando demanda, conversão e retenção de clientes corporativos."}
+                  valueProposition={mockDomain?.valueProposition || "Uma jornada comercial previsível, consultiva e integrada, com experiência consistente."}
+                  scopeBoundary={mockDomain?.scopeBoundary || "Da geração e qualificação de oportunidades até a ativação e evolução da base de clientes."}
+                  stakeholders={mockDomain?.stakeholders || "Entradas: demanda de mercado, dados de ICP, leads. Saídas: oportunidades qualificadas, contratos, receita."}
+                  centralMapType="superior"
+                  childrenComponents={childL2s}
+                  explicitRelations={mockDomain?.explicitRelations || [
+                    { id: "rel-1", sourceProcessId: "Prospecção e Qualificação", targetProcessId: "Negociação e Fechamento", type: "fornece_entrada_para", description: "Prospecção fornece oportunidade qualificada para Negociação", validationStatus: "validated", confidence: 95 },
+                    { id: "rel-2", sourceProcessId: "Negociação e Fechamento", targetProcessId: "Pós-Venda e Sucesso", type: "fornece_entrada_para", description: "Negociação fornece contrato e contexto para Pós-Venda", validationStatus: "validated", confidence: 90 }
+                  ]}
+                  policies={mockDomain?.policies || [
+                    { id: "pol-1", name: "Política Comercial Corporativa", type: "Política Interna", version: "Rev. 2026", status: "vigente", complianceStatus: "conforme", reviewDueDate: "Dez/2026", responsible: "Compliance Comercial" },
+                    { id: "pol-2", name: "LGPD — Governança de Dados Comerciais", type: "Norma Regulatória", version: "v2.1", status: "vigente", complianceStatus: "conforme", reviewDueDate: "Nov/2026", responsible: "DPO" }
+                  ]}
+                  indicators={[
+                    { name: "SLA de Fechamento", currentValue: "92%", target: "95%", status: "atencao" },
+                    { name: "Tempo Médio de Ciclo", currentValue: "18 dias", target: "15 dias", status: "atencao" },
+                    { name: "Taxa de Conversão", currentValue: "34%", target: "30%", status: "dentro_da_meta" }
+                  ]}
+                  systems={["CRM Salesforce", "HubSpot", "Apollo.io", "Google Calendar"]}
+                />
+              );
+            })()
+          ) : (
+            /* 6. NÍVEL RAIZ — VISÃO ESTRUTURAL DA CADEIA DE VALOR */
+            <div className="w-full space-y-4">
+              <ValueChainSummaryBar />
+
+              {/* Cadeia de Valor */}
+              <L1ValueChainView
+                l1Processes={l1Processes}
+                onSelectL1={(l1Id2) => setParams({ l1: l1Id2, l2: null, l3: null, l4: null, processId: null })}
+                onSelectL2={(l1Id2, l2Id2) => setParams({ l1: l1Id2, l2: l2Id2, l3: null, l4: null, processId: null })}
+                onGenerateAI={onGenerateAI}
+              />
+            </div>
           )}
         </motion.div>
       </AnimatePresence>
+      <ProcessActionDialog
+        open={!!selectedProcessForAction}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setSelectedProcessForAction(null);
+        }}
+        process={selectedProcessForAction}
+        onViewDetail={(procId) => {
+          setSelectedProcessForAction(null);
+          navigate(`/processes/${procId}`);
+        }}
+        onViewConnectionMap={(proc) => {
+          setSelectedProcessForAction(null);
+          setConnectionMapProcess({
+            id: proc.id,
+            name: proc.name,
+            domain: proc.l1 || (l1 ? (language === "PT" ? l1.namePT : l1.nameEN) : (language === "PT" ? mockDomain?.namePT : mockDomain?.nameEN) || "Domain"),
+          });
+        }}
+      />
+
+      {connectionMapProcess && (
+        <ProcessConnectionMapModal
+          open={!!connectionMapProcess}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setConnectionMapProcess(null);
+          }}
+          initialProcessId={connectionMapProcess.id}
+          initialProcessName={connectionMapProcess.name}
+          initialDomain={connectionMapProcess.domain}
+          onNavigateToProcess={(procId) => {
+            setConnectionMapProcess(null);
+            navigate(`/processes/${procId}`);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -134,11 +631,13 @@ function DrilldownBreadcrumb({
   l1,
   l2,
   onGoRoot,
+  onGoL1,
 }: {
-  level: "l1" | "l2detail";
+  level: "l1" | "l1detail" | "l2detail";
   l1: L1Process | null;
   l2?: L2Process | null;
   onGoRoot: () => void;
+  onGoL1: () => void;
 }) {
   const { language } = useLanguage();
   const rootLabel = language === "PT" ? "Cadeia de Valor" : "Value Chain";
@@ -173,8 +672,9 @@ function DrilldownBreadcrumb({
             <span
               className={cn(
                 "flex items-center gap-1.5",
-                l2 ? "text-[#A5A7B0]" : "text-[#272727] font-semibold"
+                l2 ? "text-[#A5A7B0] hover:text-[#0C1BA8] cursor-pointer" : "text-[#272727] font-semibold cursor-default"
               )}
+              onClick={l2 ? onGoL1 : undefined}
             >
               <LevelChip level="L1" />
               <span className="truncate max-w-[220px]">{getL1Name(l1)}</span>
@@ -301,10 +801,12 @@ function Dot() {
 // ============================================================
 function L1ValueChainView({
   l1Processes,
+  onSelectL1,
   onSelectL2,
   onGenerateAI,
 }: {
   l1Processes: L1Process[];
+  onSelectL1: (l1Id: string) => void;
   onSelectL2: (l1Id: string, l2Id: string) => void;
   onGenerateAI: (option: "full" | "existing" | "new", targetL1Id?: string, newE2EName?: string) => void;
 }) {
@@ -337,27 +839,25 @@ function L1ValueChainView({
             <button
               key={l2.id}
               onClick={() => onSelectL2(l1.id, l2.id)}
-              className="text-left rounded-sm border border-[#A5A7B0]/30 bg-white px-2.5 py-2 transition-colors hover:border-[#0C1BA8] hover:bg-[#c9dcf2]/30"
+              className="text-left rounded-sm border border-[#DFE5EF] bg-white px-2.5 py-2 transition-all hover:border-[#1327B9] hover:shadow-[0_2px_8px_rgba(19,39,185,0.08)] group"
             >
-              <span className="block text-[12px] font-medium leading-snug text-[#272727] break-words">
+              <span className="block text-[12px] font-medium leading-snug text-[#272727] break-words group-hover:text-[#1327B9]">
                 {l2.name}
               </span>
-              <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-[#A5A7B0]">
-                <span className="inline-block rounded-[2px] bg-[#c9dcf2]/60 px-1 py-[1px] text-[9px] font-semibold uppercase tracking-wide leading-none text-[#0C1BA8]">
-                  {lvl("l2")}
+              <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-[#71809A]">
+                <span className="inline-block rounded-[2px] bg-[#EFE8FF] px-1 py-[1px] text-[9px] font-bold uppercase tracking-wide leading-none text-[#6633D0]">
+                  {lvl("l2")} · {language === "PT" ? "composição" : "composition"}
                 </span>
                 {c.l3 > 0 && maxLevel >= 3 && <span>{c.l3} {lvl("l3")}</span>}
                 {c.l3 > 0 && maxLevel >= 3 && <span className="opacity-60">·</span>}
-                <span className={cn(c.processes > 0 && "text-[#0C1BA8] font-semibold")}>
-                  {c.processes} proc.
+                <span className={cn(c.processes > 0 && "text-[#1327B9] font-semibold")}>
+                  {c.processes} {language === "PT" ? "proc." : "proc."}
                 </span>
               </span>
             </button>
           );
         })}
       </div>
-
-
     );
   };
 
@@ -481,7 +981,7 @@ function L1ValueChainView({
             className="rounded-sm bg-[#0C1BA8] hover:bg-[#04223D] text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
-            {language === "PT" ? "Adicionar End to End" : "Add End to End"}
+            {language === "PT" ? "Criar jornada E2E" : "Create E2E Journey"}
           </Button>
         </div>
       </div>
@@ -490,10 +990,10 @@ function L1ValueChainView({
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-[11px] font-bold text-[#A5A7B0] uppercase tracking-wider">
-            {language === "PT" ? "Atividades de Suporte" : "Support Activities"}
+            {language === "PT" ? "Domínios de suporte" : "Support Domains"}
           </span>
           <span className="text-[11px] text-[#A5A7B0]/70">
-            {support.length} {language === "PT" ? "grupos" : "groups"}
+            {support.length} {language === "PT" ? "domínios" : "domains"}
           </span>
         </div>
         {support.length > 0 ? (
@@ -505,8 +1005,9 @@ function L1ValueChainView({
               return (
                 <div key={l1.id} className="w-full">
                   <div className="group relative w-full">
-                    <div
-                      className="w-full text-left bg-[#0C1BA8] transition-colors duration-150 flex items-center gap-3"
+                    <button
+                      onClick={() => onSelectL1(l1.id)}
+                      className="w-full text-left bg-[#0C1BA8] hover:bg-[#04223D] transition-colors duration-150 flex items-center gap-3 cursor-pointer"
                       style={{
                         clipPath,
                         WebkitClipPath: clipPath,
@@ -514,27 +1015,31 @@ function L1ValueChainView({
                         paddingRight: 32,
                         paddingTop: 8,
                         paddingBottom: 8,
-                        minHeight: 40,
+                        minHeight: 52,
                       }}
                     >
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-white/20 text-white uppercase tracking-wide shrink-0">
                         {lvl("l1")}
                       </span>
-                      <h4 className="font-medium text-[13px] leading-tight text-white flex-1 min-w-0 break-words">
-                        {getName(l1)}
-                      </h4>
-                      <div className="hidden md:flex items-center gap-x-2 text-[11px] text-white/75 shrink-0">
-                        {c.l2 > 0 && <span>{c.l2} {lvl("l2")}</span>}
-                        {c.l2 > 0 && c.l3 > 0 && <span className="opacity-60">·</span>}
-                        {c.l3 > 0 && maxLevel >= 3 && <span>{c.l3} {lvl("l3")}</span>}
-                        {c.l3 > 0 && c.l4 > 0 && maxLevel >= 4 && <span className="opacity-60">·</span>}
-                        {c.l4 > 0 && maxLevel >= 4 && <span>{c.l4} {lvl("l4")}</span>}
-                        {(c.l2 > 0 || c.l3 > 0 || c.l4 > 0) && <span className="opacity-60">·</span>}
-                        <span className={cn(c.processes > 0 ? "font-semibold text-white" : "text-white/75")}>
-                          {c.processes} {language === "PT" ? "proc." : "proc."}
-                        </span>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-[13px] leading-tight text-white truncate mb-1">
+                          {getName(l1)}
+                        </h4>
+                        <div className="flex items-center gap-x-2 text-[11px] text-white/75 truncate">
+                          {c.l2 > 0 && <span>{c.l2} {lvl("l2")}</span>}
+                          {c.processes > 0 && <span className="font-semibold text-white">· {c.processes} proc.</span>}
+                          <span className="opacity-60 truncate">
+                            {(() => {
+                              const md = mockArchitectureData.domainsL1.find(d => d.id === l1.id || d.name === getName(l1));
+                              if (!md) return null;
+                              const ind = getBusinessIndicatorsByDomain(mockArchitectureData, md.id)[0];
+                              const sysCount = md.childrenL2.reduce((acc, l2) => acc + l2.childrenL3.reduce((a, l3) => a + l3.childrenL4.reduce((b, l4) => b + l4.processes.reduce((c, p) => c + p.systemsUsed.length, 0), 0), 0), 0);
+                              return ` · ${sysCount} sistemas ${ind ? ` · KPI: ${ind.currentValue}` : ''}`;
+                            })()}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    </button>
                     <div
                       className="absolute top-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ right: notch + 6 }}
@@ -558,10 +1063,10 @@ function L1ValueChainView({
       <section>
         <div className="flex items-center gap-2 mb-3">
           <span className="text-[11px] font-bold text-[#A5A7B0] uppercase tracking-wider">
-            {language === "PT" ? "Atividades Primárias" : "Primary Activities"}
+            {language === "PT" ? "Domínios primários" : "Primary Domains"}
           </span>
           <span className="text-[11px] text-[#A5A7B0]/70">
-            {primary.length} {language === "PT" ? "grupos" : "groups"}
+            {primary.length} {language === "PT" ? "domínios" : "domains"}
           </span>
         </div>
         {primary.length > 0 ? (
@@ -580,8 +1085,9 @@ function L1ValueChainView({
                   style={{ marginLeft: isFirst ? 0 : -notch + 2 }}
                 >
                   <div className="group relative">
-                    <div
-                      className="w-full text-left bg-[#0C1BA8] transition-colors duration-150 flex flex-col justify-center"
+                    <button
+                      onClick={() => onSelectL1(l1.id)}
+                      className="w-full text-left bg-[#0C1BA8] hover:bg-[#04223D] transition-colors duration-150 flex flex-col justify-center cursor-pointer"
                       style={{
                         clipPath,
                         WebkitClipPath: clipPath,
@@ -589,7 +1095,7 @@ function L1ValueChainView({
                         paddingRight: 32,
                         paddingTop: 14,
                         paddingBottom: 14,
-                        minHeight: 88,
+                        minHeight: 96,
                       }}
                     >
                       <div className="flex items-center gap-1.5 mb-1">
@@ -597,17 +1103,25 @@ function L1ValueChainView({
                           {lvl("l1")}
                         </span>
                       </div>
-                      <h4 className="font-medium text-sm leading-tight text-white break-words">
+                      <h4 className="font-medium text-sm leading-tight text-white truncate">
                         {getName(l1)}
                       </h4>
-                      <div className="mt-1.5 flex items-center flex-wrap gap-x-2 text-[11px] text-white/75">
-                        {c.l2 > 0 && <span>{c.l2} {lvl("l2")}</span>}
-                        {c.l2 > 0 && c.processes >= 0 && <span className="opacity-60">·</span>}
-                        <span className={cn(c.processes > 0 ? "font-semibold text-white" : "text-white/75")}>
-                          {c.processes} {language === "PT" ? "processos" : "processes"}
-                        </span>
+                      <div className="mt-1 flex flex-col gap-1 text-[11px] text-white/75">
+                        <div className="flex items-center gap-x-2 truncate">
+                          {c.l2 > 0 && <span>{c.l2} {lvl("l2")}</span>}
+                          {c.processes > 0 && <span className="font-semibold text-white">· {c.processes} proc.</span>}
+                        </div>
+                        <div className="opacity-75 truncate">
+                           {(() => {
+                              const md = mockArchitectureData.domainsL1.find(d => d.id === l1.id || d.name === getName(l1));
+                              if (!md) return null;
+                              const ind = getBusinessIndicatorsByDomain(mockArchitectureData, md.id)[0];
+                              const sysCount = md.childrenL2.reduce((acc, l2) => acc + l2.childrenL3.reduce((a, l3) => a + l3.childrenL4.reduce((b, l4) => b + l4.processes.reduce((c, p) => c + p.systemsUsed.length, 0), 0), 0), 0);
+                              return `${sysCount} sistemas ${ind ? ` · KPI: ${ind.currentValue}` : ''}`;
+                            })()}
+                        </div>
                       </div>
-                    </div>
+                    </button>
                     <div
                       className="absolute top-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ right: notch + 6 }}
@@ -832,9 +1346,11 @@ function ChevronContainer({
 function ProcessDrilldown({
   level,
   name,
+  onSelectProcess,
 }: {
   level: "l3" | "l4";
   name: string;
+  onSelectProcess?: (process: ProcessData) => void;
 }) {
   const { language } = useLanguage();
   const navigate = useNavigate();
@@ -845,32 +1361,83 @@ function ProcessDrilldown({
 
   if (list.length === 0) {
     return (
-      <div className="text-center py-3 rounded-sm border border-dashed border-[#A5A7B0]/40 text-[#A5A7B0] text-xs">
+      <div className="w-full text-center py-3 rounded-sm border border-dashed border-[#A5A7B0]/40 text-[#A5A7B0] text-xs">
         {language === "PT" ? "Nenhum processo cadastrado" : "No process registered"}
       </div>
     );
   }
 
   return (
-    <div className="grid gap-1.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
+    <div className="w-full flex flex-col gap-1.5">
       {list.map((p) => (
         <button
           key={p.id}
-          onClick={() => navigate(`/processes/${p.id}`)}
-          className="text-left rounded-sm border border-[#A5A7B0]/30 bg-white hover:border-[#0C1BA8] transition-colors px-2.5 py-2"
+          type="button"
+          onClick={() => {
+            if (onSelectProcess) {
+              onSelectProcess(p);
+            } else {
+              navigate(`/processes/${p.id}`);
+            }
+          }}
+          className="w-full text-left rounded-md border border-[#A5A7B0]/30 bg-white hover:border-[#0C1BA8] hover:bg-slate-50/70 hover:shadow-xs transition-all px-2.5 py-2 group/item cursor-pointer block"
         >
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-[9px] font-bold px-1 py-0.5 rounded-sm bg-[#EEF0FF] text-[#0C1BA8] uppercase tracking-wide">
-              {language === "PT" ? "Processo" : "Process"}
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#EEF0FF] text-[#0C1BA8] uppercase tracking-wide">
+                {language === "PT" ? "Processo" : "Process"}
+              </span>
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
+                style={{ background: p.hasDocumentation ? "#22c55e" : "#D1D5DB" }}
+                title={p.hasDocumentation ? (language === "PT" ? "Documentado" : "Documented") : (language === "PT" ? "Pendente" : "Pending")}
+              />
+            </div>
+            <span className="text-[10px] text-[#A5A7B0] group-hover/item:text-[#0C1BA8] font-medium transition-colors">
+              {language === "PT" ? "Opções" : "Options"} →
             </span>
-            <span
-              className="inline-block w-1.5 h-1.5 rounded-full"
-              style={{ background: p.hasDocumentation ? "#22c55e" : "#D1D5DB" }}
-            />
           </div>
-          <div className="text-[12px] text-[#272727] leading-tight">{p.name}</div>
+          <div className="text-[12px] font-semibold text-[#272727] group-hover/item:text-[#0C1BA8] leading-tight transition-colors line-clamp-2">
+            {p.name}
+          </div>
         </button>
       ))}
+      {/* Process Action Dialog & Connection Map Modal */}
+      <ProcessActionDialog
+        open={!!selectedProcessForAction}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setSelectedProcessForAction(null);
+        }}
+        process={selectedProcessForAction}
+        onViewDetail={(procId) => {
+          setSelectedProcessForAction(null);
+          navigate(`/processes/${procId}`);
+        }}
+        onViewConnectionMap={(proc) => {
+          setSelectedProcessForAction(null);
+          setConnectionMapProcess({
+            id: proc.id,
+            name: proc.name,
+            domain: proc.l1 || getL1Name(l1 || mockDomain || { namePT: "Domain", nameEN: "Domain" } as any),
+          });
+        }}
+      />
+
+      {connectionMapProcess && (
+        <ProcessConnectionMapModal
+          open={!!connectionMapProcess}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setConnectionMapProcess(null);
+          }}
+          initialProcessId={connectionMapProcess.id}
+          initialProcessName={connectionMapProcess.name}
+          initialDomain={connectionMapProcess.domain}
+          onNavigateToProcess={(procId) => {
+            setConnectionMapProcess(null);
+            navigate(`/processes/${procId}`);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -928,6 +1495,10 @@ function L2DetailView({
   const toggleLeaf = (id: string) =>
     setExpandedLeaf((prev) => ({ ...prev, [id]: !prev[id] }));
 
+  // Process Click Action & Connection Map Modal states
+  const [selectedProcessForAction, setSelectedProcessForAction] = useState<ProcessData | null>(null);
+  const [connectionMapProcess, setConnectionMapProcess] = useState<{ id: string; name: string; domain?: string } | null>(null);
+
   const [deletingL2, setDeletingL2] = useState<L2Process | null>(null);
   const [deletingL3, setDeletingL3] = useState<{ l2Id: string; l3: L3Process } | null>(
     null
@@ -939,6 +1510,28 @@ function L2DetailView({
   } | null>(null);
 
   const getL1Name = (x: L1Process) => (language === "PT" ? x.namePT : x.nameEN);
+
+  const mockDomain = useMemo(() => {
+    return findDomainNode(mockArchitectureData, getL1Name(currentL1)) || findDomainNode(mockArchitectureData, currentL1.id);
+  }, [currentL1, language]);
+
+  const domainProcs = useMemo(() => {
+    const procs: ProcessContextData[] = [];
+    if (mockDomain) {
+      mockDomain.childrenL2.forEach(l2 => l2.childrenL3.forEach(l3 => l3.childrenL4.forEach(l4 => procs.push(...l4.processes))));
+    }
+    return procs;
+  }, [mockDomain]);
+
+  const domainDocPercent = domainProcs.length ? Math.round((domainProcs.filter(p => p.documentationStatus === 'approved').length / domainProcs.length) * 100) : 86;
+  const domainCtxPercent = domainProcs.length ? Math.round((domainProcs.filter(p => p.contextValidationStatus === 'validated').length / domainProcs.length) * 100) : 72;
+  const domainJourneysCount = useMemo(() => {
+    return mockArchitectureData.journeys.filter(j => j.coveredL1.some(d => d.toLowerCase().includes(getL1Name(currentL1).toLowerCase()))).length || 3;
+  }, [currentL1, language]);
+  const domainSystemsCount = useMemo(() => {
+    return getSystemsByDomain(mockArchitectureData, currentL1.id).length || 5;
+  }, [currentL1]);
+  const domainMainKpi = mockDomain?.mainKpi || "92%";
 
   const openProcessesForL4 = (l4Name: string) =>
     navigate(`/processes?l4=${encodeURIComponent(l4Name)}`);
@@ -1136,6 +1729,30 @@ function L2DetailView({
 
   return (
     <div>
+      {/* Ribbon Compacto do Domínio Superior para Preservar o Contexto */}
+      <DomainContextRibbon
+        domainName={getL1Name(currentL1)}
+        domainCategory={currentL1.category}
+        totalProcesses={domainProcs.length || counts.processes}
+        docPercent={domainDocPercent}
+        contextPercent={domainCtxPercent}
+        journeysCount={domainJourneysCount}
+        systemsCount={domainSystemsCount}
+        mainKpiName={language === "PT" ? "SLA Principal" : "Main SLA"}
+        mainKpiValue={domainMainKpi}
+        variant="compact"
+        subLevelTitle={`${lvl("l2")}: ${currentL2.name}`}
+        onNavigateToDomain={() => {
+          const params = new URLSearchParams(window.location.search);
+          params.set('view', 'chain');
+          params.set('l1', currentL1.id);
+          params.delete('l2');
+          params.delete('l3');
+          window.history.pushState(null, '', `?${params.toString()}`);
+          window.dispatchEvent(new Event('popstate'));
+        }}
+      />
+
       <LevelHeader
         chip="L2"
         title={currentL2.name}
@@ -1326,7 +1943,11 @@ function L2DetailView({
                                 </button>
                                 {expandedLeaf[l4.id] && (
                                   <div className="px-2.5 pb-2.5">
-                                    <ProcessDrilldown level="l4" name={l4.name} />
+                                    <ProcessDrilldown
+                                      level="l4"
+                                      name={l4.name}
+                                      onSelectProcess={(p) => setSelectedProcessForAction(p)}
+                                    />
                                   </div>
                                 )}
                                 <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity [&_button]:!text-[#272727] [&_button]:!bg-transparent hover:[&_button]:!bg-black/5">
@@ -1355,7 +1976,11 @@ function L2DetailView({
                         {c3.processes} {language === "PT" ? "processos" : "processes"}
                       </button>
                       {expandedLeaf[l3.id] && (
-                        <ProcessDrilldown level="l3" name={l3.name} />
+                        <ProcessDrilldown
+                          level="l3"
+                          name={l3.name}
+                          onSelectProcess={(p) => setSelectedProcessForAction(p)}
+                        />
                       )}
                     </div>
                   )}
@@ -1366,10 +1991,42 @@ function L2DetailView({
         </>
       )}
 
+      {/* Process Action Dialog & Connection Map Modal */}
+      <ProcessActionDialog
+        open={!!selectedProcessForAction}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setSelectedProcessForAction(null);
+        }}
+        process={selectedProcessForAction}
+        onViewDetail={(procId) => {
+          setSelectedProcessForAction(null);
+          navigate(`/processes/${procId}`);
+        }}
+        onViewConnectionMap={(proc) => {
+          setSelectedProcessForAction(null);
+          setConnectionMapProcess({
+            id: proc.id,
+            name: proc.name,
+            domain: proc.l1 || getL1Name(currentL1),
+          });
+        }}
+      />
 
-
-
-
+      {connectionMapProcess && (
+        <ProcessConnectionMapModal
+          open={!!connectionMapProcess}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setConnectionMapProcess(null);
+          }}
+          initialProcessId={connectionMapProcess.id}
+          initialProcessName={connectionMapProcess.name}
+          initialDomain={connectionMapProcess.domain}
+          onNavigateToProcess={(procId) => {
+            setConnectionMapProcess(null);
+            navigate(`/processes/${procId}`);
+          }}
+        />
+      )}
 
       {/* Modals */}
       <DetailsSidePanel target={detailsTarget} onClose={() => setDetailsTarget(null)} />
@@ -1644,8 +2301,22 @@ function LevelHeader({
               {counts.l3 > 0 && chip !== "L3" && maxLevelHeader >= 3 && <span>{counts.l3} {lvl("l3")}</span>}
               {counts.l4 > 0 && maxLevelHeader >= 4 && <span>{counts.l4} {lvl("l4")}</span>}
               <span className="font-semibold text-[#0C1BA8]">
-                {counts.processes} {language === "PT" ? "processos vinculados" : "linked processes"}
+                {counts.processes} {language === "PT" ? "processos" : "processes"}
               </span>
+              {chip === "L2" && (
+                <>
+                  <span className="text-gray-300">·</span>
+                  <span className="text-blue-700 font-medium">Doc: 80%</span>
+                  <span className="text-gray-300">·</span>
+                  <span className="text-emerald-700 font-medium">{language === "PT" ? "Contexto: 65%" : "Context: 65%"}</span>
+                  <span className="text-gray-300">·</span>
+                  <span className="text-gray-600">3 {language === "PT" ? "sistemas" : "systems"}</span>
+                  <span className="text-gray-300">·</span>
+                  <span className="text-gray-600">2 {language === "PT" ? "jornadas" : "journeys"}</span>
+                  <span className="text-gray-300">·</span>
+                  <span className="text-[#0C1BA8] font-bold">SLA: 91%</span>
+                </>
+              )}
             </div>
           )}
         </div>

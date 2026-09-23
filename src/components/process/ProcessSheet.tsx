@@ -22,8 +22,10 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { buildMockPreMapping } from "@/components/process/PreMappingView";
 import { useTaxonomy } from "@/stores/taxonomyStore";
+import { useProcessConnectionStore } from "@/stores/processConnectionStore";
 
 interface SheetProcess {
+  id?: string;
   name: string;
   area: string;
   description: string;
@@ -32,6 +34,7 @@ interface SheetProcess {
   frequency?: string;
   avgTime?: string;
   owner?: string;
+  supportTeam?: string;
   systems?: string[];
   kpis?: string;
   l1?: string;
@@ -117,14 +120,30 @@ export function ProcessSheet({ process }: { process: SheetProcess }) {
         notes: "—",
       };
 
+  const getPredecessors = useProcessConnectionStore((state) => state.getPredecessors);
+  const getSuccessors = useProcessConnectionStore((state) => state.getSuccessors);
+  
+  // Also subscribe to connections array so the component re-renders if connections change
+  const connections = useProcessConnectionStore((state) => state.connections);
+
+  const predecessors = getPredecessors(process.id || "", process.name);
+  const successors = getSuccessors(process.id || "", process.name);
+
+  const predecessorNames = predecessors.length > 0 
+    ? predecessors.map(p => p.sourceProcessName).join(", ") 
+    : "—";
+    
+  const successorNames = successors.length > 0 
+    ? successors.map(s => s.targetProcessName).join(", ") 
+    : "—";
+
   const fields: { icon: typeof Target; label: string; value: string }[] = [
     { icon: Building2, label: "Business Unit", value: extra.bu },
     { icon: UserSquare2, label: pt ? "Gerência dona" : "Owning management", value: extra.management },
     { icon: CalendarClock, label: pt ? "Frequência" : "Frequency", value: extra.frequency },
-    { icon: Gauge, label: pt ? "Complexidade" : "Complexity", value: extra.complexity },
     { icon: Users, label: "Head Count (FTE)", value: extra.fte },
-    { icon: ArrowLeftRight, label: pt ? "Processo predecessor" : "Predecessor process", value: extra.predecessor },
-    { icon: Flag, label: pt ? "Processo sucessor" : "Successor process", value: extra.successor },
+    { icon: ArrowLeftRight, label: pt ? "Processo predecessor" : "Predecessor process", value: predecessorNames },
+    { icon: Flag, label: pt ? "Processo sucessor" : "Successor process", value: successorNames },
     {
       icon: Network,
       label: pt ? "Alocação na arquitetura" : "Architecture allocation",
@@ -163,13 +182,6 @@ export function ProcessSheet({ process }: { process: SheetProcess }) {
 
   return (
     <div className="space-y-5">
-      {/* Section title */}
-      <div className="flex items-center gap-2">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.5px] text-muted-foreground">
-          {pt ? "FICHA DO PROCESSO" : "PROCESS DATASHEET"}
-        </h2>
-      </div>
-
       {/* Objetivo / Proposta de valor / Início / Fim */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
@@ -209,26 +221,6 @@ export function ProcessSheet({ process }: { process: SheetProcess }) {
               </div>
             );
           })}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 border-t border-border">
-          <div className="p-5 md:border-r border-border">
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Target className="h-3.5 w-3.5 text-muted-foreground" />
-              <p className="text-[10px] uppercase tracking-[0.5px] text-muted-foreground">
-                {pt ? "OKR associado" : "Associated OKR"}
-              </p>
-            </div>
-            <p className="text-[13px] text-foreground leading-relaxed">{extra.okr}</p>
-          </div>
-          <div className="p-5 border-t md:border-t-0 border-border">
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <StickyNote className="h-3.5 w-3.5 text-muted-foreground" />
-              <p className="text-[10px] uppercase tracking-[0.5px] text-muted-foreground">
-                {pt ? "Observações gerais" : "General notes"}
-              </p>
-            </div>
-            <p className="text-[13px] text-foreground leading-relaxed">{extra.notes}</p>
-          </div>
         </div>
       </div>
 
@@ -396,7 +388,50 @@ export function ProcessSheet({ process }: { process: SheetProcess }) {
       {/* Outputs / Systems / Pains */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {listCard(MonitorSmartphone, pt ? "Sistemas utilizados" : "Systems used", scope.systems, "bg-primary")}
-        {listCard(AlertCircle, pt ? "Dores" : "Pain points", scope.dores, "bg-red-500")}
+        
+        {/* Matriz RACI */}
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="h-4 w-4 text-primary" />
+            <h3 className="text-[13px] font-semibold text-foreground">
+              {pt ? "Matriz RACI" : "RACI Matrix"}
+            </h3>
+          </div>
+          <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+            <div>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.5px]">
+                {pt ? "R - Responsável" : "R - Responsible"}
+              </span>
+              <p className="text-[13px] text-foreground font-medium mt-1">
+                {process.executor || "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.5px]">
+                {pt ? "A - Aprovador" : "A - Accountable"}
+              </span>
+              <p className="text-[13px] text-foreground font-medium mt-1">
+                {process.approver || "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.5px]">
+                {pt ? "C - Consultado" : "C - Consulted"}
+              </span>
+              <p className="text-[13px] text-foreground font-medium mt-1">
+                {process.supportTeam || "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.5px]">
+                {pt ? "I - Informado" : "I - Informed"}
+              </span>
+              <p className="text-[13px] text-foreground font-medium mt-1">
+                —
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

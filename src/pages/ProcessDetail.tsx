@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { FileText, GitBranch, ChevronRight, Info, TrendingUp, TrendingDown, Sparkles } from "lucide-react";
+import { FileText, GitBranch, ChevronRight, Info, TrendingUp, TrendingDown, Sparkles, Edit2 } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { ProcessSidebar } from "@/components/layout/ProcessSidebar";
 import { POPEditorView } from "@/components/process/POPEditorView";
@@ -19,10 +19,14 @@ import { ToBeBPMN } from "@/components/process/tobe/ToBeBPMN";
 import { ToBeFields, FieldRow } from "@/components/process/tobe/ToBeFields";
 import { ToBeUserStories } from "@/components/process/tobe/ToBeUserStories";
 import { ToBeIntegrations } from "@/components/process/tobe/ToBeIntegrations";
+import { ProcessContextView } from "@/components/process/context/ProcessContextView";
+import { ProcessTransformationView } from "@/components/process/transformation/ProcessTransformationView";
+import { ProcessIndicatorsView } from "@/components/process/ProcessIndicatorsView";
 import { useProcessStore } from "@/stores/processStore";
 import { useSopStore } from "@/stores/sopStore";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { Layers } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -448,6 +452,28 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
     }
 
     switch (activeTab) {
+      case "context":
+        return (
+          <ProcessContextView
+            processId={id || "1"}
+            processName={process.name}
+            onNavigateTab={setActiveTab}
+          />
+        );
+      case "indicators":
+        return (
+          <ProcessIndicatorsView
+            processId={id || "1"}
+            processName={process.name}
+          />
+        );
+      case "transformation":
+        return (
+          <ProcessTransformationView
+            processId={id || "1"}
+            processName={process.name}
+          />
+        );
       case "pre-mapping":
         return preMapping ? (
           <PreMappingView
@@ -475,10 +501,13 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
         );
       case "assessment": {
         const isSpanLayer = process.name?.toLowerCase().includes("span") && process.name?.toLowerCase().includes("layer");
+        const isDetailView = searchParams.get("view") === "detail" || searchParams.get("subview") === "automation-detail";
         return (
           <ProcessAttributes 
             hasPOP={process.hasPOP} 
+            processId={id || process.id}
             processName={process.name}
+            initialView={isDetailView ? "detail" : "summary"}
             automation={isSpanLayer ? { maturity: 0, risk: 41 } : process.automation}
             dataIntegrity={isSpanLayer ? { maturity: 85, risk: 17 } : process.dataIntegrity}
             governance={isSpanLayer ? { maturity: 100, risk: 0 } : process.governanceCompliance}
@@ -540,7 +569,7 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
           customizationCount={customizationCount}
         />
 
-        <main className={cn("flex-1 ml-[220px] overflow-auto", showChat && (chatOpen ? "mr-[320px]" : "mr-12"))}>
+        <main className={cn("flex-1 ml-[240px] overflow-auto", showChat && (chatOpen ? "mr-[320px]" : "mr-12"))}>
           {renderContent()}
         </main>
 
@@ -686,26 +715,34 @@ function ProcessOverview({ process, onNavigate, onGenerateDocs }: ProcessOvervie
   return (
     <div className="p-8 px-10 animate-fade-in">
       {/* Process Header - No card background */}
-      <div className="mb-8 relative">
-        {/* Area Badge */}
-        <span className="inline-flex px-2.5 py-1 bg-muted rounded-md text-[12px] font-medium text-muted-foreground mb-2.5">
-          {process.area}
-        </span>
+      <div className="mb-8 relative flex items-start justify-between gap-4">
+        <div>
+          {/* Area Badge */}
+          <span className="inline-flex px-2.5 py-1 bg-muted rounded-md text-[12px] font-medium text-muted-foreground mb-2.5">
+            {process.area}
+          </span>
+          
+          {/* Title */}
+          <h1 className="text-[22px] font-semibold text-foreground mb-1.5">
+            {process.name}
+          </h1>
+        </div>
         
-        {/* Title */}
-        <h1 className="text-[22px] font-semibold text-foreground mb-1.5">
-          {process.name}
-        </h1>
-        
-        {/* Description */}
-        <p className="text-[14px] text-muted-foreground max-w-[600px]">
-          {process.description}
-        </p>
-        
+        <button
+          onClick={() => onNavigate("attributes")}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-border text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-sm"
+        >
+          <Edit2 className="h-3.5 w-3.5" />
+          {language === "PT" ? "Editar atributos" : "Edit attributes"}
+        </button>
       </div>
 
+      {/* Process Datasheet */}
+      <ProcessSheet process={process} />
+
+
       {/* Process Health Section */}
-      <div className="bg-card border border-border rounded-2xl py-3 px-6 mb-5">
+      <div className="bg-card border border-border rounded-2xl py-3 px-6 mb-5 mt-6">
         <div className="flex items-center gap-2 mb-2.5">
 
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.5px] text-muted-foreground">
@@ -846,10 +883,6 @@ function ProcessOverview({ process, onNavigate, onGenerateDocs }: ProcessOvervie
         </div>
         )}
       </div>
-
-
-      {/* Process Datasheet */}
-      <ProcessSheet process={process} />
 
     </div>
   );
