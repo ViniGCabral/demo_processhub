@@ -4,7 +4,7 @@ import {
   ShieldCheck, TrendingUp, Layers, Plus, Pencil, Share2, 
   ExternalLink, ArrowRight, CornerDownRight, Check, AlertTriangle,
   HelpCircle, ChevronRight, ArrowLeft, Target, Gem, Sparkles, Component,
-  Milestone, ArrowUpRight, ArrowDownLeft, Users
+  Milestone, ArrowUpRight, ArrowDownLeft, Users, TableProperties
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ArchitectureIndicatorsModal } from "./ArchitectureIndicatorsModal";
 import { GapsDetailModal } from "./GapsDetailModal";
+import { RaciMatrixModal } from "./modals/RaciMatrixModal";
 
 export interface BreadcrumbStep {
   label: string;
@@ -137,6 +138,7 @@ export function ScopeContextSheet({
 
   const [isIndicatorsModalOpen, setIsIndicatorsModalOpen] = useState(false);
   const [isGapsModalOpen, setIsGapsModalOpen] = useState(false);
+  const [isRaciModalOpen, setIsRaciModalOpen] = useState(false);
 
   // Responsável formatado
   const responsibleName = typeof responsible === "string" 
@@ -268,6 +270,26 @@ export function ScopeContextSheet({
                     <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Revisão" : "Revision"}</span>
                     <strong className="text-[#15233B] font-semibold leading-tight text-[11px]">{lastUpdate}</strong>
                   </div>
+                </div>
+              )}
+
+              {/* Botão Matriz RACI (especificamente no nível L4 e etapa correspondente) */}
+              {(levelKey === "l4" || id === "l3-conceituacao" || levelKey === "l3") && (
+                <div className="pt-2 mt-2 border-t border-[#DFE5EF]/60">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsRaciModalOpen(true)}
+                    className="w-full text-xs h-9 bg-gradient-to-r from-[#F0F4FF] to-[#E8EDFF] hover:from-[#E4ECFF] hover:to-[#D8E4FF] text-[#1327b9] border border-[#CCD9FF] font-semibold shadow-xs flex items-center justify-between px-3 group transition-all duration-200"
+                  >
+                    <div className="flex items-center gap-2">
+                      <TableProperties className="h-4 w-4 text-[#1327b9] group-hover:scale-105 transition-transform" />
+                      <span>{pt ? "Matriz RACI" : "RACI Matrix"}</span>
+                    </div>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-[#1327b9]/10 text-[#1327b9]">
+                      RACI
+                    </span>
+                  </Button>
                 </div>
               )}
             </div>
@@ -753,6 +775,21 @@ export function ScopeContextSheet({
         onOpenChange={setIsGapsModalOpen}
         nodeName={name}
         initialGaps={painPoints}
+      />
+
+      {/* ── Modal da Matriz RACI ── */}
+      <RaciMatrixModal
+        open={isRaciModalOpen}
+        onOpenChange={setIsRaciModalOpen}
+        nodeId={id}
+        nodeTitle={name}
+        stageName={name}
+        breadcrumbPath={breadcrumbs.map((b) => b.label).join(" › ")}
+        fallbackProcedures={childrenComponents.map((c) => ({
+          id: c.id,
+          name: c.name,
+          description: c.description
+        }))}
       />
       </main>
       </div>
