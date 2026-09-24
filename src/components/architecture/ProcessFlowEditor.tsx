@@ -16,6 +16,7 @@ import {
   GitBranch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -60,6 +61,7 @@ import {
   FlowConnection,
   FlowNodeType,
 } from "@/stores/processFlowStore";
+import { useRaciStore } from "@/stores/raciStore";
 
 // ── Props ──────────────────────────────────────────────────────
 
@@ -87,6 +89,7 @@ function FlowNodeCard({
   processName?: string;
   isEditing: boolean;
   onRemove?: () => void;
+  raciData?: { areas: string[] };
 }) {
   const label = node.type === "activity" ? processName || node.label : node.label;
 
@@ -140,13 +143,25 @@ function FlowNodeCard({
   // activity
   return (
     <div className="flex flex-col items-center gap-1.5 shrink-0 group relative max-w-[180px]">
-      <div className="w-full min-w-[140px] bg-white border-2 border-[#1a4fd6]/30 rounded-lg px-3 py-2.5 shadow-sm hover:shadow-md transition-shadow hover:border-[#1a4fd6]/60">
-        <div className="text-[10px] font-bold text-[#1a4fd6] uppercase tracking-wider mb-0.5 opacity-70">
+      <div className="w-full min-w-[150px] bg-white border-2 border-[#1a4fd6]/20 rounded-xl px-3.5 py-3 shadow-sm hover:shadow-md transition-shadow hover:border-[#1a4fd6]/60">
+        <div className="text-[10px] font-bold text-[#1a4fd6] uppercase tracking-wider mb-1 opacity-80">
           Processo
         </div>
         <div className="text-[12px] font-semibold text-[#1A2A48] leading-snug line-clamp-3">
           {label}
         </div>
+        {raciData && raciData.areas.length > 0 && (
+          <div className="mt-3 pt-2.5 border-t border-[#1a4fd6]/10 flex flex-col gap-1.5">
+            <span className="text-[9px] font-bold text-[#7C889E] uppercase tracking-wider">Responsável</span>
+            <div className="flex flex-wrap gap-1">
+              {raciData.areas.map(area => (
+                 <span key={area} className="text-[9.5px] bg-[#EFE8FF] text-[#6633D0] px-1.5 py-0.5 rounded-md font-semibold border border-[#6633D0]/10 max-w-full truncate" title={area}>
+                   {area}
+                 </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       {isEditing && onRemove && (
         <button
@@ -170,15 +185,16 @@ function FlowArrow() {
   );
 }
 
-/** Add node button between existing nodes */
 function AddNodeButton({
   onAddActivity,
   onAddGateway,
+  onAddEnd,
   availableProcesses,
   usedProcessIds,
 }: {
   onAddActivity: (processId: string) => void;
   onAddGateway: () => void;
+  onAddEnd: () => void;
   availableProcesses: { id: string; name: string }[];
   usedProcessIds: Set<string>;
 }) {
@@ -232,6 +248,16 @@ function AddNodeButton({
           >
             <Diamond className="h-3.5 w-3.5 mr-2 text-[#F59E0B]" />
             {pt ? "Gateway (decisão XOR)" : "Gateway (XOR decision)"}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              onAddEnd();
+              setOpen(false);
+            }}
+            className="text-xs text-red-600 focus:text-red-700 focus:bg-red-50"
+          >
+            <Square className="h-3.5 w-3.5 mr-2 fill-red-500" />
+            {pt ? "Evento de fim" : "End event"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -300,6 +326,25 @@ export function ProcessFlowEditor({
     return map;
   }, [availableProcesses]);
 
+  // ── RACI Data Integration ──
+  const { getMatrix } = useRaciStore();
+  const raciMatrix = useMemo(() => getMatrix(parentNodeId), [parentNodeId, getMatrix]);
+
+  const getProcessRaciData = useCallback((processId: string) => {
+    const row = raciMatrix.rows.find((r) => r.id === processId);
+    if (!row) return undefined;
+    
+    const responsibleAreas: string[] = [];
+    Object.entries(row.cells).forEach(([area, cell]) => {
+      if (cell.roles.includes('R') || cell.roles.includes('A')) {
+        responsibleAreas.push(area);
+      }
+    });
+
+    if (responsibleAreas.length === 0) return undefined;
+    return { areas: responsibleAreas };
+  }, [raciMatrix]);
+
   // ── Handlers ───────────────────────
 
   const handleCreate = () => {
@@ -340,6 +385,14 @@ export function ProcessFlowEditor({
     replaceFlowContent(selectedFlowId, editNodes, rebuildConnections(editNodes));
     setIsEditing(false);
     toast.success(pt ? "Fluxo salvo" : "Flow saved");
+  };
+
+  const toggleEditMode = (checked: boolean) => {
+    if (checked) {
+      startEditing();
+    } else {
+      saveEditing();
+    }
   };
 
   const handleUpdateInfo = () => {
@@ -416,29 +469,27 @@ export function ProcessFlowEditor({
   return (
     <div className="w-full">
       {/* ── Header: dropdown + actions ── */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between mb-4 bg-white border border-[#DFE5EF] rounded-xl px-4 py-3 shadow-[0_2px_12px_rgba(20,35,70,0.02)]">
         <div className="flex items-center gap-3">
-          <GitBranch className="h-5 w-5 text-[#1a4fd6]" />
-          <h3 className="text-sm font-bold text-[#1A2A48]">
+          <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] flex items-center justify-center">
+            <GitBranch className="h-4 w-4 text-[#1a4fd6]" />
+          </div>
+          <h3 className="text-[13px] font-extrabold text-[#1A2A48] tracking-tight uppercase">
             {pt ? "Fluxos de Processo" : "Process Flows"}
           </h3>
+        </div>
+
+        <div className="flex items-center gap-3">
 
           {flows.length > 0 && (
             <Select
               value={selectedFlowId || ""}
               onValueChange={(v) => {
-                if (isEditing) {
-                  toast.warning(
-                    pt
-                      ? "Salve ou cancele a edição antes de trocar de fluxo"
-                      : "Save or cancel editing before switching flows"
-                  );
-                  return;
-                }
+                if (isEditing) saveEditing();
                 setSelectedFlowId(v);
               }}
             >
-              <SelectTrigger className="h-8 w-[260px] text-xs border-[#DFE5EF]">
+              <SelectTrigger className="h-8 w-[220px] text-xs border-[#DFE5EF] bg-white font-medium">
                 <SelectValue
                   placeholder={pt ? "Selecionar fluxo..." : "Select flow..."}
                 />
@@ -450,102 +501,79 @@ export function ProcessFlowEditor({
                       {f.isDefault && (
                         <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
                       )}
-                      {f.name}
+                      <span className="font-medium text-[#263754]">{f.name}</span>
                     </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
-        </div>
 
-        <div className="flex items-center gap-2">
-          {selectedFlow && !isEditing && (
-            <>
+          {selectedFlow && (
+            <div className="flex items-center gap-3 border-l border-[#DFE5EF] pl-3">
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-[11px] text-[#1a4fd6]"
+                className={cn("h-8 text-[11px] font-semibold transition-colors", selectedFlow.isDefault ? "text-amber-600 bg-amber-50 hover:bg-amber-100" : "text-[#7C889E] hover:text-[#4D5A72]")}
                 onClick={handleToggleDefault}
               >
                 {selectedFlow.isDefault ? (
                   <>
-                    <Star className="h-3.5 w-3.5 mr-1 fill-amber-500 text-amber-500" />
+                    <Star className="h-3.5 w-3.5 mr-1.5 fill-amber-500" />
                     {pt ? "Padrão" : "Default"}
                   </>
                 ) : (
                   <>
-                    <StarOff className="h-3.5 w-3.5 mr-1" />
+                    <StarOff className="h-3.5 w-3.5 mr-1.5" />
                     {pt ? "Definir padrão" : "Set default"}
                   </>
                 )}
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-7 text-[11px] border-[#DFE5EF]"
+                className="h-8 text-[11px] text-[#7C889E] hover:text-[#4D5A72] font-semibold"
                 onClick={() => {
                   setNewFlowName(selectedFlow.name);
                   setNewFlowDesc(selectedFlow.description || "");
                   setEditInfoDialogOpen(true);
                 }}
               >
-                <Pencil className="h-3 w-3 mr-1" />
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
                 {pt ? "Info" : "Info"}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-[11px] border-[#1a4fd6]/30 text-[#1a4fd6] hover:bg-[#EEF2FF]"
-                onClick={startEditing}
-              >
-                <Pencil className="h-3 w-3 mr-1" />
-                {pt ? "Editar fluxo" : "Edit flow"}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-[11px] text-red-500 hover:bg-red-50"
-                onClick={() => setDeleteDialogOpen(true)}
-              >
-                <Trash2 className="h-3 w-3 mr-1" />
-              </Button>
-            </>
-          )}
 
-          {isEditing && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-[11px]"
-                onClick={cancelEditing}
-              >
-                <X className="h-3 w-3 mr-1" />
-                {pt ? "Cancelar" : "Cancel"}
-              </Button>
-              <Button
-                size="sm"
-                className="h-7 text-[11px] bg-[#1a4fd6] hover:bg-[#1539b0]"
-                onClick={saveEditing}
-              >
-                <Save className="h-3 w-3 mr-1" />
-                {pt ? "Salvar" : "Save"}
-              </Button>
-            </>
+              <div className="flex items-center gap-2 bg-[#F8FAFD] border border-[#DFE5EF] rounded-lg px-2.5 py-1.5 ml-1">
+                <span className={cn("text-[11px] font-bold tracking-wide uppercase transition-colors", isEditing ? "text-[#1a4fd6]" : "text-[#7C889E]")}>
+                  {pt ? "Modo Edição" : "Edit Mode"}
+                </span>
+                <Switch checked={isEditing} onCheckedChange={toggleEditMode} />
+              </div>
+
+              {isEditing && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-[11px] text-red-500 hover:bg-red-50 hover:text-red-600 ml-1 font-semibold"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  {pt ? "Excluir Fluxo" : "Delete Flow"}
+                </Button>
+              )}
+            </div>
           )}
 
           <Button
-            variant="outline"
             size="sm"
-            className="h-7 text-[11px] border-[#DFE5EF]"
+            className="h-8 text-[11px] bg-[#1a4fd6] hover:bg-[#1539b0] font-semibold px-4"
             onClick={() => {
               setNewFlowName("");
               setNewFlowDesc("");
               setCreateDialogOpen(true);
             }}
           >
-            <Plus className="h-3 w-3 mr-1" />
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
             {pt ? "Novo fluxo" : "New flow"}
           </Button>
         </div>
@@ -553,7 +581,7 @@ export function ProcessFlowEditor({
 
       {/* ── Flow visualization ── */}
       {selectedFlow || isEditing ? (
-        <div className="bg-gradient-to-br from-[#F8FAFD] to-[#F1F5FB] border border-[#DFE5EF] rounded-xl p-6 shadow-inner overflow-x-auto">
+        <div className="bg-gradient-to-br from-[#F8FAFD] to-[#F1F5FB] border border-[#DFE5EF] rounded-xl p-8 shadow-inner overflow-x-auto min-h-[340px] flex flex-col justify-center">
           {/* Flow name */}
           <div className="mb-4">
             <h4 className="text-sm font-semibold text-[#263754]">
@@ -583,6 +611,7 @@ export function ProcessFlowEditor({
                           insertNodeAt(idx - 1, "activity", processId)
                         }
                         onAddGateway={() => insertNodeAt(idx - 1, "gateway")}
+                        onAddEnd={() => insertNodeAt(idx - 1, "end")}
                         availableProcesses={availableProcesses}
                         usedProcessIds={usedProcessIds}
                       />
@@ -597,9 +626,10 @@ export function ProcessFlowEditor({
                     processName={
                       node.processId ? processMap.get(node.processId) : undefined
                     }
+                    raciData={node.processId ? getProcessRaciData(node.processId) : undefined}
                     isEditing={isEditing}
                     onRemove={
-                      !isStart && !isEnd
+                      !isStart
                         ? () => removeEditNode(node.id)
                         : undefined
                     }

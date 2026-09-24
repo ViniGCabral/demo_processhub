@@ -147,7 +147,8 @@ export function ScopeContextSheet({
   const hasDefaultFlow = useProcessFlowStore(
     (s) => !!(s.flows[id] || []).find((f) => f.isDefault)
   );
-  const [viewMode, setViewMode] = useState<"cards" | "flow">(hasDefaultFlow ? "flow" : "cards");
+  // Only start in 'flow' mode if it's a leaf node
+  const [viewMode, setViewMode] = useState<"cards" | "flow">(isLeaf(levelKey) && hasDefaultFlow ? "flow" : "cards");
 
   // Responsável formatado
   const responsibleName = typeof responsible === "string" 
@@ -478,7 +479,7 @@ export function ScopeContextSheet({
             </div>
             <div>
               <h3 className="text-[15px] font-bold tracking-tight text-[#15233B] flex items-center gap-2">
-                {pt ? "Composição do Domínio" : "Domain Composition"}
+                {childLevelLabel} {pt ? "Relacionados" : "Related"}
               </h3>
               <p className="text-[11px] text-[#8A96A9] mt-0.5">
                 {childrenComponents.length} {childrenComponents.length === 1 ? (pt ? "componente" : "component") : (pt ? "componentes" : "components")} {childLevelLabel}
@@ -486,33 +487,35 @@ export function ScopeContextSheet({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Toggle: Cards / Flow */}
-            <div className="flex items-center bg-[#F0F3F8] rounded-lg p-0.5">
-              <button
-                onClick={() => setViewMode("cards")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
-                  viewMode === "cards"
-                    ? "bg-white text-[#1A2A48] shadow-sm"
-                    : "text-[#7C889E] hover:text-[#4D5A72]"
-                )}
-              >
-                <LayoutGrid className="h-3.5 w-3.5" />
-                {pt ? "Etapas/Processos" : "Steps/Processes"}
-              </button>
-              <button
-                onClick={() => setViewMode("flow")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
-                  viewMode === "flow"
-                    ? "bg-white text-[#1A2A48] shadow-sm"
-                    : "text-[#7C889E] hover:text-[#4D5A72]"
-                )}
-              >
-                <GitBranch className="h-3.5 w-3.5" />
-                {pt ? "Fluxos" : "Flows"}
-              </button>
-            </div>
+            {/* Toggle: Cards / Flow (apenas no último nível) */}
+            {isLeaf(levelKey) && (
+              <div className="flex items-center bg-[#F0F3F8] rounded-lg p-0.5">
+                <button
+                  onClick={() => setViewMode("cards")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
+                    viewMode === "cards"
+                      ? "bg-white text-[#1A2A48] shadow-sm"
+                      : "text-[#7C889E] hover:text-[#4D5A72]"
+                  )}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  {pt ? "Etapas/Processos" : "Steps/Processes"}
+                </button>
+                <button
+                  onClick={() => setViewMode("flow")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
+                    viewMode === "flow"
+                      ? "bg-white text-[#1A2A48] shadow-sm"
+                      : "text-[#7C889E] hover:text-[#4D5A72]"
+                  )}
+                >
+                  <GitBranch className="h-3.5 w-3.5" />
+                  {pt ? "Fluxos" : "Flows"}
+                </button>
+              </div>
+            )}
             <span className="inline-flex items-center gap-1.5 bg-[#EFE8FF] text-[#6633D0] px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider">
               <Sparkles className="h-3.5 w-3.5" />
               {childLevelLabel}
@@ -521,7 +524,7 @@ export function ScopeContextSheet({
         </div>
 
         {/* Conteúdo dinâmico do mapa — Cards view or Flow view */}
-        {viewMode === "flow" ? (
+        {viewMode === "flow" && isLeaf(levelKey) ? (
           <ProcessFlowEditor
             parentNodeId={id}
             parentNodeName={name}
