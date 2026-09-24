@@ -144,8 +144,9 @@ export function ScopeContextSheet({
   const [isRaciModalOpen, setIsRaciModalOpen] = useState(false);
 
   // ── Process Flow toggle: cards vs flow ──
-  const { getDefaultFlow } = useProcessFlowStore();
-  const hasDefaultFlow = !!getDefaultFlow(id);
+  const hasDefaultFlow = useProcessFlowStore(
+    (s) => !!(s.flows[id] || []).find((f) => f.isDefault)
+  );
   const [viewMode, setViewMode] = useState<"cards" | "flow">(hasDefaultFlow ? "flow" : "cards");
 
   // Responsável formatado
