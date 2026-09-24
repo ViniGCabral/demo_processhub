@@ -327,15 +327,15 @@ export function ProcessFlowEditor({
   }, [availableProcesses]);
 
   // ── RACI Data Integration ──
-  const { getMatrix } = useRaciStore();
-  const raciMatrix = useMemo(() => getMatrix(parentNodeId), [parentNodeId, getMatrix]);
+  const raciMatrix = useRaciStore((s) => s.matrices[parentNodeId]);
 
   const getProcessRaciData = useCallback((processId: string) => {
-    const row = raciMatrix.rows.find((r) => r.id === processId);
+    if (!raciMatrix) return undefined;
+    const row = raciMatrix.rows?.find((r) => r.id === processId);
     if (!row) return undefined;
     
     const responsibleAreas: string[] = [];
-    Object.entries(row.cells).forEach(([area, cell]) => {
+    Object.entries(row.cells || {}).forEach(([area, cell]) => {
       if (cell.roles.includes('R') || cell.roles.includes('A')) {
         responsibleAreas.push(area);
       }
