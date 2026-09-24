@@ -122,36 +122,227 @@ export const l4_12: ProcessContextData = {
 };
 
 export const naturaL1: ArchNodeL1 = {
-  id: 'l1-natura', name: "Gestão da Inovação de Produtos", domain: 'Primário', category: 'PRIMARY',
-  description: "Gerenciar a evolução do portfólio de produtos, transformando oportunidades de mercado, necessidades dos consumidores e capacidades tecnológicas em produtos inovadores, viáveis, seguros e disponibilizados para o mercado.", objective: "Gerenciar a evolução do portfólio de produtos, transformando oportunidades de mercado, necessidades dos consumidores e capacidades tecnológicas em produtos inovadores, viáveis, seguros e disponibilizados para o mercado.",
-  valueProposition: "Aumentar a qualidade e a previsibilidade das decisões de inovação, conectando estratégia, consumidores, formulação, materiais, tecnologia, viabilidade financeira, qualidade, requisitos regulatórios e disponibilização do produto.", scopeBoundary: "Abrange a gestão dos funis de produtos e de tecnologia, desde a identificação de oportunidades e ideação até as decisões de conceituação, prototipagem, validação e disponibilização. O domínio coordena a passagem entre as etapas e a decisão de continuidade das iniciativas.",
-  inputs: "Tendências e necessidades de consumidores; estratégia e prioridades de portfólio; oportunidades de mercado; aprendizados de produtos existentes; capacidades de ingredientes, formulações, materiais e embalagens; requisitos de qualidade e regulatórios; restrições de custo, prazo e capacidade; metas de sustentabilidade.", outputs: "Conceitos priorizados; briefs aprovados; business cases; projetos autorizados; protótipos e soluções validadas; decisões de gate; produtos disponibilizados; aprendizados e informações estratégicas registrados no sistema.",
-  stakeholders: "Consumidores; Marketing e Brand; Consumer Insights; Pesquisa e Desenvolvimento; Qualidade; Assuntos Regulatórios; Suprimentos; Operações industriais; Engenharia; Finanças; Tecnologia; Sustentabilidade; Comercial; fornecedores e parceiros de inovação.", responsible: "Diretoria de Inovação e Desenvolvimento de Produtos",
+  id: 'l1-natura',
+  name: "Gestão da Inovação",
+  domain: 'Primário',
+  category: 'PRIMARY',
+  description: "Gerenciar a estratégia, o portfólio e a execução das frentes de inovação da organização, englobando produtos, soluções digitais e novos modelos comerciais.",
+  objective: "Gerenciar a estratégia, o portfólio e a execução das frentes de inovação da organização, englobando produtos, soluções digitais e novos modelos comerciais.",
+  valueProposition: "Aumentar a competitividade, a velocidade de lançamento e o impacto no negócio através de um modelo integrado de gestão da inovação em produtos, canais digitais e modelos comerciais.",
+  scopeBoundary: "Abrange a gestão de portfólio de produtos, inovação digital e inovação em modelo comercial, desde a prospecção até a escala e disponibilização.",
+  inputs: "Tendências de mercado e comportamento do consumidor; direcionamento estratégico; tecnologias emergentes; dados de performance de canais e produtos; aprendizados de ciclos anteriores.",
+  outputs: "Portfólio de inovação priorizado; produtos e tecnologias validados e lançados; soluções e plataformas digitais ativas; novos modelos comerciais testados e escalados.",
+  stakeholders: "Diretoria de Inovação; Marketing; Negócios; Canais Comerciais; P&D; Tecnologia; Operações e Finanças.",
+  responsible: "Diretoria de Inovação",
   dimensioning: { allocatedFte: 42, unit: 'FTE', referenceDate: '2026-09-22', validationStatus: 'validado' },
-  lastUpdate: '22/09/2026', criticality: 'Crítica', mainKpi: '',
-  documentationStatus: 'approved', contextValidationPercent: 100, policies: [], painPoints: ["Falta de rastreabilidade entre oportunidade, conceito, decis\u00e3o de gate e produto final", "informa\u00e7\u00f5es de diferentes \u00e1reas mantidas em sistemas ou documentos desconectados", "retrabalho por mudan\u00e7as tardias em conceito, formula\u00e7\u00e3o, embalagem ou requisitos regulat\u00f3rios", "crit\u00e9rios de decis\u00e3o diferentes entre projetos ou categorias", "baixa visibilidade do esfor\u00e7o e da capacidade alocada por iniciativa", "necessidade de integrar dados de produto, tecnologia, qualidade, finan\u00e7as e sustentabilidade", "oportunidade de usar IA para consolidar informa\u00e7\u00f5es, identificar lacunas de briefing e apoiar prioriza\u00e7\u00e3o."],
+  lastUpdate: '22/09/2026',
+  criticality: 'Crítica',
+  mainKpi: '',
+  documentationStatus: 'approved',
+  contextValidationPercent: 100,
+  policies: [],
+  painPoints: [
+    "Falta de rastreabilidade entre oportunidade, conceito, decisão de gate e produto final",
+    "informações de diferentes áreas mantidas em sistemas ou documentos desconectados",
+    "retrabalho por mudanças tardias em conceito, formulação, embalagem ou requisitos regulatórios",
+    "critérios de decisão diferentes entre projetos ou categorias",
+    "baixa visibilidade do esforço e da capacidade alocada por iniciativa",
+    "necessidade de integrar dados de produto, tecnologia, qualidade, finanças e sustentabilidade",
+    "oportunidade de usar IA para consolidar informações, identificar lacunas de briefing e apoiar priorização."
+  ],
   childrenL2: [
+    // ── L2 1: Gestão da Inovação de Produtos ──
     {
-      id: 'l2-funil-produtos', name: "Funil de Produtos", type: "Agrupamento de valor", description: "Conduzir oportunidades de produto por etapas estruturadas de conceituação, prototipagem, validação e disponibilização, permitindo decisões progressivas de investimento e continuidade.",
-      responsible: "Gerência de Inovação de Produtos e Gestão de Portfólio", dimensioning: { allocatedFte: 24, unit: 'FTE', referenceDate: '2026-09-22', validationStatus: 'validado' },
-      objective: "Conduzir oportunidades de produto por etapas estruturadas de conceituação, prototipagem, validação e disponibilização, permitindo decisões progressivas de investimento e continuidade.", valueProposition: "Transformar oportunidades em produtos com conceito claro, proposta de valor relevante, viabilidade demonstrada e prontidão para disponibilização.",
-      scopeBoundary: "Inicia na identificação ou priorização de uma oportunidade de produto e termina na disponibilização do produto para a etapa operacional ou comercial definida. Inclui o direcionamento do conceito, o desenvolvimento, as validações e as decisões de gate do funil.",
-      inputs: "Oportunidades de mercado; necessidades de consumidores; estratégia de categoria; insights; briefings; capacidades técnicas; restrições de custo, prazo e sustentabilidade; decisões de portfólio; informações fornecidas pelo Funil de Tecnologia.", outputs: "Conceitos e briefs aprovados; protótipos; resultados de validação; business cases; decisões de gate; produto liberado para disponibilização.",
-      stakeholders: "Marketing; Consumer Insights; P&D; Tecnologia; Qualidade; Regulatório; Finanças; Operações; Supply; Sustentabilidade; liderança de portfólio; fornecedores e parceiros.",
-      painPoints: ["Crit\u00e9rios de passagem de etapa pouco expl\u00edcitos", "decis\u00f5es distribu\u00eddas em reuni\u00f5es, e-mails e documentos", "lacunas de informa\u00e7\u00e3o identificadas somente em etapas avan\u00e7adas", "depend\u00eancias entre produto e tecnologia n\u00e3o vis\u00edveis no funil", "falta de vis\u00e3o consolidada de capacidade, prazo, custo e risco", "oportunidade de automatizar a verifica\u00e7\u00e3o de completude antes dos gates."],
+      id: 'l2-inov-produtos',
+      name: "Gestão da Inovação de Produtos",
+      type: "Agrupamento de valor",
+      description: "Gerenciar a evolução do portfólio de produtos, transformando oportunidades de mercado, necessidades dos consumidores e capacidades tecnológicas em produtos inovadores, viáveis, seguros e disponibilizados para o mercado.",
+      responsible: "Gerência Executiva de Inovação de Produtos",
+      dimensioning: { allocatedFte: 24, unit: 'FTE', referenceDate: '2026-09-22', validationStatus: 'validado' },
+      objective: "Gerenciar a evolução do portfólio de produtos, transformando oportunidades de mercado, necessidades dos consumidores e capacidades tecnológicas em produtos inovadores, viáveis, seguros e disponibilizados para o mercado.",
+      valueProposition: "Aumentar a qualidade e a previsibilidade das decisões de inovação, conectando estratégia, consumidores, formulação, materiais, tecnologia, viabilidade financeira, qualidade, requisitos regulatórios e disponibilização do produto.",
+      scopeBoundary: "Abrange a gestão dos funis de produtos e de tecnologia, desde a identificação de oportunidades e ideação até as decisões de conceituação, prototipagem, validação e disponibilização. O domínio coordena a passagem entre as etapas e a decisão de continuidade das iniciativas.",
+      inputs: "Tendências e necessidades de consumidores; estratégia e prioridades de portfólio; oportunidades de mercado; aprendizados de produtos existentes; capacidades de ingredientes, formulações, materiais e embalagens; requisitos de qualidade e regulatórios; restrições de custo, prazo e capacidade; metas de sustentabilidade.",
+      outputs: "Conceitos priorizados; briefs aprovados; business cases; projetos autorizados; protótipos e soluções validadas; decisões de gate; produtos disponibilizados; aprendizados e informações estratégicas registrados no sistema.",
+      stakeholders: "Consumidores; Marketing e Brand; Consumer Insights; Pesquisa e Desenvolvimento; Qualidade; Assuntos Regulatórios; Suprimentos; Operações industriais; Engenharia; Finanças; Tecnologia; Sustentabilidade; Comercial; fornecedores e parceiros de inovação.",
+      painPoints: [
+        "Critérios de passagem de etapa pouco explícitos",
+        "decisões distribuídas em reuniões, e-mails e documentos",
+        "lacunas de informação identificadas somente em etapas avançadas",
+        "dependências entre produto e tecnologia não visíveis no funil",
+        "falta de visão consolidada de capacidade, prazo, custo e risco",
+        "oportunidade de automatizar a verificação de completude antes dos gates."
+      ],
+      childrenL3: [
+        // ── L3 1.1: Funil de Produtos ──
+        {
+          id: 'l3-funil-produtos',
+          name: "Funil de Produtos",
+          type: "Etapa de valor",
+          description: "Conduzir oportunidades de produto por etapas estruturadas de conceituação, prototipagem, validação e disponibilização, permitindo decisões progressivas de investimento e continuidade.",
+          responsible: "Gerência de Inovação de Produtos e Gestão de Portfólio",
+          dimensioning: { allocatedFte: 16, unit: 'FTE', referenceDate: '2026-09-22', validationStatus: 'validado' },
+          objective: "Conduzir oportunidades de produto por etapas estruturadas de conceituação, prototipagem, validação e disponibilização, permitindo decisões progressivas de investimento e continuidade.",
+          valueProposition: "Transformar oportunidades em produtos com conceito claro, proposta de valor relevante, viabilidade demonstrada e prontidão para disponibilização.",
+          scopeBoundary: "Inicia na identificação ou priorização de uma oportunidade de produto e termina na disponibilização do produto para a etapa operacional ou comercial definida. Inclui o direcionamento do conceito, o desenvolvimento, as validações e as decisões de gate do funil.",
+          inputs: "Oportunidades de mercado; necessidades de consumidores; estratégia de categoria; insights; briefings; capacidades técnicas; restrições de custo, prazo e sustentabilidade; decisões de portfólio; informações fornecidas pelo Funil de Tecnologia.",
+          outputs: "Conceitos e briefs aprovados; protótipos; resultados de validação; business cases; decisões de gate; produto liberado para disponibilização.",
+          stakeholders: "Marketing; Consumer Insights; P&D; Tecnologia; Qualidade; Regulatório; Finanças; Operações; Supply; Sustentabilidade; liderança de portfólio; fornecedores e parceiros.",
+          painPoints: [
+            "Critérios de passagem de etapa pouco explícitos",
+            "decisões distribuídas em reuniões, e-mails e documentos",
+            "lacunas de informação identificadas somente em etapas avançadas"
+          ],
+          childrenL4: [
+            {
+              id: 'l4-conceituacao',
+              name: "Conceituação e Briefing",
+              description: "Transformar oportunidades em conceitos de produto estruturados, avaliados e documentados, com proposta de valor, diretrizes técnicas, requisitos de qualidade, impactos ambientais, viabilidade financeira e decisão de passagem para desenvolvimento.",
+              responsible: "Gerência de Conceituação e Briefing de Produtos",
+              dimensioning: { allocatedFte: 16, unit: 'FTE', referenceDate: '2026-09-22', validationStatus: 'validado' },
+              objective: "Transformar oportunidades em conceitos de produto estruturados, avaliados e documentados, com proposta de valor, diretrizes técnicas, requisitos de qualidade, impactos ambientais, viabilidade financeira e decisão de passagem para desenvolvimento.",
+              valueProposition: "Criar clareza e alinhamento antes do investimento em prototipagem, reduzindo ambiguidades, retrabalho e riscos de desenvolver soluções sem aderência ao consumidor, ao negócio ou às restrições técnicas e regulatórias.",
+              scopeBoundary: "Inicia com a identificação de uma oportunidade para o negócio e termina com a aprovação do business case e a passagem de Gate BF para o kick-off técnico.",
+              inputs: "Oportunidade de negócio; insights de consumidor; estratégia de categoria; tendências; proposta de valor inicial; diretrizes de design; diretrizes de qualidade; requisitos regulatórios; dados técnicos; premissas financeiras; metas ambientais; capacidades do Funil de Tecnologia.",
+              outputs: "Conceito e proposta de valor estruturados; arquitetura de portfólio; diretrizes de design e qualidade; avaliação de impacto ambiental; business case; análise financeira; projeto criado no sistema; informações estratégicas carregadas; decisão de Gate BF; passagem para kick-off técnico.",
+              stakeholders: "Negócio; Marketing; Consumer Insights; P&D; Tecnologia; Qualidade; Regulatório; Finanças; Sustentabilidade; Operações; Supply; Gestão de Portfólio; liderança decisora e equipe do kick-off técnico.",
+              painPoints: [
+                "Informações de conceito, qualidade, regulatório, sustentabilidade e finanças distribuídas em fontes diferentes",
+                "requisitos críticos identificados tardiamente",
+                "retrabalho entre áreas",
+                "falta de critérios objetivos para passagem de gate",
+                "demora para consolidar o business case",
+                "falta de rastreabilidade entre decisão e projeto",
+                "oportunidade de usar IA para verificar completude, resumir evidências e apontar conflitos ou lacunas."
+              ],
+              processes: [l4_1, l4_2, l4_3, l4_4, l4_5, l4_6, l4_7, l4_8, l4_9, l4_10, l4_11, l4_12]
+            },
+            {
+              id: 'l4-prototipagem',
+              name: "Prototipagem",
+              description: "Transformar conceitos aprovados em protótipos de produto, formulação, material ou embalagem para avaliação técnica e de experiência.",
+              responsible: "Laboratório e Formulação",
+              processes: []
+            },
+            {
+              id: 'l4-validacao',
+              name: "Validação",
+              description: "Confirmar que o protótipo atende aos requisitos de consumidor, desempenho, qualidade, segurança, regulatório e viabilidade definidos.",
+              responsible: "Segurança e Eficácia",
+              processes: []
+            },
+            {
+              id: 'l4-disponibilizacao',
+              name: "Disponibilização",
+              description: "Preparar e encaminhar o produto validado para disponibilização, assegurando prontidão operacional, documental, regulatória e comercial.",
+              responsible: "Industrialização e Lançamento",
+              processes: []
+            }
+          ]
+        },
+        // ── L3 1.2: Funil de Tecnologia ──
+        {
+          id: 'l3-funil-tecnologia',
+          name: "Funil de Tecnologia",
+          type: "Etapa de valor",
+          description: "Desenvolver e disponibilizar capacidades, insumos, formulações, materiais, embalagens, produtos ampliados, metodologias e modelos necessários para viabilizar a inovação de produtos.",
+          responsible: "Gerência de Tecnologia e Plataformas",
+          dimensioning: { allocatedFte: 8, unit: 'FTE', referenceDate: '2026-09-22', validationStatus: 'validado' },
+          objective: "Desenvolver e disponibilizar capacidades e tecnologias essenciais para inovação.",
+          valueProposition: "Criar diferenciais tecnológicos e viabilizar novas soluções para o portfólio.",
+          scopeBoundary: "Da pesquisa aplicada à qualificação e entrega para os projetos de produto.",
+          inputs: "Tendências tecnológicas; roadmap de inovação; requisitos de produto.",
+          outputs: "Tecnologias qualificadas; metodologias e formulações validadas.",
+          stakeholders: "P&D; Engenharia; Inovação Aberta; Fornecedores.",
+          painPoints: ["Descompasso entre tempo de pesquisa e ciclo de lançamento de produto."],
+          childrenL4: [
+            { id: 'l4-prospeccao', name: "Prospecção e Ideação", processes: [] },
+            { id: 'l4-desenv-insumos', name: "Desenvolvimento de Insumos", processes: [] },
+            { id: 'l4-tec-ingredientes', name: "Tecnologias de Ingredientes e Formulações", processes: [] },
+            { id: 'l4-desenv-materiais', name: "Desenvolvimento de Materiais e Embalagens", processes: [] },
+            { id: 'l4-produto-ampliado', name: "Produto Ampliado", processes: [] },
+            { id: 'l4-metodologias', name: "Metodologias e Modelos", processes: [] }
+          ]
+        }
+      ]
+    },
+
+    // ── L2 2: Inovação Digital ──
+    {
+      id: 'l2-inov-digital',
+      name: "Inovação Digital",
+      type: "Agrupamento de valor",
+      description: "Desenvolver soluções, plataformas e produtos digitais que potencializem a experiência de consultoras, consumidores e canais de relacionamento.",
+      responsible: "Gerência Executiva de Produtos Digitais",
+      dimensioning: { allocatedFte: 10, unit: 'FTE', referenceDate: '2026-09-22', validationStatus: 'validado' },
+      objective: "Desenvolver soluções, plataformas e produtos digitais que potencializem a experiência de consultoras, consumidores e canais de relacionamento.",
+      valueProposition: "Acelerar a transformação digital da experiência de vendas e relacionamento através de produtos digitais intuitivos e integrados.",
+      scopeBoundary: "Abrange a concepção, descoberta, desenvolvimento contínuo e evolução de soluções digitais voltadas a canais e relacionamento.",
+      inputs: "Feedback de usuários e consultoras; métricas de engajamento digital; roadmap estratégico corporativo; requisitos de integração com sistemas legados.",
+      outputs: "Aplicativos móveis; portais web; funcionalidades de inteligência e comércio conversacional; dados consolidados de uso e jornada.",
+      stakeholders: "Canais Digitais; Tecnologia da Informação; Marketing Digital; Operações Comerciais; Consultoras de Beleza.",
+      painPoints: [
+        "Integração com sistemas legados e ERP",
+        "manutenção de consistência de experiência omnichannel",
+        "gestão de backlog com múltiplas áreas solicitantes"
+      ],
       childrenL3: [
         {
-          id: 'l3-conceituacao', name: "Conceituação e Briefing", type: "Etapa de valor", description: "Transformar oportunidades em conceitos de produto estruturados, avaliados e documentados, com proposta de valor, diretrizes técnicas, requisitos de qualidade, impactos ambientais, viabilidade financeira e decisão de passagem para desenvolvimento.",
-          responsible: "Gerência de Conceituação e Briefing de Produtos", dimensioning: { allocatedFte: 16, unit: 'FTE', referenceDate: '2026-09-22', validationStatus: 'validado' },
-          objective: "Transformar oportunidades em conceitos de produto estruturados, avaliados e documentados, com proposta de valor, diretrizes técnicas, requisitos de qualidade, impactos ambientais, viabilidade financeira e decisão de passagem para desenvolvimento.", valueProposition: "Criar clareza e alinhamento antes do investimento em prototipagem, reduzindo ambiguidades, retrabalho e riscos de desenvolver soluções sem aderência ao consumidor, ao negócio ou às restrições técnicas e regulatórias.",
-          scopeBoundary: "Inicia com a identificação de uma oportunidade para o negócio e termina com a aprovação do business case e a passagem de Gate BF para o kick-off técnico. Inclui conceito, pesquisa, arquitetura de portfólio, diretrizes de design e qualidade, impacto ambiental, business case, análise financeira e registro do projeto.", 
-          inputs: "Oportunidade de negócio; insights de consumidor; estratégia de categoria; tendências; proposta de valor inicial; diretrizes de design; diretrizes de qualidade; requisitos regulatórios; dados técnicos; premissas financeiras; metas ambientais; capacidades do Funil de Tecnologia.", outputs: "Conceito e proposta de valor estruturados; arquitetura de portfólio; diretrizes de design e qualidade; avaliação de impacto ambiental; business case; análise financeira; projeto criado no sistema; informações estratégicas carregadas; decisão de Gate BF; passagem para kick-off técnico.", stakeholders: "Negócio; Marketing; Consumer Insights; P&D; Tecnologia; Qualidade; Regulatório; Finanças; Sustentabilidade; Operações; Supply; Gestão de Portfólio; liderança decisora e equipe do kick-off técnico.",
-          painPoints: ["Informa\u00e7\u00f5es de conceito, qualidade, regulat\u00f3rio, sustentabilidade e finan\u00e7as distribu\u00eddas em fontes diferentes", "requisitos cr\u00edticos identificados tardiamente", "retrabalho entre \u00e1reas", "falta de crit\u00e9rios objetivos para passagem de gate", "demora para consolidar o business case", "falta de rastreabilidade entre decis\u00e3o e projeto", "oportunidade de usar IA para verificar completude, resumir evid\u00eancias e apontar conflitos ou lacunas."],
-          childrenL4: [
-            { id: 'l4-1', name: 'Identificar oportunidades para o negócio', processes: [l4_1] }, { id: 'l4-2', name: 'Desenvolver conceito e proposta de valor', processes: [l4_2] }, { id: 'l4-3', name: 'Pesquisar e validar conceito e proposta de valor', processes: [l4_3] }, { id: 'l4-4', name: 'Definir design de produto — Qualidade, DLL e Regulatório', processes: [l4_4] }, { id: 'l4-5', name: 'Desenhar arquitetura de portfólio', processes: [l4_5] }, { id: 'l4-6', name: 'Definir diretrizes de design', processes: [l4_6] }, { id: 'l4-7', name: 'Definir diretrizes de qualidade', processes: [l4_7] }, { id: 'l4-8', name: 'Avaliar impacto ambiental', processes: [l4_8] }, { id: 'l4-9', name: 'Construir o business case (BC)', processes: [l4_9] }, { id: 'l4-10', name: 'Realizar análise financeira', processes: [l4_10] }, { id: 'l4-11', name: 'Criar projeto no sistema e carregar informações estratégicas', processes: [l4_11] }, { id: 'l4-12', name: 'Realizar Gate BF — aprovação e passagem para kick-off técnico', processes: [l4_12] }
-          ]
+          id: 'l3-plataformas-digitais',
+          name: "Plataformas e Experiências Digitais",
+          type: "Etapa de valor",
+          description: "Conceber e evoluir ecossistemas digitais, aplicativos e serviços omnichannel.",
+          responsible: "Canais Digitais",
+          childrenL4: []
+        },
+        {
+          id: 'l3-servicos-inteligentes',
+          name: "Serviços Digitais e Inteligência Conectada",
+          type: "Etapa de valor",
+          description: "Habilitar recursos avançados de recomendação, IA assistiva e comércio conversacional.",
+          responsible: "Time de IA e Inovação Digital",
+          childrenL4: []
+        }
+      ]
+    },
+
+    // ── L2 3: Gestão da Inovação de Modelo Comercial ──
+    {
+      id: 'l2-inov-modelo-comercial',
+      name: "Gestão da Inovação de Modelo Comercial",
+      type: "Agrupamento de valor",
+      description: "Experimentar, validar e escalar novos formatos de relacionamento, monetização e distribuição para a rede de relações sustentáveis.",
+      responsible: "Gerência de Novos Modelos de Negócio",
+      dimensioning: { allocatedFte: 8, unit: 'FTE', referenceDate: '2026-09-22', validationStatus: 'validado' },
+      objective: "Experimentar, validar e escalar novos formatos de relacionamento, monetização e distribuição para a rede de relações sustentáveis.",
+      valueProposition: "Diversificar e fortalecer os modelos de negócio da organização, explorando novas fontes de receita e ampliando o alcance da marca.",
+      scopeBoundary: "Abrange a ideação, pilotos em mercado real, validação de viabilidade comercial e integração à operação principal.",
+      inputs: "Tendências de consumo; novos canais de distribuição; benchmarks setoriais; demandas da força de vendas.",
+      outputs: "Modelos de negócio validados; planos de escala; estruturas contratuais e parcerias estabelecidas.",
+      stakeholders: "Diretoria Comercial; Finanças; Novos Negócios; Franquias e Canais Alternativos; Jurídico.",
+      painPoints: [
+        "Risco de canibalização com modelo de venda direta tradicional",
+        "adaptação de processos fiscais e contratuais a novos modelos"
+      ],
+      childrenL3: [
+        {
+          id: 'l3-novos-formatos-venda',
+          name: "Novos Formatos e Canais de Distribuição",
+          type: "Etapa de valor",
+          description: "Testar e estruturar franquias, lojas conceito, quiosques e modelos de assinatura.",
+          responsible: "Novos Negócios",
+          childrenL4: []
+        },
+        {
+          id: 'l3-social-commerce',
+          name: "Evolução do Social Commerce e Relacionamento",
+          type: "Etapa de valor",
+          description: "Desenvolver modelos de venda social, parcerias com influenciadores e micro-empreendedorismo.",
+          responsible: "Operações Comerciais",
+          childrenL4: []
         }
       ]
     }
   ]
 };
+

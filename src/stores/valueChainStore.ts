@@ -462,10 +462,10 @@ export const useValueChainStore = create<ValueChainState>()(
     }),
     {
       name: "value-chain-storage",
-      version: 6,
+      version: 7,
       // Reseed persisted demos when the architecture scenarios change.
       migrate: () =>
-        ({ l1Processes: buildDemoValueChain(), isFirstAccess: false }) as never,
+        ({ l1Processes: [...buildDemoValueChain(), ...buildNaturaValueChain()], isFirstAccess: false }) as never,
     }
   )
 );

@@ -223,6 +223,7 @@ export const useRaciStore = create<RaciStore>()(
   persist(
     (set, get) => ({
       matrices: {
+        'l4-conceituacao': buildDefaultNaturaMatrix('l4-conceituacao', 'Conceituação e Briefing'),
         'l3-conceituacao': buildDefaultNaturaMatrix('l3-conceituacao', 'Conceituação e Briefing')
       },
 
@@ -233,8 +234,9 @@ export const useRaciStore = create<RaciStore>()(
           return state.matrices[nodeId];
         }
 
-        // Se for um nó do Funil de Inovação (l4-1 a l4-12 ou l3-conceituacao)
+        // Se for um nó do Funil de Inovação (l4-conceituacao, l4-1 a l4-12 ou l3-conceituacao)
         const isNaturaConceituacao = 
+          nodeId === 'l4-conceituacao' ||
           nodeId === 'l3-conceituacao' || 
           nodeId.startsWith('l4-') || 
           (nodeTitle && nodeTitle.toLowerCase().includes('conceitua'));
