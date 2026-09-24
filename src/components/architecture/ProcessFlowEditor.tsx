@@ -336,7 +336,7 @@ export function ProcessFlowEditor({
     
     const responsibleAreas: string[] = [];
     Object.entries(row.cells || {}).forEach(([area, cell]) => {
-      if (cell.roles.includes('R') || cell.roles.includes('A')) {
+      if (cell?.roles?.includes('R') || cell?.roles?.includes('A')) {
         responsibleAreas.push(area);
       }
     });
