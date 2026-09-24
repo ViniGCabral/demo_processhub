@@ -4,7 +4,8 @@ import {
   ShieldCheck, TrendingUp, Layers, Plus, Pencil, Share2, 
   ExternalLink, ArrowRight, CornerDownRight, Check, AlertTriangle,
   HelpCircle, ChevronRight, ArrowLeft, Target, Gem, Sparkles, Component,
-  Milestone, ArrowUpRight, ArrowDownLeft, Users, TableProperties
+  Milestone, ArrowUpRight, ArrowDownLeft, Users, TableProperties,
+  LayoutGrid, GitBranch
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,8 @@ import { toast } from "sonner";
 import { ArchitectureIndicatorsModal } from "./ArchitectureIndicatorsModal";
 import { GapsDetailModal } from "./GapsDetailModal";
 import { RaciMatrixModal } from "./modals/RaciMatrixModal";
+import { ProcessFlowEditor } from "./ProcessFlowEditor";
+import { useProcessFlowStore } from "@/stores/processFlowStore";
 
 export interface BreadcrumbStep {
   label: string;
@@ -139,6 +142,11 @@ export function ScopeContextSheet({
   const [isIndicatorsModalOpen, setIsIndicatorsModalOpen] = useState(false);
   const [isGapsModalOpen, setIsGapsModalOpen] = useState(false);
   const [isRaciModalOpen, setIsRaciModalOpen] = useState(false);
+
+  // ── Process Flow toggle: cards vs flow ──
+  const { getDefaultFlow } = useProcessFlowStore();
+  const hasDefaultFlow = !!getDefaultFlow(id);
+  const [viewMode, setViewMode] = useState<"cards" | "flow">(hasDefaultFlow ? "flow" : "cards");
 
   // Responsável formatado
   const responsibleName = typeof responsible === "string" 
@@ -476,14 +484,54 @@ export function ScopeContextSheet({
               </p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 bg-[#EFE8FF] text-[#6633D0] px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider">
-            <Sparkles className="h-3.5 w-3.5" />
-            {childLevelLabel}
-          </span>
+          <div className="flex items-center gap-2">
+            {/* Toggle: Cards / Flow */}
+            <div className="flex items-center bg-[#F0F3F8] rounded-lg p-0.5">
+              <button
+                onClick={() => setViewMode("cards")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
+                  viewMode === "cards"
+                    ? "bg-white text-[#1A2A48] shadow-sm"
+                    : "text-[#7C889E] hover:text-[#4D5A72]"
+                )}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                {pt ? "Etapas/Processos" : "Steps/Processes"}
+              </button>
+              <button
+                onClick={() => setViewMode("flow")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
+                  viewMode === "flow"
+                    ? "bg-white text-[#1A2A48] shadow-sm"
+                    : "text-[#7C889E] hover:text-[#4D5A72]"
+                )}
+              >
+                <GitBranch className="h-3.5 w-3.5" />
+                {pt ? "Fluxos" : "Flows"}
+              </button>
+            </div>
+            <span className="inline-flex items-center gap-1.5 bg-[#EFE8FF] text-[#6633D0] px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider">
+              <Sparkles className="h-3.5 w-3.5" />
+              {childLevelLabel}
+            </span>
+          </div>
         </div>
 
-        {/* Conteúdo dinâmico do mapa */}
-        {childrenComponents.length === 0 ? (
+        {/* Conteúdo dinâmico do mapa — Cards view or Flow view */}
+        {viewMode === "flow" ? (
+          <ProcessFlowEditor
+            parentNodeId={id}
+            parentNodeName={name}
+            availableProcesses={childrenComponents.map((c) => ({
+              id: c.id,
+              name: c.name,
+              description: c.description,
+            }))}
+            visible={true}
+          />
+        ) : childrenComponents.length === 0 ? (
           <div className="bg-[#FBFCFF] border border-dashed border-[#DFE5EF] rounded-xl p-10 text-center text-xs text-[#8A96A9] flex flex-col items-center justify-center">
             <div className="w-12 h-12 rounded-full bg-[#F0F3F8] flex items-center justify-center mb-3">
               <Layers className="h-6 w-6 text-[#A5A7B0]" />
