@@ -77,12 +77,12 @@ const App = () => {
 
   // Prototype mode without a real session: seed demo processes locally
   useEffect(() => {
-    if (fakeAuth && !session) {
+    const isDemo = window.location.pathname.includes("demo_natura");
+    if ((fakeAuth || isDemo) && !session) {
       const s = useProcessStore.getState();
       if (!s.loaded && s.processes.length === 0) s.seedInitialProcesses();
     }
   }, [fakeAuth, session]);
-
 
   const handleLogout = async () => {
     localStorage.removeItem("isAuthenticated");
@@ -107,31 +107,36 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            {!isAuthenticated ? (
-              <Routes>
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="*" element={<Login />} />
-              </Routes>
-            ) : (
-              <Routes>
-                <Route path="/" element={<Dashboard onLogout={handleLogout} />} />
-                <Route path="/processes" element={<ProcessList onLogout={handleLogout} />} />
-                <Route path="/processes/new" element={<NewProcess onLogout={handleLogout} />} />
-                <Route path="/processes/:id" element={<ProcessDetail onLogout={handleLogout} />} />
-                <Route path="/processes/:id/canvas" element={<ProcessCanvasPage onLogout={handleLogout} />} />
-                <Route path="/architecture" element={<ProcessArchitecture onLogout={handleLogout} />} />
-                <Route path="/use-cases" element={<UseCases onLogout={handleLogout} />} />
-                <Route path="/saved-use-cases" element={<SavedUseCases onLogout={handleLogout} />} />
-                <Route path="/process-analysis" element={<ProcessAnalysis onLogout={handleLogout} />} />
-                <Route path="/org-intelligence-hub" element={<OrgIntelligenceHub onLogout={handleLogout} />} />
-                <Route path="/org-intelligence-hub/discover" element={<DiscoverOpportunities onLogout={handleLogout} />} />
-                <Route path="/org-intelligence-hub/transform" element={<TransformProcesses onLogout={handleLogout} />} />
-                <Route path="/settings" element={<Settings onLogout={handleLogout} />} />
-                <Route path="/normatives/*" element={<Normatives onLogout={handleLogout} />} />
-                <Route path="/academy/*" element={<ProcessAcademy onLogout={handleLogout} />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            )}
+            <Routes>
+              {/* Rota pública dedicada para o cliente / demonstração Natura */}
+              <Route path="/demo_natura" element={<ProcessArchitecture onLogout={() => {}} isClientDemo />} />
+              <Route path="/processes/:id" element={<ProcessDetail onLogout={handleLogout} />} />
+
+              {!isAuthenticated ? (
+                <>
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="*" element={<Login />} />
+                </>
+              ) : (
+                <>
+                  <Route path="/" element={<Dashboard onLogout={handleLogout} />} />
+                  <Route path="/processes" element={<ProcessList onLogout={handleLogout} />} />
+                  <Route path="/processes/new" element={<NewProcess onLogout={handleLogout} />} />
+                  <Route path="/processes/:id/canvas" element={<ProcessCanvasPage onLogout={handleLogout} />} />
+                  <Route path="/architecture" element={<ProcessArchitecture onLogout={handleLogout} />} />
+                  <Route path="/use-cases" element={<UseCases onLogout={handleLogout} />} />
+                  <Route path="/saved-use-cases" element={<SavedUseCases onLogout={handleLogout} />} />
+                  <Route path="/process-analysis" element={<ProcessAnalysis onLogout={handleLogout} />} />
+                  <Route path="/org-intelligence-hub" element={<OrgIntelligenceHub onLogout={handleLogout} />} />
+                  <Route path="/org-intelligence-hub/discover" element={<DiscoverOpportunities onLogout={handleLogout} />} />
+                  <Route path="/org-intelligence-hub/transform" element={<TransformProcesses onLogout={handleLogout} />} />
+                  <Route path="/settings" element={<Settings onLogout={handleLogout} />} />
+                  <Route path="/normatives/*" element={<Normatives onLogout={handleLogout} />} />
+                  <Route path="/academy/*" element={<ProcessAcademy onLogout={handleLogout} />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </>
+              )}
+            </Routes>
           </BrowserRouter>
         </TooltipProvider>
       </LanguageProvider>

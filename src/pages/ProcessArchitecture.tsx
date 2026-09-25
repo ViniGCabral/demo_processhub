@@ -15,10 +15,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface ProcessArchitectureProps {
-  onLogout: () => void;
+  onLogout?: () => void;
+  isClientDemo?: boolean;
 }
 
-export function ProcessArchitecture({ onLogout }: ProcessArchitectureProps) {
+export function ProcessArchitecture({ onLogout, isClientDemo }: ProcessArchitectureProps) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { language } = useLanguage();
@@ -111,7 +112,7 @@ export function ProcessArchitecture({ onLogout }: ProcessArchitectureProps) {
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] flex flex-col">
-      <TopBar onLogout={onLogout} />
+      <TopBar onLogout={onLogout} isClientDemo={isClientDemo} />
 
       <main className="flex-1 p-4 lg:p-8">
         <div className="w-full mx-auto">
@@ -119,6 +120,7 @@ export function ProcessArchitecture({ onLogout }: ProcessArchitectureProps) {
           {/* ── View Toggle & Header (apenas na tela inicial de arquitetura) ────────────────── */}
           {showHeader && (
             <ArchitectureHeader 
+              isClientDemo={isClientDemo}
               onImportBpmn={() => toast.info(pt ? "Funcionalidade de importação BPMN em breve." : "BPMN import coming soon.")}
               onGenerateAI={() => handleAIGeneration("full")}
               onCreate={() => toast.info(pt ? "Modal de criação L1" : "L1 creation modal")}

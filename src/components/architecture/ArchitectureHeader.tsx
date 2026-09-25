@@ -8,12 +8,14 @@ interface ArchitectureHeaderProps {
   onImportBpmn?: () => void;
   onGenerateAI?: () => void;
   onCreate?: () => void;
+  isClientDemo?: boolean;
 }
 
 export function ArchitectureHeader({
   onImportBpmn,
   onGenerateAI,
   onCreate,
+  isClientDemo,
 }: ArchitectureHeaderProps) {
   const { language } = useLanguage();
   const pt = language === "PT";
@@ -27,53 +29,63 @@ export function ArchitectureHeader({
       {/* Breadcrumb & Top Actions */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-5">
         <div>
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 text-sm mb-3 transition-colors hover:text-[#0C1BA8] text-[#A5A7B0]"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            {pt ? "Voltar para a tela inicial" : "Back to Home"}
-          </button>
+          {!isClientDemo && (
+            <button
+              onClick={() => navigate("/")}
+              className="flex items-center gap-1.5 text-sm mb-3 transition-colors hover:text-[#0C1BA8] text-[#A5A7B0]"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              {pt ? "Voltar para a tela inicial" : "Back to Home"}
+            </button>
+          )}
           
           <h1 className="text-2xl font-bold text-[#272727]">
-            {pt ? "Arquitetura de Processos" : "Process Architecture"}
+            {isClientDemo
+              ? (pt ? "Arquitetura de Processos · Natura" : "Process Architecture · Natura")
+              : (pt ? "Arquitetura de Processos" : "Process Architecture")}
           </h1>
           <p className="text-sm text-[#A5A7B0] mt-1">
-            {pt
-              ? "Mapeie domínios, processos de ponta a ponta e o alinhamento estratégico."
-              : "Map domains, end-to-end processes, and strategic alignment."}
+            {isClientDemo
+              ? (pt
+                  ? "Mapeamento da cadeia de valor, fluxos de processos operacionais e conexões interfuncionais."
+                  : "Value chain mapping, operational process flows, and cross-functional connections.")
+              : (pt
+                  ? "Mapeie domínios, processos de ponta a ponta e o alinhamento estratégico."
+                  : "Map domains, end-to-end processes, and strategic alignment.")}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-sm border-[#A5A7B0]/40 text-[#272727]"
-            onClick={onImportBpmn}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            {pt ? "Importar BPMN" : "Import BPMN"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-sm border-[#A5A7B0]/40 text-[#272727]"
-            onClick={onGenerateAI}
-          >
-            <Sparkles className="h-4 w-4 mr-2 text-[#0C1BA8]" />
-            {pt ? "Gerar com IA" : "Generate with AI"}
-          </Button>
-          
-          <Button
-            size="sm"
-            className="rounded-sm bg-[#0C1BA8] hover:bg-[#04223D] text-white"
-            onClick={onCreate}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {pt ? "Criar L1/Domínio" : "Create L1/Domain"}
-          </Button>
-        </div>
+        {!isClientDemo && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-sm border-[#A5A7B0]/40 text-[#272727]"
+              onClick={onImportBpmn}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {pt ? "Importar BPMN" : "Import BPMN"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-sm border-[#A5A7B0]/40 text-[#272727]"
+              onClick={onGenerateAI}
+            >
+              <Sparkles className="h-4 w-4 mr-2 text-[#0C1BA8]" />
+              {pt ? "Gerar com IA" : "Generate with AI"}
+            </Button>
+            
+            <Button
+              size="sm"
+              className="rounded-sm bg-[#0C1BA8] hover:bg-[#04223D] text-white"
+              onClick={onCreate}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {pt ? "Criar L1/Domínio" : "Create L1/Domain"}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Faixa de Indicadores */}

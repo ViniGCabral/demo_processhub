@@ -14,34 +14,52 @@ import contextusLogo from "@/assets/contextus-logo.png";
 
 interface TopBarProps {
   onLogout?: () => void;
+  isClientDemo?: boolean;
 }
 
-export function TopBar({ onLogout }: TopBarProps) {
+export function TopBar({ onLogout, isClientDemo }: TopBarProps) {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
   return (
     <header className="h-14 border-b border-border bg-card px-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate("/")} className="flex items-center" aria-label="Ir para o início">
+        <button
+          onClick={() => navigate(isClientDemo ? "/demo_natura" : "/")}
+          className="flex items-center cursor-pointer"
+          aria-label="Ir para o início"
+        >
           <img
             src={contextusLogo}
             alt="Contextus"
             className="h-8 w-auto"
           />
         </button>
+
+        {isClientDemo && (
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#0C1BA8]/10 text-[#0C1BA8] border border-[#0C1BA8]/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0C1BA8] animate-pulse" />
+            Natura · Arquitetura de Processos
+          </span>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
-        <button onClick={() => navigate("/academy")} className="hidden md:flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-primary transition-colors">
-          <GraduationCap className="h-4 w-4" />
-          Academia de Processos
-        </button>
+        {!isClientDemo && (
+          <button
+            onClick={() => navigate("/academy")}
+            className="hidden md:flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-primary transition-colors"
+          >
+            <GraduationCap className="h-4 w-4" />
+            Academia de Processos
+          </button>
+        )}
 
         {/* Language Toggle */}
         <LanguageToggle variant="dark" />
 
-        {/* User Menu - Simplified */}
+        {/* User Menu - Hidden in client demo */}
+        {!isClientDemo && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="gap-2 hover:bg-muted/50">
@@ -77,6 +95,7 @@ export function TopBar({ onLogout }: TopBarProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        )}
       </div>
     </header>
   );
