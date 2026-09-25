@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { inferConnectionsFromFlows, getAllFlowConnections } from '@/utils/flowConnectionInference';
 
 export type ProcessConnectionType =
   | 'fornece_insumo_para'       // "Fornece insumo para"
@@ -265,21 +266,49 @@ export const useProcessConnectionStore = create<ProcessConnectionStoreState>()(
       getPredecessors: (processId: string, processName?: string) => {
         const idLower = (processId || '').trim().toLowerCase();
         const nameLower = (processName || processId || '').trim().toLowerCase();
-        return get().connections.filter((c) => {
+        const manual = get().connections.filter((c) => {
           const tId = c.targetProcessId.trim().toLowerCase();
           const tName = c.targetProcessName.trim().toLowerCase();
           return tId === idLower || tName === nameLower || tId === nameLower || tName === idLower;
         });
+
+        // Inferred from process flows (anything to the left of the process in the flow)
+        const flowInferred = inferConnectionsFromFlows(processId, processName);
+        const seenNames = new Set(manual.map((c) => c.sourceProcessName.trim().toLowerCase()));
+        const merged = [...manual];
+        flowInferred.predecessors.forEach((fc) => {
+          const sName = fc.sourceProcessName.trim().toLowerCase();
+          if (!seenNames.has(sName) && sName !== nameLower) {
+            seenNames.add(sName);
+            merged.push(fc);
+          }
+        });
+
+        return merged;
       },
 
       getSuccessors: (processId: string, processName?: string) => {
         const idLower = (processId || '').trim().toLowerCase();
         const nameLower = (processName || processId || '').trim().toLowerCase();
-        return get().connections.filter((c) => {
+        const manual = get().connections.filter((c) => {
           const sId = c.sourceProcessId.trim().toLowerCase();
           const sName = c.sourceProcessName.trim().toLowerCase();
           return sId === idLower || sName === nameLower || sId === nameLower || sName === idLower;
         });
+
+        // Inferred from process flows (anything to the right of the process in the flow)
+        const flowInferred = inferConnectionsFromFlows(processId, processName);
+        const seenNames = new Set(manual.map((c) => c.targetProcessName.trim().toLowerCase()));
+        const merged = [...manual];
+        flowInferred.successors.forEach((fc) => {
+          const tName = fc.targetProcessName.trim().toLowerCase();
+          if (!seenNames.has(tName) && tName !== nameLower) {
+            seenNames.add(tName);
+            merged.push(fc);
+          }
+        });
+
+        return merged;
       },
 
       getConnectionsForProcess: (processId: string, processName?: string) => {
@@ -288,7 +317,22 @@ export const useProcessConnectionStore = create<ProcessConnectionStoreState>()(
         return { predecessors, successors };
       },
 
-      getAllConnections: () => get().connections,
+      getAllConnections: () => {
+        const manual = get().connections;
+        const flowConns = getAllFlowConnections();
+        const seenPair = new Set(
+          manual.map((c) => `${c.sourceProcessName.trim().toLowerCase()}->${c.targetProcessName.trim().toLowerCase()}`)
+        );
+        const merged = [...manual];
+        flowConns.forEach((fc) => {
+          const pair = `${fc.sourceProcessName.trim().toLowerCase()}->${fc.targetProcessName.trim().toLowerCase()}`;
+          if (!seenPair.has(pair)) {
+            seenPair.add(pair);
+            merged.push(fc);
+          }
+        });
+        return merged;
+      },
 
       resetToDefaults: () => set({ connections: INITIAL_PROCESS_CONNECTIONS }),
     }),

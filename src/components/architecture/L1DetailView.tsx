@@ -316,9 +316,15 @@ export function L1DetailView({ l1, onSelectL2, onCreateL2 }: L1DetailViewProps) 
           <div className="space-y-3 flex-1">
             {/* Top Tag Badge */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-sm bg-[#0C1BA8]/10 text-[#0C1BA8] uppercase tracking-wider">
-                {pt ? "Domínio L1" : "Domain L1"}
+              <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-lg bg-[#0C1BA8] text-white shadow-sm ring-1 ring-[#0C1BA8]/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                {lvl("l1")}
               </span>
+              {l1.code && (
+                <span className="text-xs font-mono font-semibold text-[#4D5A72] bg-[#F1F5F9] px-2 py-1 rounded-lg border border-[#DFE5EF]">
+                  {l1.code}
+                </span>
+              )}
             </div>
 
             {/* Domain Title & Description */}

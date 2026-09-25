@@ -5,6 +5,12 @@ import { persist } from 'zustand/middleware';
 
 export type FlowNodeType = 'start' | 'end' | 'activity' | 'gateway';
 
+export interface FlowBranch {
+  id: string;
+  label: string;
+  nodes: FlowNode[];
+}
+
 export interface FlowNode {
   id: string;
   type: FlowNodeType;
@@ -16,6 +22,10 @@ export interface FlowNode {
   branchLabel?: string;
   /** Position index in the flow (left-to-right order) */
   order: number;
+  /** For 'gateway' type: whether it is split into multiple paths */
+  isSplit?: boolean;
+  /** For 'gateway' type: the branches array */
+  branches?: FlowBranch[];
 }
 
 export interface FlowConnection {
@@ -72,18 +82,120 @@ interface ProcessFlowStore {
 
 const genId = () => Math.random().toString(36).slice(2, 11);
 
+export function buildCanonicalConceituacaoFlow(parentNodeId: string = 'l3-conceituacao'): ProcessFlow {
+  const now = '2026-09-24T20:00:00.000Z';
+  const nodes: FlowNode[] = [
+    { id: 'fn-start', type: 'start', label: 'Início', order: 0 },
+    { id: 'fn-1', type: 'activity', processId: 'l4-1', label: 'Identificar oportunidades para o negócio', order: 1 },
+    { id: 'fn-2', type: 'activity', processId: 'l4-2', label: 'Desenvolver conceito e proposta de valor', order: 2 },
+    { id: 'fn-3', type: 'activity', processId: 'l4-3', label: 'Validar conceito e proposta de valor', order: 3 },
+    { id: 'fn-4', type: 'activity', processId: 'l4-4', label: 'Avaliar requisitos de Design, Qualidade e Regulatório', order: 4 },
+    { id: 'fn-5', type: 'activity', processId: 'l4-5', label: 'Definir arquitetura de portfólio', order: 5 },
+    {
+      id: 'fn-gw-parallel',
+      type: 'gateway',
+      label: 'Divergência Técnica',
+      order: 6,
+      isSplit: true,
+      branches: [
+        {
+          id: 'br-design',
+          label: 'Inovação',
+          nodes: [
+            { id: 'fn-6', type: 'activity', processId: 'l4-6', label: 'Consolidar diretrizes de design', order: 0 },
+          ],
+        },
+        {
+          id: 'br-qualidade',
+          label: 'O&L',
+          nodes: [
+            { id: 'fn-7', type: 'activity', processId: 'l4-7', label: 'Definir diretrizes de qualidade', order: 0 },
+          ],
+        },
+        {
+          id: 'br-sustentabilidade',
+          label: 'P&D',
+          nodes: [
+            { id: 'fn-8', type: 'activity', processId: 'l4-8', label: 'Analisar impacto ambiental', order: 0 },
+          ],
+        },
+      ],
+    },
+    { id: 'fn-9', type: 'activity', processId: 'l4-9', label: 'Construir Business Case inicial', order: 7 },
+    { id: 'fn-10', type: 'activity', processId: 'l4-10', label: 'Realizar análise financeira', order: 8 },
+    { id: 'fn-11', type: 'activity', processId: 'l4-11', label: 'Criação do projeto no sistema', order: 9 },
+    { id: 'fn-12', type: 'activity', processId: 'l4-12', label: 'Aprovar Gate BF', order: 10 },
+    {
+      id: 'fn-gw-gatebf',
+      type: 'gateway',
+      label: 'Decisão Gate BF',
+      order: 11,
+      isSplit: true,
+      branches: [
+        {
+          id: 'br-aprovado',
+          label: 'Aprovado',
+          nodes: [
+            { id: 'fn-end-aprovado', type: 'end', label: 'Formaliza o kick-off técnico', order: 0 },
+          ],
+        },
+        {
+          id: 'br-reprovado',
+          label: 'Reprovado',
+          nodes: [
+            { id: 'fn-end-reprovado', type: 'end', label: 'Retorna para revisão da conceituação', order: 0 },
+          ],
+        },
+      ],
+    },
+  ];
+
+  const connections: FlowConnection[] = [];
+  for (let i = 0; i < nodes.length - 1; i++) {
+    connections.push({
+      id: `conn-canonical-${i}`,
+      sourceNodeId: nodes[i].id,
+      targetNodeId: nodes[i + 1].id,
+    });
+  }
+
+  return {
+    id: `flow-conceituacao-canonical-${parentNodeId}`,
+    parentNodeId,
+    name: 'Jornada de Conceituação e Briefing',
+    description: 'Fluxo oficial estruturado de conceituação com divergência paralela (Design, Qualidade, Sustentabilidade) e decisão de Gate BF com desfechos distintos.',
+    nodes,
+    connections,
+    isDefault: true,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+const initialSeedFlows: Record<string, ProcessFlow[]> = {
+  'l3-conceituacao': [buildCanonicalConceituacaoFlow('l3-conceituacao')],
+  'l4-conceituacao': [buildCanonicalConceituacaoFlow('l4-conceituacao')],
+};
+
 // ── Store Implementation ───────────────────────────────────────
 
 export const useProcessFlowStore = create<ProcessFlowStore>()(
   persist(
     (set, get) => ({
-      flows: {},
+      flows: initialSeedFlows,
 
-      getFlows: (parentNodeId) => get().flows[parentNodeId] || [],
+      getFlows: (parentNodeId) => {
+        const existing = get().flows[parentNodeId];
+        if (existing && existing.length > 0) return existing;
+        if (parentNodeId === 'l3-conceituacao' || parentNodeId === 'l4-conceituacao' || parentNodeId.includes('conceitua')) {
+          return [buildCanonicalConceituacaoFlow(parentNodeId)];
+        }
+        return [];
+      },
 
       getDefaultFlow: (parentNodeId) => {
-        const list = get().flows[parentNodeId] || [];
-        return list.find((f) => f.isDefault) || null;
+        const list = get().getFlows(parentNodeId);
+        return list.find((f) => f.isDefault) || list[0] || null;
       },
 
       getFlowById: (flowId) => {
@@ -300,6 +412,10 @@ export const useProcessFlowStore = create<ProcessFlowStore>()(
     }),
     {
       name: 'processhub-process-flows',
+      version: 3,
+      migrate: () => ({
+        flows: initialSeedFlows,
+      }) as never,
       partialize: (state) => ({ flows: state.flows }),
     }
   )

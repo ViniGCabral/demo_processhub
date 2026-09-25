@@ -407,6 +407,7 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
                   systems={["CRM Salesforce", "Google Calendar", "HubSpot", "Apollo.io"]}
                   evidences={["Regra BANT confirmada pelo Process Owner", "Integração CRM/agenda observada"]}
                   openQuestions={["Critério de priorização para contas estratégicas fora do expediente comercial"]}
+                  onSelectProcess={(p) => setSelectedProcessForAction(p)}
                 />
               );
             })()
@@ -498,6 +499,7 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
                     "Priorizações manuais sem critério consolidado",
                     "Oportunidade: enriquecimento e roteamento automatizados"
                   ]}
+                  onSelectProcess={(p) => setSelectedProcessForAction(p)}
                 />
               );
             })()
@@ -700,7 +702,7 @@ function DrilldownBreadcrumb({
 function LevelChip({ level }: { level: "L1" | "L2" | "L3" | "L4" }) {
   const { label } = useTaxonomy();
   return (
-    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-[#c9dcf2] text-[#0C1BA8] uppercase tracking-wide">
+    <span className="text-xs font-black px-2.5 py-0.5 rounded-md bg-[#0C1BA8] text-white uppercase tracking-wider shadow-xs">
       {label(level.toLowerCase() as TaxonomyLevel)}
     </span>
   );

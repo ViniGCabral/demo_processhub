@@ -95,6 +95,7 @@ export interface ScopeContextSheetProps {
   onEdit?: () => void;
   onAddChild?: () => void;
   onViewRelations?: () => void;
+  onSelectProcess?: (process: any) => void;
 }
 
 export function ScopeContextSheet({
@@ -129,6 +130,7 @@ export function ScopeContextSheet({
   onEdit,
   onAddChild,
   onViewRelations,
+  onSelectProcess,
 }: ScopeContextSheetProps) {
   const { language } = useLanguage();
   const pt = language === "PT";
@@ -194,12 +196,13 @@ export function ScopeContextSheet({
           <div className="relative z-10 flex flex-col flex-1">
             
             {/* Tags */}
-            <div className="inline-flex items-center gap-2 mb-4">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-[#E8EDFF] text-[#1327b9]">
-                {levelKey.toUpperCase()} · {currentLevelLabel}
+            <div className="inline-flex items-center gap-2 mb-3.5">
+              <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-lg bg-[#1327b9] text-white shadow-sm ring-1 ring-[#1327b9]/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                {currentLevelLabel}
               </span>
               {code && (
-                <span className="text-[11px] font-mono text-[#71809A] bg-[#F5F7FB] px-1.5 py-0.5 rounded border border-[#DFE5EF]">
+                <span className="text-xs font-mono font-semibold text-[#4D5A72] bg-[#F1F5F9] px-2 py-1 rounded-lg border border-[#DFE5EF]">
                   {code}
                 </span>
               )}
@@ -534,6 +537,7 @@ export function ScopeContextSheet({
               description: c.description,
             }))}
             visible={true}
+            onSelectProcess={onSelectProcess}
           />
         ) : childrenComponents.length === 0 ? (
           <div className="bg-[#FBFCFF] border border-dashed border-[#DFE5EF] rounded-xl p-10 text-center text-xs text-[#8A96A9] flex flex-col items-center justify-center">
@@ -817,7 +821,7 @@ export function ScopeContextSheet({
       <ArchitectureIndicatorsModal
         isOpen={isIndicatorsModalOpen}
         onOpenChange={setIsIndicatorsModalOpen}
-        levelLabel={`${levelKey.toUpperCase()} - ${currentLevelLabel}`}
+        levelLabel={currentLevelLabel}
         indicators={indicators}
       />
       

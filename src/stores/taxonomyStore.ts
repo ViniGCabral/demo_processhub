@@ -11,10 +11,10 @@ export interface TaxonomyLabels {
 }
 
 export const DEFAULT_TAXONOMY_LABELS: TaxonomyLabels = {
-  l1: "L1",
-  l2: "L2",
-  l3: "L3",
-  l4: "L4",
+  l1: "N0",
+  l2: "N1",
+  l3: "N2",
+  l4: "N3",
 };
 
 interface TaxonomyStore {
@@ -30,13 +30,20 @@ export const useTaxonomyStore = create<TaxonomyStore>()(
   persist(
     (set) => ({
       labels: DEFAULT_TAXONOMY_LABELS,
-      maxLevel: 4,
+      maxLevel: 3,
       setLabel: (level, value) =>
         set((state) => ({ labels: { ...state.labels, [level]: value } })),
       setMaxLevel: (maxLevel) => set({ maxLevel }),
-      resetTaxonomy: () => set({ labels: DEFAULT_TAXONOMY_LABELS, maxLevel: 4 }),
+      resetTaxonomy: () => set({ labels: DEFAULT_TAXONOMY_LABELS, maxLevel: 3 }),
     }),
-    { name: "taxonomy-storage" }
+    {
+      name: "taxonomy-storage",
+      version: 2,
+      migrate: () => ({
+        labels: DEFAULT_TAXONOMY_LABELS,
+        maxLevel: 3,
+      }),
+    }
   )
 );
 

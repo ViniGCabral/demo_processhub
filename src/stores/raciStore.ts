@@ -51,7 +51,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-1',
     etapa: 'Conceituação',
-    procedure: 'Identificação de oportunidades para Negócio',
+    procedure: 'Identificar oportunidades para o negócio',
     cells: {
       'Inovação': { roles: ['R', 'A'] },
       'Mercado': { roles: ['C'] },
@@ -64,7 +64,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-2',
     etapa: 'Conceituação',
-    procedure: 'Desenvolvimento de conceito e proposta de valor',
+    procedure: 'Desenvolver conceito e proposta de valor',
     cells: {
       'Inovação': { roles: ['R', 'A'] },
       'Marca, Comms e CX': { roles: ['C'] },
@@ -74,7 +74,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-3',
     etapa: 'Conceituação',
-    procedure: 'Pesquisa e validação de conceito e proposta de valor',
+    procedure: 'Validar conceito e proposta de valor',
     cells: {
       'Inovação': { roles: ['A'] },
       'Marca, Comms e CX': { roles: ['C'] },
@@ -84,7 +84,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-4',
     etapa: 'Conceituação',
-    procedure: 'Design for build',
+    procedure: 'Avaliar requisitos de Design, Qualidade e Regulatório',
     subDetail: 'olhar estratégico de Qualidade, DLL e Regulatório',
     cells: {
       'Inovação': { roles: ['A', 'C'] },
@@ -96,7 +96,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-5',
     etapa: 'Conceituação',
-    procedure: 'Desenho da arquitetura de portfólio',
+    procedure: 'Definir arquitetura de portfólio',
     cells: {
       'Inovação': { roles: ['R', 'A'] },
       'Mercado': { roles: ['C'], note: 'Olhar de canais' },
@@ -107,7 +107,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-6',
     etapa: 'Conceituação',
-    procedure: 'Diretrizes de design',
+    procedure: 'Consolidar diretrizes de design',
     cells: {
       'Inovação': { roles: ['R', 'A'] },
       'Marca, Comms e CX': { roles: ['C'] },
@@ -119,7 +119,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-7',
     etapa: 'Conceituação',
-    procedure: 'Diretrizes de Qualidade',
+    procedure: 'Definir diretrizes de qualidade',
     cells: {
       'O&L': { roles: ['R'] }
     }
@@ -127,7 +127,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-8',
     etapa: 'Conceituação',
-    procedure: 'Impacto ambiental',
+    procedure: 'Analisar impacto ambiental',
     cells: {
       'P&D': { roles: ['R'] }
     }
@@ -135,7 +135,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-9',
     etapa: 'Conceituação',
-    procedure: 'Construção do BC',
+    procedure: 'Construir Business Case inicial',
     subDetail: '(Levantamento de custos target, despesas por área e estimativa de volume)',
     cells: {
       'Inovação': { roles: ['R'] },
@@ -151,7 +151,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-10',
     etapa: 'Conceituação',
-    procedure: 'Análise financeira',
+    procedure: 'Realizar análise financeira',
     cells: {
       'Inovação': { roles: ['C'] },
       'Finanças': { roles: ['R', 'A'] },
@@ -161,7 +161,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-11',
     etapa: 'Conceituação',
-    procedure: 'Criação do projeto no sistema e carga inicial das infos estratégicas',
+    procedure: 'Criação do projeto no sistema',
     cells: {
       'Inovação': { roles: ['R'] },
       'PMO / Gov.': { roles: ['C'] }
@@ -170,7 +170,7 @@ export const NATURA_CONCEITUACAO_ROWS: RaciRow[] = [
   {
     id: 'row-12',
     etapa: 'Conceituação',
-    procedure: 'Gate BF — aprovação e passagem de gate',
+    procedure: 'Aprovar Gate BF',
     cells: {
       'Inovação': { roles: ['R', 'A'] },
       'Finanças': { roles: ['C'] },
@@ -391,6 +391,13 @@ export const useRaciStore = create<RaciStore>()(
     }),
     {
       name: 'processhub-raci-store',
+      version: 2,
+      migrate: () => ({
+        matrices: {
+          'l4-conceituacao': buildDefaultNaturaMatrix('l4-conceituacao', 'Conceituação e Briefing'),
+          'l3-conceituacao': buildDefaultNaturaMatrix('l3-conceituacao', 'Conceituação e Briefing')
+        }
+      }) as never,
       partialize: (state) => ({ matrices: state.matrices })
     }
   )
