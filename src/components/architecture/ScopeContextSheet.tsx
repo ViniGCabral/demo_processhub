@@ -22,6 +22,7 @@ import { GapsDetailModal } from "./GapsDetailModal";
 import { RaciMatrixModal } from "./modals/RaciMatrixModal";
 import { ProcessFlowEditor } from "./ProcessFlowEditor";
 import { useProcessFlowStore } from "@/stores/processFlowStore";
+import { ArchitectureActionButtons } from "./ArchitectureActionButtons";
 
 export interface BreadcrumbStep {
   label: string;
@@ -134,7 +135,7 @@ export function ScopeContextSheet({
 }: ScopeContextSheetProps) {
   const { language } = useLanguage();
   const pt = language === "PT";
-  const { label: lvl, maxLevel, isLeaf } = useTaxonomy();
+  const { label: lvl, maxLevel, isLeaf, sidebarVisibility } = useTaxonomy();
 
   // Nome formatado do nível
   const currentLevelLabel = lvl(levelKey);
@@ -221,52 +222,58 @@ export function ScopeContextSheet({
 
             {/* Metadados obrigatórios em coluna */}
             <div className="flex flex-col gap-2 pt-3 border-t border-[#DFE5EF]/60">
-              <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
-                <User className="h-3.5 w-3.5 text-[#1327b9] shrink-0" />
-                <div className="flex flex-col">
-                  <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Responsável" : "Responsible"}</span>
-                  <strong className="text-[#15233B] font-semibold leading-tight text-[11px]">
-                    {responsibleName}
-                    {responsibleRole && <span className="font-normal text-[#71809A]"> ({responsibleRole})</span>}
-                  </strong>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
-                <Building2 className="h-3.5 w-3.5 text-[#7648E7] shrink-0" />
-                <div className="flex flex-col">
-                  <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Unidade de negócio" : "Business Unit"}</span>
-                  <strong className="text-[#15233B] font-semibold leading-tight text-[11px]">
-                    {businessUnit || (pt ? "Não informada" : "Not specified")}
-                  </strong>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
-                <div className="h-3.5 w-3.5 flex items-center justify-center shrink-0">
-                  <span className="h-2 w-2 rounded-full bg-[#1327b9]" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Dimensionamento" : "Sizing"}</span>
-                  <div className="flex items-center gap-1.5 leading-tight">
-                    <strong className="text-[#15233B] font-semibold text-[11px]">
-                      {dimensioning 
-                        ? `${dimensioning.allocatedFte} ${dimensioning.unit || "FTE"}`
-                        : (pt ? "N/A" : "N/A")}
+              {sidebarVisibility.responsible && (
+                <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
+                  <User className="h-3.5 w-3.5 text-[#1327b9] shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Responsável" : "Responsible"}</span>
+                    <strong className="text-[#15233B] font-semibold leading-tight text-[11px]">
+                      {responsibleName}
+                      {responsibleRole && <span className="font-normal text-[#71809A]"> ({responsibleRole})</span>}
                     </strong>
-                    {dimensioning && (
-                      <span className={cn(
-                        "text-[8px] px-1 py-0.5 rounded font-bold uppercase tracking-wider",
-                        dimensioning.validationStatus === "validado" ? "bg-[#E3FAEF] text-[#008B5C]" : "bg-[#FFF2D2] text-[#B97100]"
-                      )}>
-                        {dimensioning.validationStatus === "validado" ? (pt ? "validado" : "validated") : (pt ? "estimado" : "estimated")}
-                      </span>
-                    )}
                   </div>
                 </div>
-              </div>
+              )}
 
-              {validationPercent !== undefined && (
+              {sidebarVisibility.businessUnit && (
+                <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
+                  <Building2 className="h-3.5 w-3.5 text-[#7648E7] shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Unidade de negócio" : "Business Unit"}</span>
+                    <strong className="text-[#15233B] font-semibold leading-tight text-[11px]">
+                      {businessUnit || (pt ? "Não informada" : "Not specified")}
+                    </strong>
+                  </div>
+                </div>
+              )}
+
+              {sidebarVisibility.sizing && (
+                <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
+                  <div className="h-3.5 w-3.5 flex items-center justify-center shrink-0">
+                    <span className="h-2 w-2 rounded-full bg-[#1327b9]" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Dimensionamento" : "Sizing"}</span>
+                    <div className="flex items-center gap-1.5 leading-tight">
+                      <strong className="text-[#15233B] font-semibold text-[11px]">
+                        {dimensioning 
+                          ? `${dimensioning.allocatedFte} ${dimensioning.unit || "FTE"}`
+                          : (pt ? "N/A" : "N/A")}
+                      </strong>
+                      {dimensioning && (
+                        <span className={cn(
+                          "text-[8px] px-1 py-0.5 rounded font-bold uppercase tracking-wider",
+                          dimensioning.validationStatus === "validado" ? "bg-[#E3FAEF] text-[#008B5C]" : "bg-[#FFF2D2] text-[#B97100]"
+                        )}>
+                          {dimensioning.validationStatus === "validado" ? (pt ? "validado" : "validated") : (pt ? "estimado" : "estimated")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {sidebarVisibility.documentationPercent && validationPercent !== undefined && (
                 <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
                   <ShieldCheck className="h-3.5 w-3.5 text-[#008B5C] shrink-0" />
                   <div className="flex flex-col">
@@ -276,7 +283,7 @@ export function ScopeContextSheet({
                 </div>
               )}
 
-              {lastUpdate && (
+              {sidebarVisibility.lastUpdate && lastUpdate && (
                 <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
                   <Clock className="h-3.5 w-3.5 text-[#8A96A9] shrink-0" />
                   <div className="flex flex-col">
@@ -309,16 +316,6 @@ export function ScopeContextSheet({
 
             {/* Ações de cabeçalho */}
             <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-[#DFE5EF]/60">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={onEdit || (() => toast.info(pt ? "Edição da ficha em breve" : "Editing coming soon"))}
-                className="text-[11px] h-8 border-[#CFD7E6] text-[#1A2A48] hover:border-[#1327b9] hover:text-[#1327b9] w-full"
-              >
-                <Pencil className="h-3 w-3 mr-1.5" />
-                {pt ? "Editar" : "Edit"}
-              </Button>
-
               {onViewRelations && (
                 <Button 
                   variant="outline" 
@@ -331,16 +328,18 @@ export function ScopeContextSheet({
                 </Button>
               )}
 
-              <Button 
-                size="sm" 
-                onClick={onAddChild || (() => toast.info(pt ? `Adicionar ${childLevelLabel}` : `Add ${childLevelLabel}`))}
-                className="text-[11px] h-8 bg-[#1327b9] hover:bg-[#2743D7] text-white w-full"
-              >
-                <Plus className="h-3 w-3 mr-1.5" />
-                {centralMapType === "leaf_parent"
-                  ? (pt ? "Criar processo" : "Create process")
-                  : (pt ? `Adicionar ${childLevelLabel}` : `Add ${childLevelLabel}`)}
-              </Button>
+              <ArchitectureActionButtons
+                levelKey={levelKey}
+                levelLabel={currentLevelLabel}
+                nodeName={name}
+                childLevelLabel={childLevelLabel}
+                isLeafParent={centralMapType === "leaf_parent"}
+                onEditManual={onEdit}
+                onAddChild={onAddChild}
+                showExport={true}
+                showEdit={true}
+                showAdd={true}
+              />
             </div>
           </div>
         </div>

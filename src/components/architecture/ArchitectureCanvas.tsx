@@ -15,6 +15,7 @@ import {
   Layers,
   Info,
   X,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -965,6 +966,15 @@ function L1ValueChainView({
         </div>
 
         <div className="flex gap-2">
+          <Button
+            onClick={() => toast.info(language === "PT" ? "Exportação da Cadeia de Valor em breve" : "Value Chain export coming soon")}
+            variant="outline"
+            size="sm"
+            className="rounded-sm border-[#A5A7B0]/40 text-[#4D5A72] hover:border-[#008B5C] hover:text-[#008B5C] group/export"
+          >
+            <Download className="h-4 w-4 mr-2 group-hover/export:translate-y-[1px] transition-transform duration-200" />
+            {language === "PT" ? "Exportar" : "Export"}
+          </Button>
           <Button
             onClick={() => setShowAIModal(true)}
             variant="outline"

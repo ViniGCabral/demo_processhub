@@ -3,6 +3,22 @@ import { persist } from "zustand/middleware";
 
 export type TaxonomyLevel = "l1" | "l2" | "l3" | "l4";
 
+export interface SidebarFieldsVisibility {
+  responsible: boolean;
+  businessUnit: boolean;
+  sizing: boolean;
+  documentationPercent: boolean;
+  lastUpdate: boolean;
+}
+
+export const DEFAULT_SIDEBAR_VISIBILITY: SidebarFieldsVisibility = {
+  responsible: true,
+  businessUnit: true,
+  sizing: true,
+  documentationPercent: true,
+  lastUpdate: true,
+};
+
 export interface TaxonomyLabels {
   l1: string;
   l2: string;
@@ -21,8 +37,10 @@ interface TaxonomyStore {
   labels: TaxonomyLabels;
   /** Deepest level in use. Processes are attached to this level. */
   maxLevel: 2 | 3 | 4;
+  sidebarVisibility: SidebarFieldsVisibility;
   setLabel: (level: TaxonomyLevel, value: string) => void;
   setMaxLevel: (level: 2 | 3 | 4) => void;
+  setSidebarVisibility: (key: keyof SidebarFieldsVisibility, visible: boolean) => void;
   resetTaxonomy: () => void;
 }
 
@@ -31,10 +49,15 @@ export const useTaxonomyStore = create<TaxonomyStore>()(
     (set) => ({
       labels: DEFAULT_TAXONOMY_LABELS,
       maxLevel: 3,
+      sidebarVisibility: DEFAULT_SIDEBAR_VISIBILITY,
       setLabel: (level, value) =>
         set((state) => ({ labels: { ...state.labels, [level]: value } })),
       setMaxLevel: (maxLevel) => set({ maxLevel }),
-      resetTaxonomy: () => set({ labels: DEFAULT_TAXONOMY_LABELS, maxLevel: 3 }),
+      setSidebarVisibility: (key, visible) =>
+        set((state) => ({
+          sidebarVisibility: { ...state.sidebarVisibility, [key]: visible },
+        })),
+      resetTaxonomy: () => set({ labels: DEFAULT_TAXONOMY_LABELS, maxLevel: 3, sidebarVisibility: DEFAULT_SIDEBAR_VISIBILITY }),
     }),
     {
       name: "taxonomy-storage",
@@ -42,6 +65,7 @@ export const useTaxonomyStore = create<TaxonomyStore>()(
       migrate: () => ({
         labels: DEFAULT_TAXONOMY_LABELS,
         maxLevel: 3,
+        sidebarVisibility: DEFAULT_SIDEBAR_VISIBILITY,
       }),
     }
   )
@@ -51,6 +75,7 @@ export const useTaxonomyStore = create<TaxonomyStore>()(
 export function useTaxonomy() {
   const labels = useTaxonomyStore((s) => s.labels);
   const maxLevel = useTaxonomyStore((s) => s.maxLevel);
+  const sidebarVisibility = useTaxonomyStore((s) => s.sidebarVisibility);
 
   const label = (level: TaxonomyLevel) =>
     (labels[level] || DEFAULT_TAXONOMY_LABELS[level]).trim() ||
@@ -61,6 +86,7 @@ export function useTaxonomy() {
   return {
     labels,
     maxLevel,
+    sidebarVisibility,
     label,
     /** true when the level exists in the configured taxonomy */
     hasLevel: (level: TaxonomyLevel) => depth(level) <= maxLevel,

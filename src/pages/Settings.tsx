@@ -6,7 +6,6 @@ import { TopBar } from '@/components/layout/TopBar';
 import { CompanyLogoSection } from '@/components/settings/CompanyLogoSection';
 import { AreasSection } from '@/components/settings/AreasSection';
 import { DocumentTemplateSection } from '@/components/settings/DocumentTemplateSection';
-import { TaxonomySection } from '@/components/settings/TaxonomySection';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -26,7 +25,7 @@ interface SettingsProps {
   onLogout: () => void;
 }
 
-type SettingsSection = 'logo' | 'areas' | 'template' | 'taxonomy';
+type SettingsSection = 'logo' | 'areas' | 'template';
 
 export function Settings({ onLogout }: SettingsProps) {
   const navigate = useNavigate();
@@ -38,7 +37,6 @@ export function Settings({ onLogout }: SettingsProps) {
   const navItems = [
     { id: 'logo' as const, label: language === 'PT' ? 'Logo da Empresa' : 'Company Logo', icon: Building2 },
     { id: 'areas' as const, label: t.areasOrganizationalAreas, icon: Users },
-    { id: 'taxonomy' as const, label: language === 'PT' ? 'Taxonomia da Cadeia de Valor' : 'Value Chain Taxonomy', icon: Layers },
     { id: 'template' as const, label: language === 'PT' ? 'Template de Documentação' : 'Documentation Template', icon: FileText },
   ];
 
@@ -59,9 +57,6 @@ export function Settings({ onLogout }: SettingsProps) {
         return <CompanyLogoSection />;
       case 'areas':
         return <AreasSection />;
-      case 'taxonomy':
-        return <TaxonomySection />;
-
       case 'template':
         return <DocumentTemplateSection />;
       default:

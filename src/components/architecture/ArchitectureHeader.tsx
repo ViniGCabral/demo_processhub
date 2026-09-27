@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Plus, Sparkles, Upload, Layers } from "lucide-react";
+import { ChevronLeft, Plus, Sparkles, Upload, Layers, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { mockArchitectureData } from "@/data/architectureContextMock";
+import { ArchitectureSettingsModal } from "./ArchitectureSettingsModal";
 
 interface ArchitectureHeaderProps {
   onImportBpmn?: () => void;
@@ -20,6 +22,7 @@ export function ArchitectureHeader({
   const { language } = useLanguage();
   const pt = language === "PT";
   const navigate = useNavigate();
+  const [showSettings, setShowSettings] = useState(false);
 
   // Cálculos globais usando a base de mocks central
   const domainsCount = mockArchitectureData.domainsL1.length;
@@ -84,6 +87,15 @@ export function ArchitectureHeader({
               <Plus className="h-4 w-4 mr-2" />
               {pt ? "Criar L1/Domínio" : "Create L1/Domain"}
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-sm border-[#A5A7B0]/40 text-[#272727] w-9 px-0"
+              onClick={() => setShowSettings(true)}
+              title={pt ? "Configurações" : "Settings"}
+            >
+              <Settings2 className="h-4 w-4" />
+            </Button>
           </div>
         )}
       </div>
@@ -109,6 +121,7 @@ export function ArchitectureHeader({
           </div>
         </div>
       </div>
+      <ArchitectureSettingsModal open={showSettings} onOpenChange={setShowSettings} />
     </div>
   );
 }

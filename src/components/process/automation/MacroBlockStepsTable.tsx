@@ -34,7 +34,6 @@ export function MacroBlockStepsTable({
         <table className="w-full text-left text-xs">
           <thead className="bg-muted/40 border-b border-border text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
             <tr>
-              <th className="px-4 py-3 w-32 shrink-0">Macroetapa</th>
               <th className="px-3 py-3 w-16 shrink-0 text-center">Step</th>
               <th className="px-4 py-3 min-w-[280px]">Título do Step</th>
               <th className="px-3 py-3 w-36 shrink-0 text-center">Classificação(ões)</th>
@@ -78,11 +77,6 @@ export function MacroBlockStepsTable({
                       : "hover:bg-muted/40"
                   }`}
                 >
-                  {/* Macroetapa */}
-                  <td className="px-4 py-3 font-medium text-foreground">
-                    {step.macroBlockName || "Macroetapa"}
-                  </td>
-
                   {/* Step ID */}
                   <td className="px-3 py-3 font-mono font-bold text-foreground text-xs text-center shrink-0">
                     {step.number || step.id}
