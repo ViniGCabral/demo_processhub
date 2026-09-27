@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   MacroBlock,
   ProcessStepDetail,
@@ -18,8 +18,8 @@ const TECH_TYPE_STYLES: Record<string, { bg: string; border: string; text: strin
   "motor de regras":    { bg: "bg-amber-50",   border: "border-amber-200",  text: "text-amber-900",  badge: "bg-amber-100",  badgeBorder: "border-amber-200",  badgeText: "text-amber-800" },
   "motores de regras":  { bg: "bg-amber-50",   border: "border-amber-200",  text: "text-amber-900",  badge: "bg-amber-100",  badgeBorder: "border-amber-200",  badgeText: "text-amber-800" },
   analytics:            { bg: "bg-cyan-50",    border: "border-cyan-200",   text: "text-cyan-900",   badge: "bg-cyan-100",   badgeBorder: "border-cyan-200",   badgeText: "text-cyan-800" },
-  integraÃ§Ãµes:          { bg: "bg-indigo-50",  border: "border-indigo-200", text: "text-indigo-900", badge: "bg-indigo-100", badgeBorder: "border-indigo-200", badgeText: "text-indigo-800" },
-  "automaÃ§Ã£o de planilha": { bg: "bg-lime-50", border: "border-lime-200",  text: "text-lime-900",  badge: "bg-lime-100",  badgeBorder: "border-lime-200",  badgeText: "text-lime-800" },
+  integrations:          { bg: "bg-indigo-50",  border: "border-indigo-200", text: "text-indigo-900", badge: "bg-indigo-100", badgeBorder: "border-indigo-200", badgeText: "text-indigo-800" },
+  "spreadsheet automation": { bg: "bg-lime-50", border: "border-lime-200",  text: "text-lime-900",  badge: "bg-lime-100",  badgeBorder: "border-lime-200",  badgeText: "text-lime-800" },
 };
 
 function getTechStyle(techType: string) {
@@ -116,18 +116,18 @@ export function AgenticFrameworkStrip({
               <div className="w-full bg-white border border-blue-200 rounded-lg p-2.5 flex items-center justify-center shadow-xs">
                 <span className="font-bold text-xs text-blue-800">{digitalLayers?.orchestrator?.name || "Orchestrator Agent"}</span>
                 <span className="hidden xl:inline-block ml-2 bg-blue-50 text-blue-700 text-[9px] sm:text-[10px] font-medium px-2 py-0.5 rounded-full border border-blue-100 truncate">
-                  Orquestrador Transversal
+                  Transversal Orchestrator
                 </span>
               </div>
               <div className="w-full bg-white border border-indigo-200 rounded-lg p-2.5 flex items-center justify-center shadow-xs">
                 <span className="font-bold text-xs text-indigo-800">{digitalLayers?.integrationLayer?.name || "MCP / Integration Layer"}</span>
                 <span className="hidden xl:inline-block ml-2 bg-indigo-50 text-indigo-700 text-[9px] sm:text-[10px] font-medium px-2 py-0.5 rounded-full border border-indigo-100 truncate">
-                  IntegraÃ§Ã£o Transversal
+                  Transversal Integration
                 </span>
               </div>
             </div>
 
-            {/* Dynamic boxes â€” one per technology type */}
+            {/* Dynamic boxes — one per technology type */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mt-1 w-full">
               {stepsByTechType.map(([techType, techSteps]) => {
                 const style = getTechStyle(techType);
@@ -165,7 +165,7 @@ export function AgenticFrameworkStrip({
 
               {stepsByTechType.length === 0 && (
                 <div className="col-span-full text-center text-xs text-muted-foreground py-4">
-                  Nenhuma soluÃ§Ã£o tecnolÃ³gica identificada nos steps.
+                  No technological solution identified in steps.
                 </div>
               )}
             </div>
@@ -175,4 +175,3 @@ export function AgenticFrameworkStrip({
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-﻿import { ProcessStepDetail, SolutionRecommendation } from "@/types/automationDetailTypes";
+import { ProcessStepDetail, SolutionRecommendation } from "@/types/automationDetailTypes";
 import {
   Sheet,
   SheetContent,
@@ -63,7 +63,7 @@ export function StepDetailSheet({
   const consolidatedClassificationStr = classesToRender.join(" + ");
 
   // Justificativa breve
-  const rationale = step.rationale || step.aiInterpretation?.classificationRationale || solution?.description || "A natureza da atividade e a lÃ³gica de decisÃ£o direcionaram a escolha desta soluÃ§Ã£o.";
+  const rationale = step.rationale || step.aiInterpretation?.classificationRationale || solution?.description || "The nature of the activity and decision logic directed the choice of this solution.";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -71,7 +71,7 @@ export function StepDetailSheet({
         {/* Header bar */}
         <div className="p-6 border-b border-border bg-muted/20 sticky top-0 z-10 backdrop-blur-sm">
           <SheetTitle className="text-xl font-bold text-foreground leading-snug">
-            <span className="text-primary font-mono mr-2">Step {step.number || step.id} â€”</span>
+            <span className="text-primary font-mono mr-2">Step {step.number || step.id} —</span>
             {step.title}
           </SheetTitle>
         </div>
@@ -79,11 +79,11 @@ export function StepDetailSheet({
         {/* Scrollable Content Body */}
         <div className="p-6 space-y-6 flex-1 text-sm">
           
-          {/* 3.1 DescriÃ§Ã£o breve */}
+          {/* 3.1 Descrição breve */}
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <FileText className="h-4 w-4 text-primary" />
-              <span>DescriÃ§Ã£o breve</span>
+              <span>Brief description</span>
             </div>
             <p className="text-foreground leading-relaxed text-sm">
               {step.description || step.title}
@@ -92,18 +92,18 @@ export function StepDetailSheet({
 
           <div className="h-px bg-border w-full" />
 
-          {/* 3.2 ClassificaÃ§Ã£o consolidada */}
+          {/* 3.2 Classificação consolidada */}
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Layers className="h-4 w-4 text-primary" />
-              <span>ClassificaÃ§Ã£o consolidada</span>
+              <span>Consolidated classification</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {classesToRender.map((cls, i) => {
                 const meta = getClassificationMeta(cls as string);
                 return (
                   <Badge key={i} variant="outline" className={meta.color}>
-                    {meta.label} â€” {meta.full}
+                    {meta.label} — {meta.full}
                   </Badge>
                 );
               })}
@@ -117,14 +117,14 @@ export function StepDetailSheet({
 
           <div className="h-px bg-border w-full" />
 
-          {/* 3.3 SoluÃ§Ã£o tecnolÃ³gica */}
+          {/* 3.3 Solução tecnológica */}
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Cpu className="h-4 w-4 text-primary" />
-              <span>SoluÃ§Ã£o tecnolÃ³gica</span>
+              <span>Technological solution</span>
             </div>
             <p className="text-foreground font-semibold text-base">
-              {techSolution || "NÃ£o informada"}
+              {techSolution || "Not provided"}
             </p>
           </div>
 
@@ -134,7 +134,7 @@ export function StepDetailSheet({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Info className="h-4 w-4 text-primary" />
-              <span>Por que essa soluÃ§Ã£o foi selecionada?</span>
+              <span>Why was this solution selected?</span>
             </div>
             <p className="text-foreground leading-relaxed text-sm">
               {rationale}
@@ -143,11 +143,11 @@ export function StepDetailSheet({
 
           <div className="h-px bg-border w-full" />
 
-          {/* 3.5 EsforÃ§o */}
+          {/* 3.5 Esforço */}
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Clock className="h-4 w-4 text-primary" />
-              <span>EsforÃ§o</span>
+              <span>Effort</span>
             </div>
             <div className="flex items-center gap-3">
               <Badge variant="outline" className={effortInfo.color + " text-sm py-1"}>
@@ -155,7 +155,7 @@ export function StepDetailSheet({
               </Badge>
               {step.effort?.drivers && step.effort.drivers.length > 0 && (
                 <span className="text-muted-foreground text-sm">
-                  â€” {step.effort.drivers.join(", ")}.
+                  — {step.effort.drivers.join(", ")}.
                 </span>
               )}
             </div>
@@ -167,7 +167,7 @@ export function StepDetailSheet({
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-2 text-sm font-bold text-foreground">
               <ListOrdered className="h-5 w-5 text-primary" />
-              <span>Sub-steps que compÃµem este Step</span>
+              <span>Sub-steps comprising this Step</span>
             </div>
 
             {substeps.length > 0 ? (
@@ -182,14 +182,14 @@ export function StepDetailSheet({
                     >
                       <div className="flex items-start gap-3">
                         <span className="font-mono font-bold text-primary shrink-0">
-                          {sub.sourceRef || sub.id} â€”
+                          {sub.sourceRef || sub.id} —
                         </span>
                         <div className="flex-1 text-foreground leading-relaxed">
                           {sub.description}
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-xs pl-10">
-                        <span className="text-muted-foreground">ClassificaÃ§Ã£o:</span>
+                        <span className="text-muted-foreground">Classification:</span>
                         <span className={`font-semibold ${meta.color} bg-transparent border-none p-0`}>
                           {meta.label}
                         </span>
@@ -200,7 +200,7 @@ export function StepDetailSheet({
               </div>
             ) : (
               <div className="p-4 rounded-lg border border-border bg-muted/20 text-muted-foreground text-sm">
-                Este Step nÃ£o possui sub-steps detalhados.
+                This Step has no detailed sub-steps.
               </div>
             )}
           </div>
@@ -209,4 +209,3 @@ export function StepDetailSheet({
     </Sheet>
   );
 }
-

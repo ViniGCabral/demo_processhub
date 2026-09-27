@@ -1,4 +1,4 @@
-﻿import { ProcessStepDetail } from "@/types/automationDetailTypes";
+import { ProcessStepDetail } from "@/types/automationDetailTypes";
 import {
   Tooltip,
   TooltipContent,
@@ -35,10 +35,10 @@ export function MacroBlockStepsTable({
           <thead className="bg-muted/40 border-b border-border text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
             <tr>
               <th className="px-3 py-3 w-16 shrink-0 text-center">Step</th>
-              <th className="px-4 py-3 min-w-[280px]">TÃ­tulo do Step</th>
-              <th className="px-3 py-3 w-36 shrink-0 text-center">ClassificaÃ§Ã£o(Ãµes)</th>
-              <th className="px-4 py-3 min-w-[200px]">SoluÃ§Ã£o TecnolÃ³gica</th>
-              <th className="px-4 py-3 w-32 shrink-0 text-center">EsforÃ§o</th>
+              <th className="px-4 py-3 min-w-[280px]">Step Title</th>
+              <th className="px-3 py-3 w-36 shrink-0 text-center">Classification(s)</th>
+              <th className="px-4 py-3 min-w-[200px]">Technological Solution</th>
+              <th className="px-4 py-3 w-32 shrink-0 text-center">Effort</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -82,12 +82,12 @@ export function MacroBlockStepsTable({
                     {step.number || step.id}
                   </td>
 
-                  {/* TÃ­tulo do Step */}
+                  {/* Título do Step */}
                   <td className="px-4 py-3 text-foreground font-medium break-words leading-relaxed">
                     {step.title}
                   </td>
 
-                  {/* ClassificaÃ§Ã£o(Ãµes) */}
+                  {/* Classificação(ões) */}
                   <td className="px-3 py-3 text-center shrink-0">
                     <TooltipProvider delayDuration={150}>
                       <div className="flex items-center justify-center gap-1 flex-wrap">
@@ -104,7 +104,7 @@ export function MacroBlockStepsTable({
                               </TooltipTrigger>
                               <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
                                 <p className="font-bold">
-                                  {meta.label} â€” {meta.full}
+                                  {meta.label} — {meta.full}
                                 </p>
                                 <p className="opacity-90">{meta.desc}</p>
                               </TooltipContent>
@@ -115,14 +115,14 @@ export function MacroBlockStepsTable({
                     </TooltipProvider>
                   </td>
 
-                  {/* SoluÃ§Ã£o TecnolÃ³gica */}
+                  {/* Solução Tecnológica */}
                   <td className="px-4 py-3">
                     <div className="font-medium text-foreground break-words leading-snug">
-                      {techSolution || "NÃ£o informada"}
+                      {techSolution || "Não informada"}
                     </div>
                   </td>
 
-                  {/* EsforÃ§o */}
+                  {/* Esforço */}
                   <td className="px-4 py-3 text-center shrink-0 whitespace-nowrap">
                     {step.effort ? (
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-medium border border-border/60 bg-muted/30">
@@ -130,7 +130,7 @@ export function MacroBlockStepsTable({
                       </div>
                     ) : (
                       <span className="text-muted-foreground text-[11px] italic">
-                        NÃ£o informado
+                        Não informado
                       </span>
                     )}
                   </td>
@@ -142,9 +142,8 @@ export function MacroBlockStepsTable({
       </div>
       <div className="px-4 py-2.5 bg-muted/20 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
         <span>Exibindo {steps.length} {steps.length === 1 ? "step" : "steps"}</span>
-        <span>Clique em qualquer linha para abrir o dossiÃª detalhado do step</span>
+        <span>Clique em qualquer linha para abrir o dossiê detalhado do step</span>
       </div>
     </div>
   );
 }
-
