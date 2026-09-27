@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { TrendingUp, Shield, Database, FileText, AlertTriangle, CheckCircle2, XCircle, AlertCircle, Sparkles, ChevronRight, ChevronDown, Cpu, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage, translations } from "@/contexts/LanguageContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { AutomationDetailView } from "./automation/AutomationDetailView";
@@ -404,7 +404,9 @@ export function ProcessAttributes({
   processId,
   initialView = "summary",
 }: ProcessAttributesProps) {
-  const { language, t } = useLanguage();
+  const { t: _unused } = useLanguage();
+  const language = "EN";
+  const t = translations["EN"];
   const [viewMode, setViewMode] = useState<"summary" | "detail">(initialView);
 
   if (!hasPOP) {

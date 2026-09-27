@@ -239,7 +239,7 @@ interface Translations {
   resetPasswordNewDesc: string;
 }
 
-const translations: Record<Language, Translations> = {
+export const translations: Record<Language, Translations> = {
   PT: {
     // Navigation
     backToDashboard: "Voltar ao Dashboard",
