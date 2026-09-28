@@ -249,19 +249,7 @@ export function AutomationDetailView({
         </div>
 
         {/* Aviso técnico discreto do modo demonstração */}
-        {data.isDemoMode && (
-          <div className="rounded-lg border border-amber-200/90 bg-amber-50/75 px-3.5 py-2 flex items-center justify-between text-xs text-amber-900 shadow-2xs">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-amber-600 shrink-0" />
-              <span>
-                <strong>Demo mode:</strong> temporary solution data for visual validation.
-              </span>
-            </div>
-            <span className="text-[10px] text-amber-700/80 font-medium">
-              Digital Agents Layer · Normalized operational steps
-            </span>
-          </div>
-        )}
+        
 
         {/* Framework do Processo: Agentic Framework */}
         <div className="bg-white border border-border rounded-2xl p-6 shadow-xs space-y-4">
