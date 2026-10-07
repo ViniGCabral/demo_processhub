@@ -5,7 +5,7 @@ import {
   ExternalLink, ArrowRight, CornerDownRight, Check, AlertTriangle,
   HelpCircle, ChevronRight, ArrowLeft, Target, Gem, Sparkles, Component,
   Milestone, ArrowUpRight, ArrowDownLeft, Users, TableProperties,
-  LayoutGrid, GitBranch
+  LayoutGrid, GitBranch, ChevronDown, Network, MoreHorizontal, Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +97,7 @@ export interface ScopeContextSheetProps {
   onAddChild?: () => void;
   onViewRelations?: () => void;
   onSelectProcess?: (process: any) => void;
+  siblingComponents?: ChildComponentCard[];
 }
 
 export function ScopeContextSheet({
@@ -132,6 +133,7 @@ export function ScopeContextSheet({
   onAddChild,
   onViewRelations,
   onSelectProcess,
+  siblingComponents,
 }: ScopeContextSheetProps) {
   const { language } = useLanguage();
   const pt = language === "PT";
@@ -164,305 +166,306 @@ export function ScopeContextSheet({
       : null;
 
   return (
-    <div className="flex flex-col w-full gap-4 animate-in fade-in-50 duration-200">
-      {/* ── Top Breadcrumb ── */}
-      <nav className="flex items-center gap-2 text-xs text-[#71809A] flex-wrap px-1">
-        {breadcrumbs.map((crumb, idx) => (
-          <span key={idx} className="flex items-center gap-2">
-            {idx > 0 && <ChevronRight className="h-3.5 w-3.5 text-[#A5A7B0]" />}
-            <button
-              onClick={crumb.onClick}
-              className={cn(
-                "transition-all flex items-center gap-1.5",
-                idx === breadcrumbs.length - 1 
-                  ? "font-bold text-[#15233B] cursor-default bg-white px-2.5 py-1.5 rounded-md shadow-sm border border-[#DFE5EF]" 
-                  : "text-[#4D5A72] font-medium hover:bg-white hover:text-[#1327b9] hover:shadow-sm px-2.5 py-1.5 rounded-md"
-              )}
-            >
-              {crumb.label}
-            </button>
-          </span>
-        ))}
-      </nav>
-
-      <div className="flex flex-col lg:flex-row items-start gap-4 w-full">
+    <div className="flex flex-col lg:flex-row items-start w-full bg-[#f8fafc] animate-in fade-in-50 duration-200 h-[calc(100vh-125px)] overflow-hidden">
+      
+      {/* ── Left Sidebar (Tree & Governance) ── */}
+      <aside className="w-full lg:w-[320px] shrink-0 h-full overflow-y-auto bg-white border-r border-[#e5e7eb] flex flex-col py-4 px-5">
         
-        {/* ── Left Sidebar (Header & Meta) ── */}
-        <aside className="w-full lg:w-[280px] xl:w-[300px] shrink-0 lg:sticky lg:top-4 flex flex-col gap-2">
+        {/* Back to Cadeia de Valor */}
+        <button onClick={breadcrumbs[0]?.onClick} className="text-[#ea580c] hover:underline flex items-center gap-2 text-xs font-semibold mb-4 w-fit">
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span className="flex items-center gap-1.5"><Layers className="h-4 w-4" /> {pt ? "Cadeia de Valor" : "Value Chain"}</span>
+        </button>
 
-        <div className="bg-white border border-[#DFE5EF] rounded-xl shadow-[0_8px_32px_rgba(20,35,70,0.05)] p-4 relative overflow-hidden flex flex-col">
-          {/* Subtle background glow effect for premium feel */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#1327b9]/[0.02] to-transparent rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col flex-1">
-            
-            {/* Tags */}
-            <div className="inline-flex items-center gap-2 mb-3.5">
-              <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-lg bg-[#1327b9] text-white shadow-sm ring-1 ring-[#1327b9]/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                {currentLevelLabel}
-              </span>
-              {code && (
-                <span className="text-xs font-mono font-semibold text-[#4D5A72] bg-[#F1F5F9] px-2 py-1 rounded-lg border border-[#DFE5EF]">
-                  {code}
-                </span>
-              )}
-            </div>
+        {/* Title and Badge */}
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight leading-tight mb-2">
+            {name}
+          </h1>
+          <div className="flex items-center gap-2">
+            <span className="bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider">
+              {currentLevelLabel} {code && code}
+            </span>
+          </div>
+        </div>
 
-            {/* Título e Descrição */}
-            <h1 className="text-2xl font-bold text-[#15233B] tracking-tight leading-tight mb-3">
-              {name}
-            </h1>
+        {/* Actions (Editar / Exportar / ...) */}
+        <div className="flex items-center gap-2 mb-5 border-b border-slate-100 pb-4">
+          <Button variant="outline" className="flex-1 border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 h-9 text-xs font-medium bg-orange-50/30" onClick={onEdit}>
+            <Pencil className="h-3.5 w-3.5 mr-2" /> {pt ? "Editar nível" : "Edit level"}
+          </Button>
+          <Button variant="outline" className="flex-1 border-slate-200 text-slate-600 hover:bg-slate-50 h-9 text-xs font-medium">
+            <Download className="h-3.5 w-3.5 mr-2" /> {pt ? "Exportar" : "Export"}
+          </Button>
+          <Button variant="outline" className="w-9 h-9 p-0 border-slate-200 text-slate-600 hover:bg-slate-50">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
 
-            {description && (
-              <p className="text-[13px] text-[#71809A] leading-relaxed mb-4">
-                {description}
-              </p>
+        {/* CADEIA DE VALOR Tree */}
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{pt ? "Cadeia de Valor" : "Value Chain"}</span>
+            <span className="text-[10px] font-medium text-slate-400">{pt ? "Contexto ativo" : "Active context"}</span>
+          </div>
+
+          <div className="flex flex-col relative before:absolute before:left-[11px] before:top-3 before:bottom-4 before:w-px before:bg-slate-200 ml-1">
+            {/* Breadcrumb path to current node */}
+            {breadcrumbs.slice(1, -1).map((crumb, idx) => (
+              <div key={idx} onClick={crumb.onClick} className="flex items-start gap-3 relative z-10 mb-2 group cursor-pointer hover:-translate-y-px transition-transform">
+                <div className="w-6 h-6 rounded bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 group-hover:bg-slate-100">
+                  <CornerDownRight className="h-3 w-3 text-slate-400" />
+                </div>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-1.5 rounded">{crumb.levelLabel || "N0"}</span>
+                  <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900">{crumb.label}</span>
+                </div>
+              </div>
+            ))}
+
+            {/* Current Node and Siblings */}
+            {siblingComponents && siblingComponents.length > 0 ? (
+              siblingComponents.map((sib) => {
+                if (sib.id === id) {
+                  return (
+                    <div key={sib.id} className="flex items-start gap-3 relative z-10 mb-2 mt-1">
+                      <div className="w-6 h-6 rounded bg-orange-100 flex items-center justify-center shrink-0 ring-4 ring-white">
+                        <Layers className="h-3.5 w-3.5 text-orange-600" />
+                      </div>
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <span className="text-[9px] font-bold bg-orange-500 text-white px-1.5 rounded">{currentLevelLabel}</span>
+                        <span className="text-xs font-bold text-orange-600">{sib.name}</span>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div key={sib.id} onClick={sib.onClick} className="flex items-start gap-3 relative z-10 mb-2 group cursor-pointer hover:-translate-y-px transition-transform">
+                      <div className="w-6 h-6 rounded bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 group-hover:bg-slate-100">
+                        <Layers className="h-3.5 w-3.5 text-slate-400" />
+                      </div>
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-1.5 rounded">{sib.levelLabel}</span>
+                        <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900">{sib.name}</span>
+                      </div>
+                    </div>
+                  );
+                }
+              })
+            ) : (
+              <div className="flex items-start gap-3 relative z-10 mb-2 mt-1">
+                <div className="w-6 h-6 rounded bg-orange-100 flex items-center justify-center shrink-0 ring-4 ring-white">
+                  <Layers className="h-3.5 w-3.5 text-orange-600" />
+                </div>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <span className="text-[9px] font-bold bg-orange-500 text-white px-1.5 rounded">{currentLevelLabel}</span>
+                  <span className="text-xs font-bold text-orange-600">{name}</span>
+                </div>
+              </div>
             )}
 
-            {/* Metadados obrigatórios em coluna */}
-            <div className="flex flex-col gap-2 pt-3 border-t border-[#DFE5EF]/60">
-              {sidebarVisibility.responsible && (
-                <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
-                  <User className="h-3.5 w-3.5 text-[#1327b9] shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Responsável" : "Responsible"}</span>
-                    <strong className="text-[#15233B] font-semibold leading-tight text-[11px]">
-                      {responsibleName}
-                      {responsibleRole && <span className="font-normal text-[#71809A]"> ({responsibleRole})</span>}
-                    </strong>
+            {/* Children Nodes (only if not showing siblings) */}
+            {(!siblingComponents || siblingComponents.length === 0) && childrenComponents.map((child, idx) => (
+              <div key={child.id} onClick={child.onClick} className="flex items-start gap-3 relative z-10 mb-1 group cursor-pointer hover:-translate-y-px transition-transform pl-[3px]">
+                <div className="absolute left-[-15px] top-3 w-3.5 h-px bg-slate-200" />
+                <div className="w-5 h-5 rounded bg-white border border-slate-200 flex items-center justify-center shrink-0 group-hover:bg-slate-50">
+                  <Network className="h-2.5 w-2.5 text-slate-400" />
+                </div>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-1.5 rounded">{child.levelLabel}</span>
+                  <span className="text-[11px] font-medium text-slate-600 group-hover:text-slate-900 truncate">{child.name}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CONTEXTO E GOVERNANÇA */}
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">{pt ? "Contexto e Governança" : "Context and Governance"}</div>
+          <div className="flex flex-col gap-2">
+            {sidebarVisibility.responsible && (
+              <div>
+                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">{pt ? "Responsável" : "Responsible"}</span>
+                <span className="text-xs font-semibold text-slate-700">{responsibleName}</span>
+              </div>
+            )}
+            {sidebarVisibility.businessUnit && (
+              <div>
+                <span className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">{pt ? "Unidade de Negócio" : "Business Unit"}</span>
+                <span className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+                  {businessUnit || (pt ? "Não informada" : "Not specified")} 
+                  <span className="w-5 h-5 rounded-full bg-fuchsia-500 text-white flex items-center justify-center text-[10px] font-bold">J</span>
+                </span>
+              </div>
+            )}
+            {sidebarVisibility.sizing && (
+              <div className="flex items-center gap-3 mt-1">
+                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                  <Users className="h-4 w-4 text-slate-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] text-slate-400 uppercase">{pt ? "Dimensionamento" : "Sizing"}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-700">{dimensioning ? `${dimensioning.allocatedFte} ${dimensioning.unit || "FTE"}` : "N/A"}</span>
+                    {dimensioning && (
+                      <span className="text-[8px] font-bold uppercase text-emerald-600 tracking-wider">
+                        - {dimensioning.validationStatus === "validado" ? (pt ? "Validado" : "Validated") : (pt ? "Estimado" : "Estimated")}
+                      </span>
+                    )}
                   </div>
                 </div>
-              )}
-
-              {sidebarVisibility.businessUnit && (
-                <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
-                  <Building2 className="h-3.5 w-3.5 text-[#7648E7] shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Unidade de negócio" : "Business Unit"}</span>
-                    <strong className="text-[#15233B] font-semibold leading-tight text-[11px]">
-                      {businessUnit || (pt ? "Não informada" : "Not specified")}
-                    </strong>
+              </div>
+            )}
+            {sidebarVisibility.documentationPercent && validationPercent !== undefined && (
+              <div className="flex items-center gap-3 mt-1">
+                <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center shrink-0">
+                  <FileText className="h-4 w-4 text-orange-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-end mb-1">
+                    <span className="text-[9px] text-slate-400 uppercase">{pt ? "Documentação gerada" : "Generated documentation"}</span>
+                    <span className="text-xs font-bold text-slate-700">{validationPercent}%</span>
+                  </div>
+                  <div className="h-1 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-orange-500 rounded-full" style={{ width: `${validationPercent}%` }} />
                   </div>
                 </div>
-              )}
-
-              {sidebarVisibility.sizing && (
-                <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
-                  <div className="h-3.5 w-3.5 flex items-center justify-center shrink-0">
-                    <span className="h-2 w-2 rounded-full bg-[#1327b9]" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Dimensionamento" : "Sizing"}</span>
-                    <div className="flex items-center gap-1.5 leading-tight">
-                      <strong className="text-[#15233B] font-semibold text-[11px]">
-                        {dimensioning 
-                          ? `${dimensioning.allocatedFte} ${dimensioning.unit || "FTE"}`
-                          : (pt ? "N/A" : "N/A")}
-                      </strong>
-                      {dimensioning && (
-                        <span className={cn(
-                          "text-[8px] px-1 py-0.5 rounded font-bold uppercase tracking-wider",
-                          dimensioning.validationStatus === "validado" ? "bg-[#E3FAEF] text-[#008B5C]" : "bg-[#FFF2D2] text-[#B97100]"
-                        )}>
-                          {dimensioning.validationStatus === "validado" ? (pt ? "validado" : "validated") : (pt ? "estimado" : "estimated")}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+              </div>
+            )}
+            {sidebarVisibility.lastUpdate && lastUpdate && (
+              <div className="flex items-center gap-3 mt-1">
+                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                  <Clock className="h-4 w-4 text-slate-400" />
                 </div>
-              )}
-
-              {sidebarVisibility.documentationPercent && validationPercent !== undefined && (
-                <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
-                  <ShieldCheck className="h-3.5 w-3.5 text-[#008B5C] shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Documentação gerada" : "Generated documentation"}</span>
-                    <strong className="text-[#008B5C] font-semibold leading-tight text-[11px]">{validationPercent}%</strong>
-                  </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] text-slate-400 uppercase">{pt ? "Revisão" : "Revision"}</span>
+                  <span className="text-xs font-bold text-slate-700">{lastUpdate}</span>
                 </div>
-              )}
-
-              {sidebarVisibility.lastUpdate && lastUpdate && (
-                <div className="flex items-center gap-2 bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1.5 rounded-lg text-xs text-[#4D5A72]">
-                  <Clock className="h-3.5 w-3.5 text-[#8A96A9] shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-[#71809A] uppercase tracking-wider font-semibold">{pt ? "Revisão" : "Revision"}</span>
-                    <strong className="text-[#15233B] font-semibold leading-tight text-[11px]">{lastUpdate}</strong>
-                  </div>
-                </div>
-              )}
-
-              {/* Botão Matriz RACI (especificamente no nível L4 e etapa correspondente) */}
-              {(levelKey === "l4" || id === "l3-conceituacao" || levelKey === "l3") && (
-                <div className="pt-2 mt-2 border-t border-[#DFE5EF]/60">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsRaciModalOpen(true)}
-                    className="w-full text-xs h-9 bg-gradient-to-r from-[#F0F4FF] to-[#E8EDFF] hover:from-[#E4ECFF] hover:to-[#D8E4FF] text-[#1327b9] border border-[#CCD9FF] font-semibold shadow-xs flex items-center justify-between px-3 group transition-all duration-200"
-                  >
-                    <div className="flex items-center gap-2">
-                      <TableProperties className="h-4 w-4 text-[#1327b9] group-hover:scale-105 transition-transform" />
-                      <span>{pt ? "Matriz RACI" : "RACI Matrix"}</span>
-                    </div>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-[#1327b9]/10 text-[#1327b9]">
-                      RACI
-                    </span>
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Ações de cabeçalho */}
-            <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-[#DFE5EF]/60">
-              {onViewRelations && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={onViewRelations}
-                  className="text-[11px] h-8 border-[#CFD7E6] text-[#1A2A48] hover:border-[#1327b9] hover:text-[#1327b9] w-full"
-                >
-                  <Share2 className="h-3 w-3 mr-1.5" />
-                  {pt ? "Relações" : "Relations"}
-                </Button>
-              )}
-
-              <ArchitectureActionButtons
-                levelKey={levelKey}
-                levelLabel={currentLevelLabel}
-                nodeName={name}
-                childLevelLabel={childLevelLabel}
-                isLeafParent={centralMapType === "leaf_parent"}
-                onEditManual={onEdit}
-                onAddChild={onAddChild}
-                showExport={true}
-                showEdit={true}
-                showAdd={true}
-              />
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </aside>
 
       {/* ── Main Area (Content) ── */}
-      <main className="flex-1 min-w-0 space-y-4">
-      {/* ── Hero Cards: Objetivo & Proposta de Valor ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Objetivo — Premium Blue Hero */}
-        <div className="relative overflow-hidden rounded-2xl border border-[#C8D4F0] bg-gradient-to-br from-[#1327b9]/[0.06] via-[#E8EDFF]/80 to-white p-4 lg:p-5 shadow-[0_6px_24px_rgba(19,39,185,0.06)] hover:shadow-[0_12px_36px_rgba(19,39,185,0.12)] transition-all duration-300 group">
-          {/* Decorative glow */}
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#1327b9]/[0.06] rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-          <div className="absolute bottom-0 left-0 w-20 h-20 bg-[#5B6DE8]/[0.04] rounded-full blur-xl pointer-events-none" />
-          <div className="relative z-10">
+      <main className="flex-1 min-w-0 p-8 h-full overflow-y-auto">
+        {/* Top Breadcrumb Nav */}
+        <div className="flex items-center gap-2 mb-8 bg-white border border-slate-200 px-3 py-2 rounded-lg shadow-sm w-fit">
+          <button onClick={breadcrumbs.length > 1 ? breadcrumbs[breadcrumbs.length - 2].onClick : breadcrumbs[0].onClick} className="text-orange-500 hover:text-orange-600 transition-colors flex items-center gap-2 text-xs font-semibold">
+             <ArrowLeft className="h-4 w-4" />
+             {breadcrumbs.length > 1 ? breadcrumbs[breadcrumbs.length - 2].label : breadcrumbs[0].label}
+          </button>
+          <ChevronRight className="h-3 w-3 text-slate-300" />
+          <span className="bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+            {pt ? "Nível Ativo" : "Active Level"}
+          </span>
+          <span className="text-xs font-bold text-orange-600 flex items-center gap-1">
+            {currentLevelLabel} - {name} <ChevronDown className="h-3 w-3 ml-1" />
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-[#1327b9]/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                <Target className="h-4.5 w-4.5 text-[#1327b9]" />
+              <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center">
+                <Target className="h-4 w-4 text-orange-500" />
               </div>
-              <h3 className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#1327b9]">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 {pt ? "Objetivo" : "Objective"}
               </h3>
             </div>
-            <p className="text-[13px] text-[#1A2A48] font-medium leading-[1.7] tracking-[-0.01em]">
+            <p className="text-[13px] text-slate-700 font-medium leading-relaxed">
               {objective || (pt ? "Objetivo não informado para este componente." : "Objective not specified.")}
             </p>
           </div>
-        </div>
 
-        {/* Proposta de Valor — Premium Amber Hero */}
-        <div className="relative overflow-hidden rounded-2xl border border-[#F0DBA0] bg-gradient-to-br from-[#ED9C12]/[0.06] via-[#FFF8E7]/80 to-white p-4 lg:p-5 shadow-[0_6px_24px_rgba(237,156,18,0.06)] hover:shadow-[0_12px_36px_rgba(237,156,18,0.12)] transition-all duration-300 group">
-          {/* Decorative glow */}
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#ED9C12]/[0.06] rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-          <div className="absolute bottom-0 left-0 w-20 h-20 bg-[#F5C542]/[0.04] rounded-full blur-xl pointer-events-none" />
-          <div className="relative z-10">
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-[#ED9C12]/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                <Gem className="h-4.5 w-4.5 text-[#C17E00]" />
+              <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center">
+                <Gem className="h-4 w-4 text-orange-500" />
               </div>
-              <h3 className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#C17E00]">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 {pt ? "Proposta de valor" : "Value proposition"}
               </h3>
             </div>
-            <p className="text-[13px] text-[#1A2A48] font-medium leading-[1.7] tracking-[-0.01em]">
+            <p className="text-[13px] text-slate-700 font-medium leading-relaxed">
               {valueProposition || (pt ? "Proposta de valor não informada para este componente." : "Value proposition not specified.")}
             </p>
           </div>
         </div>
-      </div>
 
       {/* ── Escopo e Contexto ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* ── Escopo e Contexto ── */}
+      <div className="grid grid-cols-1 gap-4 mb-4">
         {/* Fronteira de Escopo / Início e Fim */}
         {startCondition || endCondition ? (
-          <>
-            <div className="bg-white border border-[#DFE5EF] rounded-xl p-4 shadow-[0_4px_16px_rgba(20,35,70,0.03)]">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[#72809A] mb-1.5">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
                 {pt ? "Condição de início" : "Start condition"}
               </h3>
-              <p className="text-xs text-[#34445F] leading-relaxed">
+              <p className="text-xs text-slate-700 leading-relaxed">
                 {startCondition || (pt ? "Não informado" : "Not specified")}
               </p>
             </div>
-            <div className="bg-white border border-[#DFE5EF] rounded-xl p-4 shadow-[0_4px_16px_rgba(20,35,70,0.03)]">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[#72809A] mb-1.5">
+            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
                 {pt ? "Condição de término" : "End condition"}
               </h3>
-              <p className="text-xs text-[#34445F] leading-relaxed">
+              <p className="text-xs text-slate-700 leading-relaxed">
                 {endCondition || (pt ? "Não informado" : "Not specified")}
               </p>
             </div>
-          </>
+          </div>
         ) : (
-          <div className="md:col-span-2 bg-white border border-[#DFE5EF] rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(20,35,70,0.03)]">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-[#DFE5EF] bg-[#F8FAFF]">
-              <Milestone className="h-3.5 w-3.5 text-[#1327b9]" />
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#1327b9]">
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100">
+              <Milestone className="h-4 w-4 text-orange-500" />
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 {pt ? "Fronteira de escopo" : "Scope boundary"}
               </h3>
             </div>
-            <p className="text-xs text-[#34445F] leading-relaxed px-5 py-3">
+            <p className="text-xs text-slate-700 leading-relaxed px-5 py-4">
               {scopeBoundary || (pt ? "Não informado" : "Not specified")}
             </p>
           </div>
         )}
 
         {/* Bloco de Entradas, Stakeholders e Saídas */}
-        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Entradas */}
-          <div className="bg-white border border-[#DFE5EF] rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(20,35,70,0.03)]">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-[#DFE5EF] bg-[#F8FAFF]">
-              <ArrowDownLeft className="h-3.5 w-3.5 text-[#1327b9]" />
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#1327b9]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100">
+              <ArrowDownLeft className="h-4 w-4 text-orange-500" />
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 {pt ? "Entradas e Direcionadores" : "Inputs and Drivers"}
               </h3>
             </div>
-            <p className="text-xs text-[#34445F] leading-relaxed px-5 py-3">
+            <p className="text-xs text-slate-700 leading-relaxed px-5 py-4">
               {inputs || (pt ? "Entradas não detalhadas formalmente." : "Inputs not detailed formally.")}
             </p>
           </div>
           
-          {/* Stakeholders / Destinos */}
-          <div className="bg-white border border-[#DFE5EF] rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(20,35,70,0.03)]">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-[#DFE5EF] bg-[#F8FAFF]">
-              <Users className="h-3.5 w-3.5 text-[#7648E7]" />
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#7648E7]">
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100">
+              <Users className="h-4 w-4 text-orange-500" />
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 {pt ? "Stakeholders / Destinos" : "Stakeholders / Destinations"}
               </h3>
             </div>
-            <p className="text-xs text-[#34445F] leading-relaxed px-5 py-3">
+            <p className="text-xs text-slate-700 leading-relaxed px-5 py-4">
               {stakeholders || (pt ? "Público-alvo não detalhado formalmente." : "Stakeholders not detailed formally.")}
             </p>
           </div>
 
-          {/* Saídas */}
-          <div className="bg-white border border-[#DFE5EF] rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(20,35,70,0.03)]">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-[#DFE5EF] bg-[#F8FAFF]">
-              <ArrowUpRight className="h-3.5 w-3.5 text-[#008B5C]" />
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#008B5C]">
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100">
+              <ArrowUpRight className="h-4 w-4 text-orange-500" />
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 {pt ? "Saídas e Entregas" : "Outputs and Deliverables"}
               </h3>
             </div>
-            <p className="text-xs text-[#34445F] leading-relaxed px-5 py-3">
+            <p className="text-xs text-slate-700 leading-relaxed px-5 py-4">
               {outputs || (pt ? "Saídas não detalhadas formalmente." : "Outputs not detailed formally.")}
             </p>
           </div>
@@ -470,21 +473,19 @@ export function ScopeContextSheet({
       </div>
 
       {/* ── MAPA CENTRAL DE COMPOSIÇÃO — Premium Section ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#D4DAE8] bg-gradient-to-b from-white via-white to-[#F8FAFF] p-5 lg:p-6 shadow-[0_8px_32px_rgba(20,35,70,0.05)] space-y-4">
-        {/* Decorative accent line */}
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#1327b9] via-[#7648E7] to-[#1327b9]/20" />
-        
-        <div className="flex items-center justify-between">
+      {/* ── MAPA CENTRAL DE COMPOSIÇÃO — Premium Section ── */}
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-4">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7648E7]/15 to-[#1327b9]/10 flex items-center justify-center shadow-sm">
-              <Component className="h-5 w-5 text-[#6633D0]" />
+            <div className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center shadow-sm border border-slate-100">
+              <Component className="h-4 w-4 text-slate-500" />
             </div>
             <div>
-              <h3 className="text-[15px] font-bold tracking-tight text-[#15233B] flex items-center gap-2">
-                {childLevelLabel} {pt ? "Relacionados" : "Related"}
+              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                {childLevelLabel} {pt ? "relacionados" : "related"}
               </h3>
-              <p className="text-[11px] text-[#8A96A9] mt-0.5">
-                {childrenComponents.length} {childrenComponents.length === 1 ? (pt ? "componente" : "component") : (pt ? "componentes" : "components")} {childLevelLabel}
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {childrenComponents.length} {childrenComponents.length === 1 ? (pt ? "componente conectado a este nível" : "component connected to this level") : (pt ? "componentes conectados a este nível" : "components connected to this level")}
               </p>
             </div>
           </div>
@@ -518,9 +519,9 @@ export function ScopeContextSheet({
                 </button>
               </div>
             )}
-            <span className="inline-flex items-center gap-1.5 bg-[#EFE8FF] text-[#6633D0] px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider">
-              <Sparkles className="h-3.5 w-3.5" />
-              {childLevelLabel}
+            <span className="inline-flex items-center gap-1.5 hover:bg-slate-50 text-slate-600 border border-slate-200 cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+              <Plus className="h-3.5 w-3.5" />
+              {pt ? "Adicionar " : "Add "}{childLevelLabel}
             </span>
           </div>
         </div>
@@ -539,11 +540,11 @@ export function ScopeContextSheet({
             onSelectProcess={onSelectProcess}
           />
         ) : childrenComponents.length === 0 ? (
-          <div className="bg-[#FBFCFF] border border-dashed border-[#DFE5EF] rounded-xl p-10 text-center text-xs text-[#8A96A9] flex flex-col items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-[#F0F3F8] flex items-center justify-center mb-3">
-              <Layers className="h-6 w-6 text-[#A5A7B0]" />
+          <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-10 text-center text-xs text-slate-400 flex flex-col items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-white border border-slate-100 flex items-center justify-center mb-3">
+              <Layers className="h-5 w-5 text-slate-300" />
             </div>
-            <p className="text-sm text-[#71809A] font-medium">
+            <p className="text-sm text-slate-500 font-medium">
               {centralMapType === "leaf_parent"
                 ? (pt ? "Nenhum processo operacional vinculado ainda." : "No operational processes linked yet.")
                 : (pt ? `Nenhum componente ${childLevelLabel} cadastrado neste nível.` : `No ${childLevelLabel} components registered.`)}
@@ -557,18 +558,17 @@ export function ScopeContextSheet({
                 <div key={child.id} className="flex items-center gap-4 shrink-0">
                   <button
                     onClick={child.onClick}
-                    className="w-[260px] text-left p-4 bg-white border border-[#DCE3EF] rounded-xl transition-all duration-200 hover:border-[#7648E7] hover:shadow-[0_12px_32px_rgba(118,72,231,0.1)] hover:-translate-y-0.5 group relative overflow-hidden"
+                    className="w-[260px] text-left p-4 bg-white border border-slate-200 rounded-xl transition-all duration-200 hover:border-orange-500 hover:shadow-md group relative overflow-hidden"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#7648E7]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative z-10">
-                      <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-sm bg-[#EFE8FF] text-[#6633D0]">
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-sm bg-orange-100 text-orange-600">
                         {child.levelLabel}
                       </span>
-                      <b className="block text-[13px] text-[#263754] font-semibold mt-2 group-hover:text-[#6633D0] transition-colors">
+                      <b className="block text-[13px] text-slate-700 font-semibold mt-2 group-hover:text-orange-600 transition-colors">
                         {child.name}
                       </b>
                       {child.description && (
-                        <small className="block text-[11px] text-[#7C889E] mt-1.5 line-clamp-2 leading-relaxed">
+                        <small className="block text-[11px] text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
                           {child.description}
                         </small>
                       )}
@@ -577,7 +577,7 @@ export function ScopeContextSheet({
 
                   {idx < childrenComponents.length - 1 && (
                     <div className="flex flex-col items-center gap-0.5 shrink-0">
-                      <span className="text-[#7648E7] text-xl">→</span>
+                      <span className="text-orange-500 text-xl">→</span>
                     </div>
                   )}
                 </div>
@@ -594,8 +594,8 @@ export function ScopeContextSheet({
                 className={cn(
                   "text-left p-4 bg-white border rounded-xl transition-all duration-200 hover:-translate-y-0.5 group flex flex-col justify-between min-h-[110px] relative overflow-hidden",
                   child.isOperationalProcess
-                    ? "border-[#B8E6D4] hover:border-[#008B5C] hover:shadow-[0_12px_32px_rgba(0,139,92,0.1)]"
-                    : "border-[#DCE3EF] hover:border-[#7648E7] hover:shadow-[0_12px_32px_rgba(118,72,231,0.1)]"
+                    ? "border-emerald-200 hover:border-emerald-500 hover:shadow-md"
+                    : "border-slate-200 hover:border-orange-500 hover:shadow-md"
                 )}
               >
                 {/* Hover gradient overlay */}
@@ -651,81 +651,64 @@ export function ScopeContextSheet({
       {/* ── Painéis Inferiores em Múltiplas Colunas ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Painel: Indicadores */}
-        <div className="bg-white border border-[#DFE5EF] rounded-xl p-4 shadow-[0_4px_16px_rgba(20,35,70,0.03)] flex flex-col">
-          <div className="flex items-center justify-between mb-3 border-b border-[#DFE5EF] pb-2.5">
-            <h3 className="text-xs font-bold text-[#15233B] flex items-center gap-1.5">
-              <TrendingUp className="h-4 w-4 text-[#1327b9]" />
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-orange-500" />
               {pt ? "Indicadores de Saúde" : "Health Indicators"}
             </h3>
-            {indicators.length > 0 && (
-              <Badge variant="outline" className="text-[10px] bg-[#F5F7FB] border-[#DFE5EF] text-[#63718A]">
-                {indicators.length} {indicators.length === 1 ? (pt ? "indicador" : "indicator") : (pt ? "indicadores" : "indicators")}
-              </Badge>
-            )}
           </div>
           {indicators.length === 0 ? (
-            <div className="flex flex-col items-center justify-center flex-1 py-6 text-center">
-              <div className="h-8 w-8 rounded-full bg-[#F5F7FB] flex items-center justify-center mb-2">
-                <TrendingUp className="h-4 w-4 text-[#A5A7B0]" />
-              </div>
-              <p className="text-xs text-[#8A96A9] italic max-w-[200px]">
+            <div className="flex flex-col items-center justify-center flex-1 py-4 text-center">
+              <p className="text-xs text-slate-400 italic">
                 {pt ? "Nenhum indicador vinculado a este nível no momento." : "No indicators linked to this level."}
               </p>
             </div>
           ) : (
             <div className="flex-1 flex flex-col justify-between">
-              <ul className="divide-y divide-[#F0F3F8] mb-4">
+              <ul className="space-y-3 mb-4">
                 {indicators.slice(0, 3).map((ind, i) => (
-                  <li key={i} className="py-2.5 flex items-center justify-between text-xs group">
-                    <span className="flex items-center gap-2.5 text-[#4D5A72] flex-1">
-                      <span className={cn(
-                        "h-2 w-2 rounded-full shrink-0 shadow-sm",
-                        ind.status === "dentro_da_meta" ? "bg-[#008B5C] shadow-[#008B5C]/40" :
-                        ind.status === "atencao" ? "bg-[#ED9C12] shadow-[#ED9C12]/40" :
-                        ind.status === "critico" ? "bg-[#E2484E] shadow-[#E2484E]/40" : "bg-[#A5A7B0]"
-                      )} />
-                      <span className="font-medium text-[#15233B] truncate group-hover:text-[#1327b9] transition-colors">{ind.name}</span>
+                  <li key={i} className="flex items-center justify-between text-xs group">
+                    <span className="flex items-center gap-2 text-slate-600 flex-1">
+                      <span className="font-medium truncate">{ind.name}</span>
                     </span>
-                    <span className="text-xs font-semibold text-[#15233B] whitespace-nowrap pl-2">
+                    <span className={cn(
+                      "text-xs font-bold whitespace-nowrap pl-2",
+                      ind.status === "dentro_da_meta" ? "text-emerald-500" :
+                      ind.status === "atencao" ? "text-orange-500" :
+                      ind.status === "critico" ? "text-red-500" : "text-slate-600"
+                    )}>
                       {ind.currentValue} {ind.unit || ""} 
                     </span>
                   </li>
                 ))}
-                {indicators.length > 3 && (
-                  <li className="py-2 text-center">
-                    <span className="text-[10px] text-[#8A96A9] font-medium">
-                      + {indicators.length - 3} {pt ? "indicadores ocultos" : "more indicators"}
-                    </span>
-                  </li>
-                )}
               </ul>
               
               <Button 
-                variant="outline" 
-                className="w-full h-9 mt-auto border-[#DFE5EF] text-[#34445F] text-xs font-semibold hover:border-[#1327b9] hover:text-[#1327b9] bg-white transition-all shadow-sm hover:shadow-[0_4px_12px_rgba(19,39,185,0.06)] group"
+                variant="ghost" 
+                className="w-full h-8 text-orange-600 text-[11px] font-bold hover:bg-orange-50 hover:text-orange-700 transition-colors"
                 onClick={() => setIsIndicatorsModalOpen(true)}
               >
                 {pt ? "Ver Todos os Indicadores" : "View All Indicators"}
-                <ArrowRight className="h-3.5 w-3.5 ml-1.5 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
               </Button>
             </div>
           )}
         </div>
 
         {/* Painel: Sistemas */}
-        <div className="bg-white border border-[#DFE5EF] rounded-xl p-4 shadow-[0_4px_16px_rgba(20,35,70,0.03)]">
-          <h3 className="text-xs font-bold text-[#15233B] flex items-center gap-1.5 mb-3 border-b border-[#DFE5EF] pb-2.5">
-            <Layers className="h-4 w-4 text-[#7648E7]" />
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+          <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
+            <Layers className="h-4 w-4 text-orange-500" />
             {pt ? "Sistemas Utilizados" : "Systems Used"}
           </h3>
           {systems.length === 0 ? (
-            <p className="text-xs text-[#8A96A9] italic">
+            <p className="text-xs text-slate-400 italic">
               {pt ? "Nenhum sistema mapeado." : "No systems mapped."}
             </p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {systems.map((sys, idx) => (
-                <span key={idx} className="text-xs bg-[#F5F7FB] border border-[#DFE5EF] px-2.5 py-1 rounded-sm text-[#34445F] font-medium">
+                <span key={idx} className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-sm">
                   {sys}
                 </span>
               ))}
@@ -734,28 +717,25 @@ export function ScopeContextSheet({
         </div>
 
         {/* Painel: Normativos e Políticas */}
-        <div className="bg-white border border-[#DFE5EF] rounded-xl p-4 shadow-[0_4px_16px_rgba(20,35,70,0.03)]">
-          <h3 className="text-xs font-bold text-[#15233B] flex items-center gap-1.5 mb-3 border-b border-[#DFE5EF] pb-2.5">
-            <ShieldCheck className="h-4 w-4 text-[#008B5C]" />
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+          <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
+            <ShieldCheck className="h-4 w-4 text-orange-500" />
             {pt ? "Normativos e Políticas" : "Policies & Regulations"}
           </h3>
           {policies.length === 0 ? (
-            <p className="text-xs text-[#8A96A9] italic">
+            <p className="text-xs text-slate-400 italic">
               {pt ? "Nenhum normativo associado." : "No policies linked."}
             </p>
           ) : (
-            <ul className="divide-y divide-dashed divide-[#E0E5ED]">
+            <ul className="space-y-3">
               {policies.map((pol) => (
-                <li key={pol.id} className="py-2.5 text-xs flex items-center justify-between gap-2">
-                  <div>
-                    <b className="block text-[#15233B] font-medium">{pol.name}</b>
-                    <span className="text-[10px] text-[#71809A]">
-                      {pol.type} · {pol.version}
-                    </span>
+                <li key={pol.id} className="text-xs flex items-center justify-between gap-2 border-b border-slate-100 pb-2 last:border-0 last:pb-0">
+                  <div className="flex flex-col">
+                    <span className="text-slate-600 font-medium">{pol.name}</span>
                   </div>
                   <span className={cn(
                     "text-[9px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider shrink-0",
-                    pol.complianceStatus === "conforme" ? "bg-[#E3FAEF] text-[#008B5C]" : "bg-[#FFF2D2] text-[#B97100]"
+                    pol.complianceStatus === "conforme" ? "text-emerald-600" : "text-orange-600"
                   )}>
                     {pol.complianceStatus || pol.status}
                   </span>
@@ -766,40 +746,35 @@ export function ScopeContextSheet({
         </div>
 
         {/* Painel: Dores e Riscos — card próprio */}
-        <div className="bg-white border border-[#DFE5EF] rounded-xl p-4 shadow-[0_4px_16px_rgba(20,35,70,0.03)] flex flex-col">
-          <h3 className="text-xs font-bold text-[#15233B] flex items-center gap-1.5 mb-3 border-b border-[#DFE5EF] pb-2.5">
-            <AlertCircle className="h-4 w-4 text-[#ED9C12]" />
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
+          <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
+            <AlertCircle className="h-4 w-4 text-orange-500" />
             {pt ? "Dores e Riscos" : "Pain Points & Risks"}
           </h3>
           {painPoints.length === 0 && openQuestions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center flex-1 py-6 text-center">
-              <div className="h-8 w-8 rounded-full bg-[#FFF8ED] flex items-center justify-center mb-2">
-                <AlertCircle className="h-4 w-4 text-[#F0C060]" />
-              </div>
-              <p className="text-xs text-[#8A96A9] italic">
+            <div className="flex flex-col items-center justify-center flex-1 py-4 text-center">
+              <p className="text-xs text-slate-400 italic">
                 {pt ? "Nenhuma dor ou risco mapeado." : "No pain points or risks mapped."}
               </p>
             </div>
           ) : (
             <div className="flex-1 flex flex-col justify-between">
-              <ul className="space-y-2 text-xs text-[#4D5A72] mb-4">
+              <ul className="space-y-2 text-xs text-slate-600 mb-4 list-disc pl-4">
                 {painPoints.map((pain, idx) => (
-                  <li key={idx} className="flex items-start gap-1.5 leading-snug">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#E2484E] mt-1 shrink-0" />
-                    <span>{pain}</span>
+                  <li key={idx} className="leading-snug text-slate-600 font-medium">
+                    {pain}
                   </li>
                 ))}
                 {openQuestions.map((q, idx) => (
-                  <li key={idx} className="flex items-start gap-1.5 leading-snug">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#ED9C12] mt-1 shrink-0" />
-                    <span className="text-[#B97100] font-medium">{q}</span>
+                  <li key={idx} className="leading-snug text-slate-600 font-medium">
+                    {q}
                   </li>
                 ))}
               </ul>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="w-full mt-auto h-8 text-[11px] border-[#DFE5EF] text-[#4D5A72] hover:border-[#ED9C12] hover:text-[#B97100] transition-all"
+                className="w-full mt-auto h-8 text-[11px] font-bold text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors"
                 onClick={() => setIsGapsModalOpen(true)}
               >
                 {pt ? "Detalhar Gaps / Casos de Uso" : "Detail Gaps / Use Cases"}
@@ -847,7 +822,6 @@ export function ScopeContextSheet({
         }))}
       />
       </main>
-      </div>
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
   Info,
   X,
   Download,
+  Network,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,7 +54,6 @@ import { ProcessActionDialog } from "./modals/ProcessActionDialog";
 import { ProcessConnectionMapModal } from "@/components/process/connections/ProcessConnectionMapModal";
 import { AIGenerationModal } from "./AIGenerationModal";
 import { DetailsSidePanel, DetailsTarget } from "./DetailsSidePanel";
-import { ValueChainSummaryBar } from "./ValueChainSummaryBar";
 import { L1DetailView } from "./L1DetailView";
 import { DomainContextRibbon } from "./DomainContextRibbon";
 import { toast } from "sonner";
@@ -251,6 +251,20 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
           ) : l4 ? (
             /* 2. FICHA DE ESCOPO L4 (IMEDIATAMENTE ACIMA DO PROCESSO OPERACIONAL) */
             (() => {
+              const siblings: ChildComponentCard[] = [];
+              if (l3) {
+                const arr = ("childrenL4" in l3 && l3.childrenL4) ? l3.childrenL4 : (("l4Tasks" in l3 && (l3 as any).l4Tasks) ? (l3 as any).l4Tasks : []);
+                arr.forEach((c: any) => {
+                  siblings.push({
+                    id: c.id,
+                    name: c.name,
+                    levelKey: "l4",
+                    levelLabel: lvl("l4"),
+                    onClick: () => setParams({ l1: l1?.id || null, l2: l2?.id || null, l3: l3.id, l4: c.id, processId: null })
+                  });
+                });
+              }
+
               const processes: ChildComponentCard[] = (mockL4?.processes || []).map((p) => ({
                 id: p.id,
                 name: p.name,
@@ -310,6 +324,7 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
                   stakeholders={mockL4?.stakeholders || "SDR, Executivos de Contas, Marketing, Liderança de Vendas"}
                   centralMapType="leaf_parent"
                   childrenComponents={processes}
+                  siblingComponents={siblings}
                   policies={mockL4?.policies || [
                     { id: "pol-1", name: "Política Comercial Corporativa", type: "Política Interna", version: "Rev. 2026", status: "vigente", complianceStatus: "conforme" },
                     { id: "pol-2", name: "LGPD — Tratamento de Dados Comerciais", type: "Norma Regulatória", version: "v2.1", status: "vigente", complianceStatus: "conforme" }
@@ -331,6 +346,20 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
             (() => {
               const childL4s: ChildComponentCard[] = [];
               const isProc = !hasLevel("l4");
+
+              const siblings: ChildComponentCard[] = [];
+              if (isProc && l2) {
+                const arr = ("childrenL3" in l2 && l2.childrenL3) ? l2.childrenL3 : (("l3Processes" in l2 && (l2 as any).l3Processes) ? (l2 as any).l3Processes : []);
+                arr.forEach((c: any) => {
+                  siblings.push({
+                    id: c.id,
+                    name: c.name,
+                    levelKey: "l3",
+                    levelLabel: lvl("l3"),
+                    onClick: () => setParams({ l1: l1?.id || null, l2: l2.id, l3: c.id, l4: null, processId: null })
+                  });
+                });
+              }
 
               if ("childrenL4" in l3 && l3.childrenL4) {
                 l3.childrenL4.forEach((c) => {
@@ -395,6 +424,7 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
                   stakeholders={mockL3?.stakeholders || "SDR, Marketing, Executivos de Contas (AE)"}
                   centralMapType="intermediate"
                   childrenComponents={childL4s}
+                  siblingComponents={isProc ? siblings : undefined}
                   explicitRelations={mockL3?.explicitRelations || []}
                   policies={mockL3?.policies || [
                     { id: "pol-1", name: "Política Comercial Corporativa", type: "Política Interna", version: "Rev. 2026", status: "vigente", complianceStatus: "conforme" },
@@ -573,7 +603,6 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
           ) : (
             /* 6. NÍVEL RAIZ — VISÃO ESTRUTURAL DA CADEIA DE VALOR */
             <div className="w-full space-y-4">
-              <ValueChainSummaryBar />
 
               {/* Cadeia de Valor */}
               <L1ValueChainView
@@ -828,35 +857,26 @@ function L1ValueChainView({
       );
     }
     return (
-      <div
-        className={cn(
-          "mt-2",
-          layout === "row"
-            ? "grid gap-1.5 [grid-template-columns:repeat(auto-fill,minmax(230px,1fr))]"
-            : "flex flex-col gap-1.5"
-        )}
-      >
+      <div className="mt-2 flex flex-col gap-0.5">
         {l1.l2Processes.map((l2) => {
           const c = l2Counts(l2);
           return (
             <button
               key={l2.id}
               onClick={() => onSelectL2(l1.id, l2.id)}
-              className="text-left rounded-sm border border-[#DFE5EF] bg-white px-2.5 py-2 transition-all hover:border-[#1327B9] hover:shadow-[0_2px_8px_rgba(19,39,185,0.08)] group"
+              className="text-left bg-white px-0 py-2.5 transition-all hover:bg-slate-50 group flex items-center justify-between border-b border-[#A5A7B0]/10 last:border-0"
             >
-              <span className="block text-[12px] font-medium leading-snug text-[#272727] break-words group-hover:text-[#1327B9]">
-                {l2.name}
-              </span>
-              <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-[#71809A]">
-                <span className="inline-block rounded-[2px] bg-[#EFE8FF] px-1 py-[1px] text-[9px] font-bold uppercase tracking-wide leading-none text-[#6633D0]">
-                  {lvl("l2")} · {language === "PT" ? "composição" : "composition"}
-                </span>
-                {c.l3 > 0 && maxLevel >= 3 && <span>{c.l3} {lvl("l3")}</span>}
-                {c.l3 > 0 && maxLevel >= 3 && <span className="opacity-60">·</span>}
-                <span className={cn(c.processes > 0 && "text-[#1327B9] font-semibold")}>
-                  {c.processes} {language === "PT" ? "proc." : "proc."}
-                </span>
-              </span>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center rounded-[4px] bg-[#FFF3ED] px-1.5 py-0.5 text-[9px] font-bold text-[#F97316] tracking-widest leading-none">
+                    N1
+                  </span>
+                  <span className="text-[13px] font-semibold text-[#272727] group-hover:text-[#F97316] transition-colors">
+                    {l2.name}
+                  </span>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-[#A5A7B0] group-hover:text-[#F97316] transition-colors opacity-50 group-hover:opacity-100" />
             </button>
           );
         })}
@@ -864,13 +884,13 @@ function L1ValueChainView({
     );
   };
 
-
-
   const [showL1Modal, setShowL1Modal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [editingL1, setEditingL1] = useState<L1Process | null>(null);
   const [deletingL1, setDeletingL1] = useState<L1Process | null>(null);
   const [detailsTarget, setDetailsTarget] = useState<DetailsTarget>(null);
+  const [activeFilter, setActiveFilter] = useState<"all" | "primary" | "support">("all");
+
 
   const support = l1Processes.filter((x) => x.category === "SUPPORT");
   const primary = l1Processes.filter((x) => x.category === "PRIMARY");
@@ -952,211 +972,195 @@ function L1ValueChainView({
 
   return (
     <div>
-      {/* Header actions */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-[#272727]">
-            {language === "PT" ? "Cadeia de Valor" : "Value Chain"}
-          </h1>
-          <p className="text-sm text-[#A5A7B0] mt-1">
-            {language === "PT"
-              ? `Explore a arquitetura de processos navegando de ${lvl("l1")} até ${lvl(`l${maxLevel}` as TaxonomyLevel)}`
-              : `Explore the process architecture drilling down from ${lvl("l1")} to ${lvl(`l${maxLevel}` as TaxonomyLevel)}`}
-          </p>
-        </div>
-
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex gap-2">
-          <Button
-            onClick={() => toast.info(language === "PT" ? "Exportação da Cadeia de Valor em breve" : "Value Chain export coming soon")}
-            variant="outline"
-            size="sm"
-            className="rounded-sm border-[#A5A7B0]/40 text-[#4D5A72] hover:border-[#008B5C] hover:text-[#008B5C] group/export"
+          <button
+            onClick={() => setActiveFilter("all")}
+            className={cn(
+              "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
+              activeFilter === "all"
+                ? "bg-[#1E293B] text-white"
+                : "bg-white border border-[#A5A7B0]/30 text-[#4D5A72] hover:bg-slate-50"
+            )}
           >
-            <Download className="h-4 w-4 mr-2 group-hover/export:translate-y-[1px] transition-transform duration-200" />
-            {language === "PT" ? "Exportar" : "Export"}
-          </Button>
-          <Button
-            onClick={() => setShowAIModal(true)}
-            variant="outline"
-            size="sm"
-            className="rounded-sm border-[#A5A7B0]/40 text-[#272727]"
+            {language === "PT" ? "Todos os domínios" : "All domains"}
+          </button>
+          <button
+            onClick={() => setActiveFilter("primary")}
+            className={cn(
+              "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
+              activeFilter === "primary"
+                ? "bg-[#1E293B] text-white"
+                : "bg-white border border-[#A5A7B0]/30 text-[#4D5A72] hover:bg-slate-50"
+            )}
           >
-            <Sparkles className="h-4 w-4 mr-2" />
-            {language === "PT" ? "Gerar com IA" : "Generate with AI"}
-          </Button>
-          <Button
-            onClick={() => {
-              setEditingL1(null);
-              setShowL1Modal(true);
-            }}
-            size="sm"
-            className="rounded-sm bg-[#0C1BA8] hover:bg-[#04223D] text-white"
+            {language === "PT" ? "Primários" : "Primary"}
+          </button>
+          <button
+            onClick={() => setActiveFilter("support")}
+            className={cn(
+              "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
+              activeFilter === "support"
+                ? "bg-[#1E293B] text-white"
+                : "bg-white border border-[#A5A7B0]/30 text-[#4D5A72] hover:bg-slate-50"
+            )}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            {language === "PT" ? "Criar jornada E2E" : "Create E2E Journey"}
-          </Button>
+            {language === "PT" ? "Suporte" : "Support"}
+          </button>
+        </div>
+        <div className="relative">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A5A7B0]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
+          <input 
+            type="text" 
+            placeholder={language === "PT" ? "Buscar domínio ou processo..." : "Search domain or process..."}
+            className="pl-9 pr-12 py-2 rounded-md border border-[#A5A7B0]/30 text-sm w-full sm:w-72 bg-white focus:outline-none focus:border-[#F97316] transition-colors" 
+          />
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 bg-[#f1f1f1] rounded text-[10px] text-[#A5A7B0] font-mono">⌘ K</div>
         </div>
       </div>
 
-      {/* Support activities — stacked full-width chevrons */}
-      <section className="mb-8">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-[11px] font-bold text-[#A5A7B0] uppercase tracking-wider">
-            {language === "PT" ? "Domínios de suporte" : "Support Domains"}
-          </span>
-          <span className="text-[11px] text-[#A5A7B0]/70">
-            {support.length} {language === "PT" ? "domínios" : "domains"}
-          </span>
-        </div>
-        {support.length > 0 ? (
-          <div className="flex flex-col gap-1.5">
-            {support.map((l1) => {
-              const notch = 14;
-              const clipPath = `polygon(0 0, calc(100% - ${notch}px) 0, 100% 50%, calc(100% - ${notch}px) 100%, 0 100%)`;
-              const c = l1Counts(l1);
-              return (
-                <div key={l1.id} className="w-full">
-                  <div className="group relative w-full">
-                    <button
-                      onClick={() => onSelectL1(l1.id)}
-                      className="w-full text-left bg-[#0C1BA8] hover:bg-[#04223D] transition-colors duration-150 flex items-center gap-3 cursor-pointer"
-                      style={{
-                        clipPath,
-                        WebkitClipPath: clipPath,
-                        paddingLeft: 14,
-                        paddingRight: 32,
-                        paddingTop: 8,
-                        paddingBottom: 8,
-                        minHeight: 52,
-                      }}
-                    >
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-white/20 text-white uppercase tracking-wide shrink-0">
-                        {lvl("l1")}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-[13px] leading-tight text-white truncate mb-1">
+      {/* Primary activities */}
+      {(activeFilter === "all" || activeFilter === "primary") && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-[#4D5A72] uppercase tracking-wider">
+                {language === "PT" ? "Domínios primários" : "Primary Domains"}
+              </span>
+              <span className="text-[10px] text-[#A5A7B0] font-medium px-2 py-0.5 bg-slate-100 rounded-full">
+                {primary.length} {language === "PT" ? "domínios" : "domains"}
+              </span>
+            </div>
+            <button className="text-[#A5A7B0] hover:text-[#272727] transition-colors">
+              <ChevronRight className="h-4 w-4 -rotate-90" />
+            </button>
+          </div>
+          {primary.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {primary.map((l1) => {
+                const c = l1Counts(l1);
+                return (
+                  <div key={l1.id} className="bg-white border border-[#A5A7B0]/20 rounded-xl p-5 shadow-sm group hover:border-[#F97316]/50 transition-colors">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-[#FFF3ED] text-[#F97316] uppercase tracking-wide">
+                          N0
+                        </span>
+                        <h4 className="font-bold text-[15px] text-[#272727] group-hover:text-[#F97316] transition-colors cursor-pointer" onClick={() => onSelectL1(l1.id)}>
                           {getName(l1)}
                         </h4>
-                        <div className="flex items-center gap-x-2 text-[11px] text-white/75 truncate">
-                          {c.l2 > 0 && <span>{c.l2} {lvl("l2")}</span>}
-                          {c.processes > 0 && <span className="font-semibold text-white">· {c.processes} proc.</span>}
-                          <span className="opacity-60 truncate">
-                            {(() => {
-                              const md = mockArchitectureData.domainsL1.find(d => d.id === l1.id || d.name === getName(l1));
-                              if (!md) return null;
-                              const ind = getBusinessIndicatorsByDomain(mockArchitectureData, md.id)[0];
-                              const sysCount = md.childrenL2.reduce((acc, l2) => acc + l2.childrenL3.reduce((a, l3) => a + l3.childrenL4.reduce((b, l4) => b + l4.processes.reduce((c, p) => c + p.systemsUsed.length, 0), 0), 0), 0);
-                              return ` · ${sysCount} sistemas ${ind ? ` · KPI: ${ind.currentValue}` : ''}`;
-                            })()}
-                          </span>
-                        </div>
                       </div>
-                    </button>
-                    <div
-                      className="absolute top-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      style={{ right: notch + 6 }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {cardActions(l1, true)}
+                      <button className="text-[#A5A7B0] group-hover:text-[#F97316] transition-colors" onClick={() => onSelectL1(l1.id)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                      </button>
+                    </div>
+                    <div className="text-[11px] text-[#A5A7B0] font-medium mb-4 flex items-center gap-1.5 flex-wrap">
+                      <span>{c.l2} N1</span>
+                      <span>·</span>
+                      <span>{c.processes} proc.</span>
+                      <span>·</span>
+                      {(() => {
+                        const md = mockArchitectureData.domainsL1.find(d => d.id === l1.id || d.name === getName(l1));
+                        if (!md) return null;
+                        const ind = getBusinessIndicatorsByDomain(mockArchitectureData, md.id)[0];
+                        const sysCount = md.childrenL2?.reduce((acc, l2) => acc + (l2.childrenL3?.reduce((a, l3) => a + (l3.childrenL4?.reduce((b, l4) => b + (l4.processes?.reduce((c, p) => c + (p.systemsUsed?.length || 0), 0) || 0), 0) || 0), 0) || 0), 0) || 0;
+                        return (
+                          <>
+                            <span>{sysCount} sistemas</span>
+                            {ind && (
+                              <>
+                                <span>·</span>
+                                <span>KPI: {ind.currentValue}</span>
+                              </>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                    <div className="pt-1">
+                      {renderL2List(l1, "column")}
                     </div>
                   </div>
-                  <div className="pl-3 pb-1">{renderL2List(l1, "row")}</div>
-                </div>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState label={language === "PT" ? "Nenhuma atividade primária" : "No primary activities"} />
+          )}
+        </section>
+      )}
 
-              );
-            })}
+      {/* Support activities */}
+      {(activeFilter === "all" || activeFilter === "support") && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-[#4D5A72] uppercase tracking-wider">
+                {language === "PT" ? "Domínios de suporte" : "Support Domains"}
+              </span>
+              <span className="text-[10px] text-[#A5A7B0] font-medium px-2 py-0.5 bg-slate-100 rounded-full">
+                {support.length} {language === "PT" ? "domínios" : "domains"}
+              </span>
+            </div>
+            <button className="text-[#A5A7B0] hover:text-[#272727] transition-colors">
+              <ChevronRight className="h-4 w-4 -rotate-90" />
+            </button>
           </div>
-        ) : (
-          <EmptyState label={language === "PT" ? "Nenhuma atividade de suporte" : "No support activities"} />
-        )}
-      </section>
-
-      {/* Primary activities — chained flow */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-[11px] font-bold text-[#A5A7B0] uppercase tracking-wider">
-            {language === "PT" ? "Domínios primários" : "Primary Domains"}
-          </span>
-          <span className="text-[11px] text-[#A5A7B0]/70">
-            {primary.length} {language === "PT" ? "domínios" : "domains"}
-          </span>
-        </div>
-        {primary.length > 0 ? (
-          <div className="flex items-start overflow-x-auto pb-2">
-            {primary.map((l1, idx) => {
-              const isFirst = idx === 0;
-              const notch = 18;
-              const clipPath = isFirst
-                ? `polygon(0 0, calc(100% - ${notch}px) 0, 100% 50%, calc(100% - ${notch}px) 100%, 0 100%)`
-                : `polygon(0 0, calc(100% - ${notch}px) 0, 100% 50%, calc(100% - ${notch}px) 100%, 0 100%, ${notch}px 50%)`;
-              const c = l1Counts(l1);
-              return (
-                <div
-                  key={l1.id}
-                  className="flex-1 min-w-[220px]"
-                  style={{ marginLeft: isFirst ? 0 : -notch + 2 }}
-                >
-                  <div className="group relative">
-                    <button
-                      onClick={() => onSelectL1(l1.id)}
-                      className="w-full text-left bg-[#0C1BA8] hover:bg-[#04223D] transition-colors duration-150 flex flex-col justify-center cursor-pointer"
-                      style={{
-                        clipPath,
-                        WebkitClipPath: clipPath,
-                        paddingLeft: isFirst ? 20 : 32,
-                        paddingRight: 32,
-                        paddingTop: 14,
-                        paddingBottom: 14,
-                        minHeight: 96,
-                      }}
-                    >
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-white/20 text-white uppercase tracking-wide">
-                          {lvl("l1")}
+          {support.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+              {support.map((l1) => {
+                const c = l1Counts(l1);
+                return (
+                  <div key={l1.id} className="bg-white border border-[#A5A7B0]/20 rounded-xl p-5 shadow-sm group hover:border-[#F97316]/50 transition-colors">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-[#FFF3ED] text-[#F97316] uppercase tracking-wide">
+                          N0
                         </span>
+                        <h4 className="font-bold text-[15px] text-[#272727] group-hover:text-[#F97316] transition-colors cursor-pointer" onClick={() => onSelectL1(l1.id)}>
+                          {getName(l1)}
+                        </h4>
                       </div>
-                      <h4 className="font-medium text-sm leading-tight text-white truncate">
-                        {getName(l1)}
-                      </h4>
-                      <div className="mt-1 flex flex-col gap-1 text-[11px] text-white/75">
-                        <div className="flex items-center gap-x-2 truncate">
-                          {c.l2 > 0 && <span>{c.l2} {lvl("l2")}</span>}
-                          {c.processes > 0 && <span className="font-semibold text-white">· {c.processes} proc.</span>}
-                        </div>
-                        <div className="opacity-75 truncate">
-                           {(() => {
-                              const md = mockArchitectureData.domainsL1.find(d => d.id === l1.id || d.name === getName(l1));
-                              if (!md) return null;
-                              const ind = getBusinessIndicatorsByDomain(mockArchitectureData, md.id)[0];
-                              const sysCount = md.childrenL2.reduce((acc, l2) => acc + l2.childrenL3.reduce((a, l3) => a + l3.childrenL4.reduce((b, l4) => b + l4.processes.reduce((c, p) => c + p.systemsUsed.length, 0), 0), 0), 0);
-                              return `${sysCount} sistemas ${ind ? ` · KPI: ${ind.currentValue}` : ''}`;
-                            })()}
-                        </div>
-                      </div>
-                    </button>
-                    <div
-                      className="absolute top-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      style={{ right: notch + 6 }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {cardActions(l1, true)}
+                      <button className="text-[#A5A7B0] group-hover:text-[#F97316] transition-colors" onClick={() => onSelectL1(l1.id)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                      </button>
+                    </div>
+                    <div className="text-[11px] text-[#A5A7B0] font-medium mb-4 flex items-center gap-1.5 flex-wrap">
+                      <span>{c.l2} N1</span>
+                      <span>·</span>
+                      {(() => {
+                        const md = mockArchitectureData.domainsL1.find(d => d.id === l1.id || d.name === getName(l1));
+                        if (!md) return null;
+                        const ind = getBusinessIndicatorsByDomain(mockArchitectureData, md.id)[0];
+                        const sysCount = md.childrenL2?.reduce((acc, l2) => acc + (l2.childrenL3?.reduce((a, l3) => a + (l3.childrenL4?.reduce((b, l4) => b + (l4.processes?.reduce((c, p) => c + (p.systemsUsed?.length || 0), 0) || 0), 0) || 0), 0) || 0), 0) || 0;
+                        return (
+                          <>
+                            <span>{sysCount} sistemas</span>
+                            {ind && (
+                              <>
+                                <span>·</span>
+                                <span>KPI: {ind.currentValue}</span>
+                              </>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                    <div className="pt-1">
+                      {renderL2List(l1, "column")}
                     </div>
                   </div>
-                  <div
-                    className="pr-3"
-                    style={{ paddingLeft: isFirst ? 4 : notch }}
-                  >
-                    {renderL2List(l1, "column")}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-        ) : (
-          <EmptyState label={language === "PT" ? "Nenhuma atividade primária" : "No primary activities"} />
-        )}
-      </section>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState label={language === "PT" ? "Nenhuma atividade de suporte" : "No support activities"} />
+          )}
+        </section>
+      )}
 
       {/* Modals */}
       <DetailsSidePanel target={detailsTarget} onClose={() => setDetailsTarget(null)} />

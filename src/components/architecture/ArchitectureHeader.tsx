@@ -28,60 +28,46 @@ export function ArchitectureHeader({
   const domainsCount = mockArchitectureData.domainsL1.length;
 
   return (
-    <div className="mb-6 bg-white border border-[#A5A7B0]/20 rounded-md p-5 shadow-sm">
-      {/* Breadcrumb & Top Actions */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-5">
-        <div>
-          {!isClientDemo && (
-            <button
-              onClick={() => navigate("/")}
-              className="flex items-center gap-1.5 text-sm mb-3 transition-colors hover:text-[#0C1BA8] text-[#A5A7B0]"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              {pt ? "Voltar para a tela inicial" : "Back to Home"}
-            </button>
-          )}
-          
-          <h1 className="text-2xl font-bold text-[#272727]">
-            {isClientDemo
-              ? (pt ? "Arquitetura de Processos · Natura" : "Process Architecture · Natura")
-              : (pt ? "Arquitetura de Processos" : "Process Architecture")}
-          </h1>
-          <p className="text-sm text-[#A5A7B0] mt-1">
-            {isClientDemo
-              ? (pt
-                  ? "Mapeamento da cadeia de valor, fluxos de processos operacionais e conexões interfuncionais."
-                  : "Value chain mapping, operational process flows, and cross-functional connections.")
-              : (pt
-                  ? "Mapeie domínios, processos de ponta a ponta e o alinhamento estratégico."
-                  : "Map domains, end-to-end processes, and strategic alignment.")}
-          </p>
+    <div className="mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="h-14 w-14 rounded-xl bg-[#FFF3ED] text-[#F97316] flex items-center justify-center shrink-0">
+            <Layers className="h-7 w-7" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#272727]">
+              {isClientDemo
+                ? (pt ? "Arquitetura de Processos · Natura" : "Process Architecture · Natura")
+                : (pt ? "Arquitetura de Processos" : "Process Architecture")}
+            </h1>
+            <p className="text-sm text-[#A5A7B0] mt-0.5">
+              {isClientDemo
+                ? (pt
+                    ? "Mapeamento da cadeia de valor, fluxos de processos operacionais e conexões interfuncionais."
+                    : "Value chain mapping, operational process flows, and cross-functional connections.")
+                : (pt
+                    ? "Mapeie domínios, processos de ponta a ponta e o alinhamento estratégico."
+                    : "Map domains, end-to-end processes, and strategic alignment.")}
+            </p>
+          </div>
         </div>
 
         {!isClientDemo && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+
             <Button
               variant="outline"
               size="sm"
-              className="rounded-sm border-[#A5A7B0]/40 text-[#272727]"
-              onClick={onImportBpmn}
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              {pt ? "Importar BPMN" : "Import BPMN"}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-sm border-[#A5A7B0]/40 text-[#272727]"
+              className="rounded-md border-[#A5A7B0]/30 text-[#272727] bg-white h-9 px-4 font-medium"
               onClick={onGenerateAI}
             >
-              <Sparkles className="h-4 w-4 mr-2 text-[#0C1BA8]" />
+              <Sparkles className="h-4 w-4 mr-2 text-[#F97316]" />
               {pt ? "Gerar com IA" : "Generate with AI"}
             </Button>
             
             <Button
               size="sm"
-              className="rounded-sm bg-[#0C1BA8] hover:bg-[#04223D] text-white"
+              className="rounded-md bg-[#0F172A] hover:bg-[#1E293B] text-white h-9 px-4 font-medium shadow-sm"
               onClick={onCreate}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -90,7 +76,7 @@ export function ArchitectureHeader({
             <Button
               variant="outline"
               size="sm"
-              className="rounded-sm border-[#A5A7B0]/40 text-[#272727] w-9 px-0"
+              className="rounded-md border-[#A5A7B0]/30 text-[#F97316] bg-white h-9 w-9 px-0 flex items-center justify-center"
               onClick={() => setShowSettings(true)}
               title={pt ? "Configurações" : "Settings"}
             >
@@ -100,27 +86,7 @@ export function ArchitectureHeader({
         )}
       </div>
 
-      {/* Faixa de Indicadores */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-t border-[#A5A7B0]/20 pt-4">
-        <div className="flex items-center gap-1 p-1 bg-[#f3f4f6] rounded-md w-fit">
-          <div className="flex items-center gap-2 px-5 py-2 rounded-md text-sm font-semibold transition-all duration-200 bg-white text-[#0C1BA8] shadow-sm">
-            <Layers className="h-4 w-4" />
-            {pt ? "Cadeia de Valor" : "Value Chain"}
-          </div>
-        </div>
 
-        {/* Indicadores Globais */}
-        <div className="flex items-center gap-6 text-sm">
-          <div className="flex flex-col items-end">
-            <span className="text-[#A5A7B0] text-[11px] font-medium uppercase tracking-wide">
-              {pt ? "Domínios L1" : "L1 Domains"}
-            </span>
-            <span className="text-[#272727] font-bold text-lg leading-tight">
-              {domainsCount}
-            </span>
-          </div>
-        </div>
-      </div>
       <ArchitectureSettingsModal open={showSettings} onOpenChange={setShowSettings} />
     </div>
   );
