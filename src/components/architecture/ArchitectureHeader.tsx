@@ -59,7 +59,7 @@ export function ArchitectureHeader({
               variant="outline"
               size="sm"
               className="rounded-md border-[#A5A7B0]/30 text-[#272727] bg-white h-9 px-4 font-medium"
-              onClick={onGenerateAI}
+              onClick={() => {}}
             >
               <Sparkles className="h-4 w-4 mr-2 text-[#F97316]" />
               {pt ? "Gerar com IA" : "Generate with AI"}

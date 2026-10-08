@@ -461,7 +461,7 @@ export const useValueChainStore = create<ValueChainState>()(
     }),
     {
       name: "value-chain-storage",
-      version: 8,
+      version: 9,
       // Reseed persisted demos when the architecture scenarios change.
       migrate: () =>
         ({ l1Processes: buildAnbimaValueChain(), isFirstAccess: false }) as never,
