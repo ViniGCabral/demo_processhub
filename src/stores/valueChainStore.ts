@@ -106,11 +106,10 @@ interface ValueChainState {
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-import { buildDemoValueChain } from "@/data/canonicalValueChain";
-import { buildNaturaValueChain } from "@/data/naturaValueChain";
+import { buildAnbimaValueChain } from "@/data/anbimaValueChain";
 
-// Mocked demo chain aligned with consistent 3-tier architecture scenarios
-const initialL1Processes: L1Process[] = [...buildDemoValueChain(), ...buildNaturaValueChain()];
+// ANBIMA value chain
+const initialL1Processes: L1Process[] = buildAnbimaValueChain();
 
 export const useValueChainStore = create<ValueChainState>()(
   persist(
@@ -465,7 +464,7 @@ export const useValueChainStore = create<ValueChainState>()(
       version: 8,
       // Reseed persisted demos when the architecture scenarios change.
       migrate: () =>
-        ({ l1Processes: [...buildDemoValueChain(), ...buildNaturaValueChain()], isFirstAccess: false }) as never,
+        ({ l1Processes: buildAnbimaValueChain(), isFirstAccess: false }) as never,
     }
   )
 );

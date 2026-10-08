@@ -27,10 +27,10 @@ export interface TaxonomyLabels {
 }
 
 export const DEFAULT_TAXONOMY_LABELS: TaxonomyLabels = {
-  l1: "N0",
-  l2: "N1",
-  l3: "N2",
-  l4: "N3",
+  l1: "L1",
+  l2: "L2",
+  l3: "L3",
+  l4: "L4",
 };
 
 interface TaxonomyStore {
@@ -48,7 +48,7 @@ export const useTaxonomyStore = create<TaxonomyStore>()(
   persist(
     (set) => ({
       labels: DEFAULT_TAXONOMY_LABELS,
-      maxLevel: 3,
+      maxLevel: 4,
       sidebarVisibility: DEFAULT_SIDEBAR_VISIBILITY,
       setLabel: (level, value) =>
         set((state) => ({ labels: { ...state.labels, [level]: value } })),
@@ -57,14 +57,14 @@ export const useTaxonomyStore = create<TaxonomyStore>()(
         set((state) => ({
           sidebarVisibility: { ...state.sidebarVisibility, [key]: visible },
         })),
-      resetTaxonomy: () => set({ labels: DEFAULT_TAXONOMY_LABELS, maxLevel: 3, sidebarVisibility: DEFAULT_SIDEBAR_VISIBILITY }),
+      resetTaxonomy: () => set({ labels: DEFAULT_TAXONOMY_LABELS, maxLevel: 4, sidebarVisibility: DEFAULT_SIDEBAR_VISIBILITY }),
     }),
     {
       name: "taxonomy-storage",
-      version: 2,
+      version: 3,
       migrate: () => ({
         labels: DEFAULT_TAXONOMY_LABELS,
-        maxLevel: 3,
+        maxLevel: 4,
         sidebarVisibility: DEFAULT_SIDEBAR_VISIBILITY,
       }),
     }

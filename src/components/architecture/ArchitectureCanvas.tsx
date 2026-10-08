@@ -61,6 +61,12 @@ import { cn } from "@/lib/utils";
 import { ScopeContextSheet, BreadcrumbStep, ChildComponentCard } from "./ScopeContextSheet";
 import { OperationalProcessView } from "./OperationalProcessView";
 import { mockArchitectureData } from "@/data/architectureContextMock";
+import { anbimaArchitectureL1 } from "@/data/anbimaValueChain";
+
+const activeArchitectureData = {
+  ...mockArchitectureData,
+  domainsL1: anbimaArchitectureL1
+};
 import { 
   getBusinessIndicatorsByDomain, 
   findDomainNode, 
@@ -112,7 +118,7 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
   const l1 = useMemo(() => {
     if (!l1Id) return null;
     return l1Processes.find((x) => x.id === l1Id) || 
-           mockArchitectureData.domainsL1.find((d) => d.id === l1Id || d.name.toLowerCase() === l1Id.toLowerCase()) || 
+           activeArchitectureData.domainsL1.find((d) => d.id === l1Id || d.name.toLowerCase() === l1Id.toLowerCase()) || 
            null;
   }, [l1Processes, l1Id]);
 
@@ -123,8 +129,8 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
 
   const mockDomain = useMemo(() => {
     if (!l1) return null;
-    return findDomainNode(mockArchitectureData, l1DomainName) || 
-           findDomainNode(mockArchitectureData, l1.id) || 
+    return findDomainNode(activeArchitectureData, l1DomainName) || 
+           findDomainNode(activeArchitectureData, l1.id) || 
            null;
   }, [l1, l1DomainName]);
 
@@ -135,13 +141,13 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
       const found = l1.l2Processes.find((x) => x.id === l2Id);
       if (found) return found;
     }
-    const fromMock = findL2Node(mockArchitectureData, l2Id);
+    const fromMock = findL2Node(activeArchitectureData, l2Id);
     return fromMock?.l2 || null;
   }, [l1, l2Id]);
 
   const mockL2 = useMemo(() => {
     if (!l2Id) return null;
-    const fromMock = findL2Node(mockArchitectureData, l2Id);
+    const fromMock = findL2Node(activeArchitectureData, l2Id);
     return fromMock?.l2 || null;
   }, [l2Id]);
 
@@ -152,13 +158,13 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
       const found = l2.l3Processes.find((x) => x.id === l3Id);
       if (found) return found;
     }
-    const fromMock = findL3Node(mockArchitectureData, l3Id);
+    const fromMock = findL3Node(activeArchitectureData, l3Id);
     return fromMock?.l3 || null;
   }, [l2, l3Id]);
 
   const mockL3 = useMemo(() => {
     if (!l3Id) return null;
-    const fromMock = findL3Node(mockArchitectureData, l3Id);
+    const fromMock = findL3Node(activeArchitectureData, l3Id);
     return fromMock?.l3 || null;
   }, [l3Id]);
 
@@ -169,20 +175,20 @@ export function ArchitectureCanvas({ onGenerateAI }: ArchitectureCanvasProps) {
       const found = l3.l4Tasks.find((x) => x.id === l4Id);
       if (found) return found;
     }
-    const fromMock = findL4Node(mockArchitectureData, l4Id);
+    const fromMock = findL4Node(activeArchitectureData, l4Id);
     return fromMock?.l4 || null;
   }, [l3, l4Id]);
 
   const mockL4 = useMemo(() => {
     if (!l4Id) return null;
-    const fromMock = findL4Node(mockArchitectureData, l4Id);
+    const fromMock = findL4Node(activeArchitectureData, l4Id);
     return fromMock?.l4 || null;
   }, [l4Id]);
 
   // Resolve Operational Process
   const opProcess = useMemo(() => {
     if (!processId) return null;
-    return getOperationalProcessDetails(mockArchitectureData, processId);
+    return getOperationalProcessDetails(activeArchitectureData, processId);
   }, [processId]);
 
   const rootLabel = pt ? "Cadeia de Valor" : "Value Chain";
@@ -1063,9 +1069,9 @@ function L1ValueChainView({
                       <span>{c.processes} proc.</span>
                       <span>·</span>
                       {(() => {
-                        const md = mockArchitectureData.domainsL1.find(d => d.id === l1.id || d.name === getName(l1));
+                        const md = activeArchitectureData.domainsL1.find(d => d.id === l1.id || d.name === getName(l1));
                         if (!md) return null;
-                        const ind = getBusinessIndicatorsByDomain(mockArchitectureData, md.id)[0];
+                        const ind = getBusinessIndicatorsByDomain(activeArchitectureData, md.id)[0];
                         const sysCount = md.childrenL2?.reduce((acc, l2) => acc + (l2.childrenL3?.reduce((a, l3) => a + (l3.childrenL4?.reduce((b, l4) => b + (l4.processes?.reduce((c, p) => c + (p.systemsUsed?.length || 0), 0) || 0), 0) || 0), 0) || 0), 0) || 0;
                         return (
                           <>
@@ -1132,9 +1138,9 @@ function L1ValueChainView({
                       <span>{c.l2} N1</span>
                       <span>·</span>
                       {(() => {
-                        const md = mockArchitectureData.domainsL1.find(d => d.id === l1.id || d.name === getName(l1));
+                        const md = activeArchitectureData.domainsL1.find(d => d.id === l1.id || d.name === getName(l1));
                         if (!md) return null;
-                        const ind = getBusinessIndicatorsByDomain(mockArchitectureData, md.id)[0];
+                        const ind = getBusinessIndicatorsByDomain(activeArchitectureData, md.id)[0];
                         const sysCount = md.childrenL2?.reduce((acc, l2) => acc + (l2.childrenL3?.reduce((a, l3) => a + (l3.childrenL4?.reduce((b, l4) => b + (l4.processes?.reduce((c, p) => c + (p.systemsUsed?.length || 0), 0) || 0), 0) || 0), 0) || 0), 0) || 0;
                         return (
                           <>
@@ -1528,7 +1534,7 @@ function L2DetailView({
   const getL1Name = (x: L1Process) => (language === "PT" ? x.namePT : x.nameEN);
 
   const mockDomain = useMemo(() => {
-    return findDomainNode(mockArchitectureData, getL1Name(currentL1)) || findDomainNode(mockArchitectureData, currentL1.id);
+    return findDomainNode(activeArchitectureData, getL1Name(currentL1)) || findDomainNode(activeArchitectureData, currentL1.id);
   }, [currentL1, language]);
 
   const domainProcs = useMemo(() => {
@@ -1542,10 +1548,10 @@ function L2DetailView({
   const domainDocPercent = domainProcs.length ? Math.round((domainProcs.filter(p => p.documentationStatus === 'approved').length / domainProcs.length) * 100) : 86;
   const domainCtxPercent = domainProcs.length ? Math.round((domainProcs.filter(p => p.contextValidationStatus === 'validated').length / domainProcs.length) * 100) : 72;
   const domainJourneysCount = useMemo(() => {
-    return mockArchitectureData.journeys.filter(j => j.coveredL1.some(d => d.toLowerCase().includes(getL1Name(currentL1).toLowerCase()))).length || 3;
+    return activeArchitectureData.journeys.filter(j => j.coveredL1.some(d => d.toLowerCase().includes(getL1Name(currentL1).toLowerCase()))).length || 3;
   }, [currentL1, language]);
   const domainSystemsCount = useMemo(() => {
-    return getSystemsByDomain(mockArchitectureData, currentL1.id).length || 5;
+    return getSystemsByDomain(activeArchitectureData, currentL1.id).length || 5;
   }, [currentL1]);
   const domainMainKpi = mockDomain?.mainKpi || "92%";
 
