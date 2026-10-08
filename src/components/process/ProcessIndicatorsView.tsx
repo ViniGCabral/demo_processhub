@@ -104,7 +104,7 @@ export function ProcessIndicatorsView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
         <div>
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-[#0C1BA8]" />
+            <BarChart3 className="w-5 h-5 text-[#ea580c]" />
             <h2 className="text-xl font-bold text-[#272727]">
               {pt ? "Indicadores de Desempenho do Processo" : "Process Performance Indicators"}
             </h2>
@@ -121,7 +121,7 @@ export function ProcessIndicatorsView({
             setEditingIndicator(null);
             setCreateModalOpen(true);
           }}
-          className="bg-[#0C1BA8] hover:bg-[#04223D] text-white text-xs h-9 px-3.5 shadow-sm font-semibold flex items-center gap-1.5 shrink-0"
+          className="bg-[#ea580c] hover:bg-[#04223D] text-white text-xs h-9 px-3.5 shadow-sm font-semibold flex items-center gap-1.5 shrink-0"
         >
           <Plus className="w-4 h-4" />
           {pt ? "Adicionar indicador de negócio" : "Add business indicator"}
@@ -215,7 +215,7 @@ export function ProcessIndicatorsView({
               setCreateModalOpen(true);
             }}
             variant="outline"
-            className="mt-2 text-xs text-[#0C1BA8] border-[#0C1BA8]/30 hover:bg-[#0C1BA8]/5 font-semibold"
+            className="mt-2 text-xs text-[#ea580c] border-[#ea580c]/30 hover:bg-[#ea580c]/5 font-semibold"
           >
             <Plus className="h-3.5 w-3.5 mr-1" />
             {pt ? "Cadastrar indicador agora" : "Register indicator now"}

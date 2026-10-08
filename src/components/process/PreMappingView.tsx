@@ -3,7 +3,7 @@ import { Sparkles, Lock, Target, Sparkle, Play, Flag, ArrowRight, ArrowLeft, Wor
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BacklogTag } from "@/components/common/BacklogTag";
 
-const PRIMARY = "#0C1BA8";
+const PRIMARY = "#ea580c";
 
 export interface PreMappingData {
   name: string;

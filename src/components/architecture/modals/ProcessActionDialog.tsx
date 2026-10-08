@@ -48,14 +48,14 @@ export function ProcessActionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-0 overflow-hidden bg-white border border-gray-200 shadow-2xl rounded-xl">
         {/* Header com Identificação do Processo */}
-        <div className="bg-gradient-to-br from-[#0C1BA8]/5 via-white to-gray-50 p-6 border-b border-gray-100">
+        <div className="bg-gradient-to-br from-[#ea580c]/5 via-white to-gray-50 p-6 border-b border-gray-100">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <Badge className="bg-[#0C1BA8] text-white text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded">
+            <Badge className="bg-[#ea580c] text-white text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded">
               L4 · {pt ? "Processo" : "Process"}
             </Badge>
             {process.l1 && (
               <Badge variant="outline" className="border-gray-200 text-gray-700 text-[10px] bg-white">
-                <Building2 className="w-3 h-3 mr-1 text-[#0C1BA8]" />
+                <Building2 className="w-3 h-3 mr-1 text-[#ea580c]" />
                 {process.l1}
               </Badge>
             )}
@@ -92,14 +92,14 @@ export function ProcessActionDialog({
             <div className="mt-3 pt-3 border-t border-gray-200/60 flex items-center gap-4 text-[11px] text-gray-600 flex-wrap">
               {process.owner && (
                 <div className="flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#0C1BA8]" />
+                  <User className="w-3.5 h-3.5 text-[#ea580c]" />
                   <span className="font-medium text-gray-500">{pt ? "Responsável:" : "Owner:"}</span>
                   <span className="font-semibold text-gray-800">{process.owner}</span>
                 </div>
               )}
               {process.systems && process.systems.length > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-[#0C1BA8]" />
+                  <Layers className="w-3.5 h-3.5 text-[#ea580c]" />
                   <span className="font-medium text-gray-500">{pt ? "Sistemas:" : "Systems:"}</span>
                   <span className="font-semibold text-gray-800">{process.systems.join(", ")}</span>
                 </div>
@@ -118,17 +118,17 @@ export function ProcessActionDialog({
           <button
             type="button"
             onClick={() => onViewDetail(process.id)}
-            className="w-full text-left p-3.5 rounded-lg border border-gray-200 hover:border-[#0C1BA8] hover:bg-blue-50/30 transition-all group flex items-start gap-3.5 cursor-pointer"
+            className="w-full text-left p-3.5 rounded-lg border border-gray-200 hover:border-[#ea580c] hover:bg-blue-50/30 transition-all group flex items-start gap-3.5 cursor-pointer"
           >
-            <div className="w-10 h-10 rounded-lg bg-[#0C1BA8]/10 text-[#0C1BA8] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-lg bg-[#ea580c]/10 text-[#ea580c] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <FileText className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-[#272727] group-hover:text-[#0C1BA8] transition-colors">
+                <h4 className="text-sm font-bold text-[#272727] group-hover:text-[#ea580c] transition-colors">
                   {pt ? "Ver detalhamento do processo" : "View process details"}
                 </h4>
-                <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[#0C1BA8] group-hover:translate-x-0.5 transition-all shrink-0" />
+                <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[#ea580c] group-hover:translate-x-0.5 transition-all shrink-0" />
               </div>
               <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
                 {pt
@@ -142,22 +142,22 @@ export function ProcessActionDialog({
           <button
             type="button"
             onClick={() => onViewConnectionMap(process)}
-            className="w-full text-left p-3.5 rounded-lg border-2 border-[#0C1BA8]/30 bg-gradient-to-r from-blue-50/40 to-indigo-50/20 hover:border-[#0C1BA8] hover:bg-blue-50/60 transition-all group flex items-start gap-3.5 cursor-pointer shadow-2xs"
+            className="w-full text-left p-3.5 rounded-lg border-2 border-[#ea580c]/30 bg-gradient-to-r from-blue-50/40 to-indigo-50/20 hover:border-[#ea580c] hover:bg-blue-50/60 transition-all group flex items-start gap-3.5 cursor-pointer shadow-2xs"
           >
-            <div className="w-10 h-10 rounded-lg bg-[#0C1BA8] text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+            <div className="w-10 h-10 rounded-lg bg-[#ea580c] text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
               <GitFork className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-bold text-[#0C1BA8]">
+                  <h4 className="text-sm font-bold text-[#ea580c]">
                     {pt ? "Ver mapa de predecessores e sucessores" : "View predecessor & successor map"}
                   </h4>
-                  <Badge className="bg-[#0C1BA8]/10 text-[#0C1BA8] border-0 text-[9px] font-semibold">
+                  <Badge className="bg-[#ea580c]/10 text-[#ea580c] border-0 text-[9px] font-semibold">
                     {pt ? "Interativo" : "Interactive"}
                   </Badge>
                 </div>
-                <ArrowRight className="w-4 h-4 text-[#0C1BA8] group-hover:translate-x-0.5 transition-all shrink-0" />
+                <ArrowRight className="w-4 h-4 text-[#ea580c] group-hover:translate-x-0.5 transition-all shrink-0" />
               </div>
               <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">
                 {pt

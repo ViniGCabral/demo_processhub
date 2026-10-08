@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, ChevronDown, Upload, Download, Plus, ArrowLeft, Filter, Star, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TopBar } from "@/components/layout/TopBar";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Select,
@@ -252,7 +252,7 @@ export function ProcessList({ onLogout }: ProcessListProps) {
                 width: "8px", 
                 height: "8px", 
                 borderRadius: "50%",
-                backgroundColor: hasDoc ? "#0C1BA8" : "#D1D5DB"
+                backgroundColor: hasDoc ? "#ea580c" : "#D1D5DB"
               }}
             />
             <div 
@@ -341,10 +341,8 @@ export function ProcessList({ onLogout }: ProcessListProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#F9F9F9" }}>
-      <TopBar onLogout={onLogout} />
-
-      <main className="flex-1 px-6 py-8">
+    <AppLayout activeMenu="processos" onLogout={onLogout}>
+      <main className="flex-1 px-6 py-8 w-full">
         <div className="max-w-[1600px] mx-auto">
           {/* Breadcrumb */}
           <button
@@ -375,7 +373,7 @@ export function ProcessList({ onLogout }: ProcessListProps) {
               onClick={() => navigate("/processes/new")}
               className="flex items-center gap-2"
               style={{ 
-                backgroundColor: "#0C1BA8", 
+                backgroundColor: "#ea580c", 
                 color: "white", 
                 borderRadius: "10px",
                 padding: "12px 20px",
@@ -422,14 +420,14 @@ export function ProcessList({ onLogout }: ProcessListProps) {
                 onClick={() => setShowFilters(!showFilters)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all"
                 style={{
-                  color: activeFiltersCount > 0 || showFilters ? "#0C1BA8" : "#6B7280",
+                  color: activeFiltersCount > 0 || showFilters ? "#ea580c" : "#6B7280",
                   backgroundColor: activeFiltersCount > 0 || showFilters ? "#EEF0FF" : "transparent",
-                  border: activeFiltersCount > 0 || showFilters ? "1px solid #0C1BA8" : "1px solid transparent",
+                  border: activeFiltersCount > 0 || showFilters ? "1px solid #ea580c" : "1px solid transparent",
                 }}
                 onMouseEnter={(e) => {
                   if (activeFiltersCount === 0 && !showFilters) {
-                    e.currentTarget.style.borderColor = "#0C1BA8";
-                    e.currentTarget.style.color = "#0C1BA8";
+                    e.currentTarget.style.borderColor = "#ea580c";
+                    e.currentTarget.style.color = "#ea580c";
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -444,7 +442,7 @@ export function ProcessList({ onLogout }: ProcessListProps) {
                 {activeFiltersCount > 0 && (
                   <span 
                     className="ml-1 px-1.5 py-0.5 text-xs font-semibold rounded"
-                    style={{ backgroundColor: "#0C1BA8", color: "white", fontSize: "10px" }}
+                    style={{ backgroundColor: "#ea580c", color: "white", fontSize: "10px" }}
                   >
                     {activeFiltersCount}
                   </span>
@@ -565,16 +563,16 @@ export function ProcessList({ onLogout }: ProcessListProps) {
                     </span>
                     <div 
                       className="flex items-center gap-1.5 px-2 py-1 rounded-md"
-                      style={{ backgroundColor: "#EEF0FF", border: "1px solid #0C1BA8" }}
+                      style={{ backgroundColor: "#EEF0FF", border: "1px solid #ea580c" }}
                     >
-                      <span style={{ fontSize: "13px", color: "#0C1BA8", fontWeight: 500 }}>
+                      <span style={{ fontSize: "13px", color: "#ea580c", fontWeight: 500 }}>
                         {l4Filter || l3Filter}
                       </span>
                       <button
                         onClick={clearL4Filter}
                         className="hover:opacity-70 transition-opacity"
                       >
-                        <X className="h-3.5 w-3.5" style={{ color: "#0C1BA8" }} />
+                        <X className="h-3.5 w-3.5" style={{ color: "#ea580c" }} />
                       </button>
                     </div>
                   </div>
@@ -782,6 +780,6 @@ export function ProcessList({ onLogout }: ProcessListProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AppLayout>
   );
 }

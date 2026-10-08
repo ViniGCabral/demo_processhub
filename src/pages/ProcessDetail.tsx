@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { FileText, GitBranch, ChevronRight, Info, TrendingUp, TrendingDown, Sparkles, Edit2 } from "lucide-react";
-import { TopBar } from "@/components/layout/TopBar";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { ProcessSidebar } from "@/components/layout/ProcessSidebar";
 import { POPEditorView } from "@/components/process/POPEditorView";
 import { BPMNEditor } from "@/components/process/BPMNEditor";
@@ -549,10 +549,8 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <TopBar onLogout={onLogout} />
-
-      <div className="flex-1 flex">
+    <AppLayout activeMenu="processos" onLogout={onLogout}>
+      <div className="flex-1 flex relative">
         <ProcessSidebar
           activeTab={activeTab}
           onTabChange={requestTabChange}
@@ -614,7 +612,7 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AppLayout>
   );
 }
 

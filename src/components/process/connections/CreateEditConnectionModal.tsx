@@ -250,7 +250,7 @@ export function CreateEditConnectionModal({
       <DialogContent className="max-w-lg max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-[#272727] flex items-center gap-2">
-            <Link2 className="w-5 h-5 text-[#0C1BA8]" />
+            <Link2 className="w-5 h-5 text-[#ea580c]" />
             {editingConnection
               ? pt
                 ? "Editar Conexão de Processo"
@@ -273,7 +273,7 @@ export function CreateEditConnectionModal({
                 onClick={() => setDirection("predecessor")}
                 className={`p-2.5 rounded-md border text-left flex items-center gap-2 transition-colors ${
                   direction === "predecessor"
-                    ? "bg-[#0C1BA8]/5 border-[#0C1BA8] text-[#0C1BA8] font-bold"
+                    ? "bg-[#ea580c]/5 border-[#ea580c] text-[#ea580c] font-bold"
                     : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
                 }`}
               >
@@ -293,7 +293,7 @@ export function CreateEditConnectionModal({
                 onClick={() => setDirection("successor")}
                 className={`p-2.5 rounded-md border text-left flex items-center gap-2 transition-colors ${
                   direction === "successor"
-                    ? "bg-[#0C1BA8]/5 border-[#0C1BA8] text-[#0C1BA8] font-bold"
+                    ? "bg-[#ea580c]/5 border-[#ea580c] text-[#ea580c] font-bold"
                     : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
                 }`}
               >
@@ -469,7 +469,7 @@ export function CreateEditConnectionModal({
             <Button
               type="submit"
               size="sm"
-              className="bg-[#0C1BA8] hover:bg-[#04223D] text-white"
+              className="bg-[#ea580c] hover:bg-[#04223D] text-white"
             >
               {editingConnection
                 ? pt

@@ -8,12 +8,14 @@ import { BPMNVersionSidebar } from "./BPMNVersionSidebar";
 import { BPMNPalette } from "./BPMNPalette";
 import { BPMNToolbar } from "./BPMNToolbar";
 import { BPMNCanvas } from "./BPMNCanvas";
+import { BpmnIoViewer } from "./BpmnIoViewer";
 import { BPMNPropertiesPanel } from "./BPMNPropertiesPanel";
-import { BPMNImageViewer } from "./BPMNImageViewer";
+
 import { EditorMode, Version, BPMNElement, BPMNConnection, BPMNElementType, HistoryState } from "./types";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SOPStep } from "@/stores/sopStore";
 import { bpmnDataMap } from "@/data/bpmnData";
+import { cadastroContaBancariaXml } from "@/data/bpmnXmlData";
 
 export interface BPMNEditorProps {
   hasBPMN: boolean;
@@ -25,9 +27,11 @@ export interface BPMNEditorProps {
   onBack?: () => void;
 }
 
-const isSpanLayerDemo = (name?: string) => {
+const isSpanLayerDemo = (name?: string, id?: string) => {
+  if (id === "demo-span-layer" || id === "span-layer" || id === "proc-cadastro-conta-bancaria") return true;
   if (!name) return false;
   const n = name.toLowerCase();
+  if (n.includes("cadastro") && n.includes("conta")) return true;
   return n.includes("span") && n.includes("layer");
 };
 
@@ -115,7 +119,7 @@ export function BPMNEditor({ hasBPMN, hasPOP, isNewlyGenerated = false, popSteps
     { id: "c24", type: "sequence-flow", sourceId: "task-4-3", targetId: "end", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
   ];
 
-  const spanLayerDemo = isSpanLayerDemo(processName);
+  const spanLayerDemo = isSpanLayerDemo(processName, processId);
 
   // Get BPMN data from map if available, otherwise use IT Prepaid as demo default
   // DEMO MODE: For new processes (no explicit data), use IT Prepaid mock data
@@ -374,14 +378,8 @@ export function BPMNEditor({ hasBPMN, hasPOP, isNewlyGenerated = false, popSteps
               canRedo={historyIndex < history.length - 1}
               hasSelection={!!selectedElementId}
             />
-            
-            {/* SVG Viewer for all processes in Viewer Mode - always show the SVG diagram */}
-            {mode === "viewer" ? (
-              <BPMNImageViewer 
-                imageSrc={spanLayerDemo ? "/documents/BPMN_Span_Layer.jpg" : "/documents/BPMN_IT_Prepaid_Amortization_Process.svg"}
-                alt={spanLayerDemo ? "Span & Layer BPMN Diagram" : "IT Prepaid Amortization Process BPMN Diagram"}
-                zoom={zoom}
-              />
+            {spanLayerDemo ? (
+              <BpmnIoViewer xml={cadastroContaBancariaXml} />
             ) : (
               <BPMNCanvas
                 mode={mode}

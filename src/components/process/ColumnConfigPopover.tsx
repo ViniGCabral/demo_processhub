@@ -168,7 +168,7 @@ export function ColumnConfigPopover({ enabledColumns, onApply }: ColumnConfigPop
               <Checkbox
                 checked={tempSelection.includes(colId)}
                 onCheckedChange={() => toggleColumn(colId)}
-                className="border-gray-300 data-[state=checked]:bg-[#0C1BA8] data-[state=checked]:border-[#0C1BA8]"
+                className="border-gray-300 data-[state=checked]:bg-[#ea580c] data-[state=checked]:border-[#ea580c]"
               />
               <span style={{ fontSize: "13px", color: "#272727" }}>
                 {columnLabel(col)}
@@ -186,14 +186,14 @@ export function ColumnConfigPopover({ enabledColumns, onApply }: ColumnConfigPop
         <button
           className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all"
           style={{
-            color: hasCustomColumns ? "#0C1BA8" : "#6B7280",
+            color: hasCustomColumns ? "#ea580c" : "#6B7280",
             backgroundColor: hasCustomColumns ? "#EEF0FF" : "transparent",
-            border: hasCustomColumns ? "1px solid #0C1BA8" : "1px solid transparent",
+            border: hasCustomColumns ? "1px solid #ea580c" : "1px solid transparent",
           }}
           onMouseEnter={(e) => {
             if (!hasCustomColumns) {
-              e.currentTarget.style.borderColor = "#0C1BA8";
-              e.currentTarget.style.color = "#0C1BA8";
+              e.currentTarget.style.borderColor = "#ea580c";
+              e.currentTarget.style.color = "#ea580c";
             }
           }}
           onMouseLeave={(e) => {
@@ -209,7 +209,7 @@ export function ColumnConfigPopover({ enabledColumns, onApply }: ColumnConfigPop
             <span 
               className="ml-1 px-1.5 py-0.5 text-xs font-semibold rounded"
               style={{ 
-                backgroundColor: "#0C1BA8", 
+                backgroundColor: "#ea580c", 
                 color: "white",
                 fontSize: "10px"
               }}
@@ -277,7 +277,7 @@ export function ColumnConfigPopover({ enabledColumns, onApply }: ColumnConfigPop
             onClick={handleApply}
             size="sm"
             style={{ 
-              backgroundColor: "#0C1BA8", 
+              backgroundColor: "#ea580c", 
               color: "white",
               borderRadius: "8px",
               fontSize: "13px"

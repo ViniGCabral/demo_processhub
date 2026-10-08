@@ -201,7 +201,7 @@ export function ProcessConnectionMapModal({
           <DialogHeader className="pb-3 border-b border-gray-100 shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-[#0C1BA8]/10 text-[#0C1BA8] flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-lg bg-[#ea580c]/10 text-[#ea580c] flex items-center justify-center font-bold">
                   <GitFork className="w-5 h-5" />
                 </div>
                 <div>
@@ -259,7 +259,7 @@ export function ProcessConnectionMapModal({
                 <Button
                   size="sm"
                   onClick={() => openNewConnection("predecessor")}
-                  className="bg-[#0C1BA8] hover:bg-[#0C1BA8]/90 text-white text-xs h-8 shrink-0"
+                  className="bg-[#ea580c] hover:bg-[#ea580c]/90 text-white text-xs h-8 shrink-0"
                 >
                   <Plus className="w-3.5 h-3.5 mr-1" />
                   {pt ? "Mapear primeira conexão" : "Add first connection"}
@@ -289,7 +289,7 @@ export function ProcessConnectionMapModal({
                     variant="outline"
                     size="sm"
                     onClick={() => openNewConnection("predecessor")}
-                    className="h-7 text-[11px] px-2 gap-1 border-dashed border-[#0C1BA8]/40 text-[#0C1BA8] hover:bg-[#0C1BA8]/5"
+                    className="h-7 text-[11px] px-2 gap-1 border-dashed border-[#ea580c]/40 text-[#ea580c] hover:bg-[#ea580c]/5"
                   >
                     <Plus className="w-3 h-3" />
                     {pt ? "Conectar" : "Add"}
@@ -311,7 +311,7 @@ export function ProcessConnectionMapModal({
                       variant="ghost"
                       size="sm"
                       onClick={() => openNewConnection("predecessor")}
-                      className="mt-3 text-xs text-[#0C1BA8] h-7 hover:bg-blue-50"
+                      className="mt-3 text-xs text-[#ea580c] h-7 hover:bg-blue-50"
                     >
                       <Plus className="w-3 h-3 mr-1" />
                       {pt ? "Cadastrar Predecessor" : "Add Predecessor"}
@@ -327,7 +327,7 @@ export function ProcessConnectionMapModal({
                       return (
                         <div
                           key={conn.id}
-                          className="bg-white rounded-lg border border-gray-200 p-3 shadow-2xs hover:border-[#0C1BA8]/50 hover:shadow-xs transition-all group"
+                          className="bg-white rounded-lg border border-gray-200 p-3 shadow-2xs hover:border-[#ea580c]/50 hover:shadow-xs transition-all group"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="space-y-1">
@@ -339,7 +339,7 @@ export function ProcessConnectionMapModal({
                                   {conn.sourceDomain || "Gestão Comercial"}
                                 </span>
                               </div>
-                              <h5 className="text-xs font-bold text-[#272727] group-hover:text-[#0C1BA8] transition-colors line-clamp-2">
+                              <h5 className="text-xs font-bold text-[#272727] group-hover:text-[#ea580c] transition-colors line-clamp-2">
                                 {conn.sourceProcessName}
                               </h5>
                             </div>
@@ -388,10 +388,10 @@ export function ProcessConnectionMapModal({
                               <button
                                 type="button"
                                 onClick={() => setSummaryConn(conn)}
-                                className="text-[10px] text-gray-600 hover:text-[#0C1BA8] font-medium px-1.5 py-0.5 rounded hover:bg-gray-100 transition-colors flex items-center gap-1"
+                                className="text-[10px] text-gray-600 hover:text-[#ea580c] font-medium px-1.5 py-0.5 rounded hover:bg-gray-100 transition-colors flex items-center gap-1"
                                 title={pt ? "Ver resumo da conexão" : "View connection summary"}
                               >
-                                <Info className="w-3 h-3 text-[#0C1BA8]" />
+                                <Info className="w-3 h-3 text-[#ea580c]" />
                                 {pt ? "Resumo" : "Summary"}
                               </button>
 
@@ -404,7 +404,7 @@ export function ProcessConnectionMapModal({
                                       conn.sourceProcessName
                                     )
                                   }
-                                  className="text-[10px] text-gray-600 hover:text-[#0C1BA8] font-medium px-1.5 py-0.5 rounded hover:bg-gray-100 transition-colors flex items-center gap-1"
+                                  className="text-[10px] text-gray-600 hover:text-[#ea580c] font-medium px-1.5 py-0.5 rounded hover:bg-gray-100 transition-colors flex items-center gap-1"
                                   title={pt ? "Abrir detalhamento deste processo" : "Open process details"}
                                 >
                                   <ExternalLink className="w-3 h-3 text-gray-400" />
@@ -422,7 +422,7 @@ export function ProcessConnectionMapModal({
                                   conn.sourceDomain
                                 )
                               }
-                              className="text-[10px] text-[#0C1BA8] hover:bg-[#0C1BA8]/10 px-2 py-0.5 rounded font-bold flex items-center gap-1 transition-colors"
+                              className="text-[10px] text-[#ea580c] hover:bg-[#ea580c]/10 px-2 py-0.5 rounded font-bold flex items-center gap-1 transition-colors"
                               title={pt ? "Centralizar o mapa neste processo" : "Center map on this process"}
                             >
                               <GitFork className="w-3 h-3" />
@@ -442,18 +442,18 @@ export function ProcessConnectionMapModal({
                   
                   {/* Badge de Destaque Central */}
                   <div className="mb-2 flex items-center gap-1.5">
-                    <Badge className="bg-[#0C1BA8] text-white text-[10px] font-bold px-2.5 py-0.5 shadow-sm">
+                    <Badge className="bg-[#ea580c] text-white text-[10px] font-bold px-2.5 py-0.5 shadow-sm">
                       ★ {pt ? "Processo Selecionado" : "Selected Process"}
                     </Badge>
-                    <Badge variant="outline" className="text-[9px] font-bold border-[#0C1BA8]/30 text-[#0C1BA8]">
+                    <Badge variant="outline" className="text-[9px] font-bold border-[#ea580c]/30 text-[#ea580c]">
                       L4
                     </Badge>
                   </div>
 
                   {/* Card do Processo Central com Metadados Exigidos */}
-                  <div className="w-full bg-white border-2 border-[#0C1BA8] rounded-xl p-4 shadow-lg text-left space-y-3 relative">
+                  <div className="w-full bg-white border-2 border-[#ea580c] rounded-xl p-4 shadow-lg text-left space-y-3 relative">
                     <div className="space-y-1 text-center">
-                      <span className="text-[10px] font-bold text-[#0C1BA8] uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-[#ea580c] uppercase tracking-wider block">
                         {centralProcessData?.l1 || currentProcess.domain || "Gestão Comercial"}
                       </span>
                       <h3 className="text-sm font-black text-[#272727] leading-snug">
@@ -469,7 +469,7 @@ export function ProcessConnectionMapModal({
                     {/* Metadados: Responsável, Sistemas, Status */}
                     <div className="pt-2.5 border-t border-gray-100 space-y-1.5 text-[11px]">
                       <div className="flex items-center gap-1.5 text-gray-700">
-                        <User className="w-3.5 h-3.5 text-[#0C1BA8] shrink-0" />
+                        <User className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
                         <span className="text-gray-500 font-medium">{pt ? "Responsável:" : "Owner:"}</span>
                         <span className="font-semibold text-gray-900 truncate">
                           {centralProcessData?.executor || centralProcessData?.owner || "Account Executive Sênior"}
@@ -477,7 +477,7 @@ export function ProcessConnectionMapModal({
                       </div>
 
                       <div className="flex items-center gap-1.5 text-gray-700">
-                        <Database className="w-3.5 h-3.5 text-[#0C1BA8] shrink-0" />
+                        <Database className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
                         <span className="text-gray-500 font-medium">{pt ? "Sistemas:" : "Systems:"}</span>
                         <span className="font-semibold text-gray-900 truncate" title={centralProcessData?.systems?.join(", ") || "Planilhas Comerciais / Salesforce"}>
                           {centralProcessData?.systems?.join(" / ") || "Planilhas Comerciais / Salesforce"}
@@ -524,7 +524,7 @@ export function ProcessConnectionMapModal({
                             currentProcess.name
                           )
                         }
-                        className="w-full text-xs h-8 gap-1.5 text-[#0C1BA8] border-[#0C1BA8]/30 hover:bg-[#0C1BA8]/5 font-semibold"
+                        className="w-full text-xs h-8 gap-1.5 text-[#ea580c] border-[#ea580c]/30 hover:bg-[#ea580c]/5 font-semibold"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                         {pt ? "Ver Detalhamento Completo" : "View Full Process"}
@@ -566,7 +566,7 @@ export function ProcessConnectionMapModal({
                     variant="outline"
                     size="sm"
                     onClick={() => openNewConnection("successor")}
-                    className="h-7 text-[11px] px-2 gap-1 border-dashed border-[#0C1BA8]/40 text-[#0C1BA8] hover:bg-[#0C1BA8]/5"
+                    className="h-7 text-[11px] px-2 gap-1 border-dashed border-[#ea580c]/40 text-[#ea580c] hover:bg-[#ea580c]/5"
                   >
                     <Plus className="w-3 h-3" />
                     {pt ? "Conectar" : "Add"}
@@ -588,7 +588,7 @@ export function ProcessConnectionMapModal({
                       variant="ghost"
                       size="sm"
                       onClick={() => openNewConnection("successor")}
-                      className="mt-3 text-xs text-[#0C1BA8] h-7 hover:bg-blue-50"
+                      className="mt-3 text-xs text-[#ea580c] h-7 hover:bg-blue-50"
                     >
                       <Plus className="w-3 h-3 mr-1" />
                       {pt ? "Cadastrar Sucessor" : "Add Successor"}
@@ -606,7 +606,7 @@ export function ProcessConnectionMapModal({
                       return (
                         <div
                           key={conn.id}
-                          className="bg-white rounded-lg border border-gray-200 p-3 shadow-2xs hover:border-[#0C1BA8]/50 hover:shadow-xs transition-all group"
+                          className="bg-white rounded-lg border border-gray-200 p-3 shadow-2xs hover:border-[#ea580c]/50 hover:shadow-xs transition-all group"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="space-y-1">
@@ -618,7 +618,7 @@ export function ProcessConnectionMapModal({
                                   {conn.targetDomain || "Gestão Comercial"}
                                 </span>
                               </div>
-                              <h5 className="text-xs font-bold text-[#272727] group-hover:text-[#0C1BA8] transition-colors line-clamp-2">
+                              <h5 className="text-xs font-bold text-[#272727] group-hover:text-[#ea580c] transition-colors line-clamp-2">
                                 {conn.targetProcessName}
                               </h5>
                             </div>
@@ -664,7 +664,7 @@ export function ProcessConnectionMapModal({
                           {/* Continuidade a jusante (Downstream continuity) */}
                           {downstream.length > 0 && (
                             <div className="mt-2 p-1.5 rounded bg-slate-50 border border-slate-100 text-[10px] text-gray-600">
-                              <span className="font-semibold text-[#0C1BA8] block mb-0.5 flex items-center gap-1">
+                              <span className="font-semibold text-[#ea580c] block mb-0.5 flex items-center gap-1">
                                 <Network className="w-3 h-3" />
                                 {pt ? "Continuidade a jusante:" : "Downstream continuity:"}
                               </span>
@@ -672,7 +672,7 @@ export function ProcessConnectionMapModal({
                                 {downstream.map((step, idx) => (
                                   <span key={idx} className="flex items-center gap-1">
                                     <ChevronRight className="w-2.5 h-2.5 text-gray-400" />
-                                    <span className="text-gray-700 font-medium hover:text-[#0C1BA8] cursor-pointer" onClick={() => handleCenterOnProcess(step, step)}>
+                                    <span className="text-gray-700 font-medium hover:text-[#ea580c] cursor-pointer" onClick={() => handleCenterOnProcess(step, step)}>
                                       {step}
                                     </span>
                                   </span>
@@ -687,10 +687,10 @@ export function ProcessConnectionMapModal({
                               <button
                                 type="button"
                                 onClick={() => setSummaryConn(conn)}
-                                className="text-[10px] text-gray-600 hover:text-[#0C1BA8] font-medium px-1.5 py-0.5 rounded hover:bg-gray-100 transition-colors flex items-center gap-1"
+                                className="text-[10px] text-gray-600 hover:text-[#ea580c] font-medium px-1.5 py-0.5 rounded hover:bg-gray-100 transition-colors flex items-center gap-1"
                                 title={pt ? "Ver resumo da conexão" : "View connection summary"}
                               >
-                                <Info className="w-3 h-3 text-[#0C1BA8]" />
+                                <Info className="w-3 h-3 text-[#ea580c]" />
                                 {pt ? "Resumo" : "Summary"}
                               </button>
 
@@ -703,7 +703,7 @@ export function ProcessConnectionMapModal({
                                       conn.targetProcessName
                                     )
                                   }
-                                  className="text-[10px] text-gray-600 hover:text-[#0C1BA8] font-medium px-1.5 py-0.5 rounded hover:bg-gray-100 transition-colors flex items-center gap-1"
+                                  className="text-[10px] text-gray-600 hover:text-[#ea580c] font-medium px-1.5 py-0.5 rounded hover:bg-gray-100 transition-colors flex items-center gap-1"
                                   title={pt ? "Abrir detalhamento deste processo" : "Open process details"}
                                 >
                                   <ExternalLink className="w-3 h-3 text-gray-400" />
@@ -721,7 +721,7 @@ export function ProcessConnectionMapModal({
                                   conn.targetDomain
                                 )
                               }
-                              className="text-[10px] text-[#0C1BA8] hover:bg-[#0C1BA8]/10 px-2 py-0.5 rounded font-bold flex items-center gap-1 transition-colors"
+                              className="text-[10px] text-[#ea580c] hover:bg-[#ea580c]/10 px-2 py-0.5 rounded font-bold flex items-center gap-1 transition-colors"
                               title={pt ? "Centralizar o mapa neste processo" : "Center map on this process"}
                             >
                               <GitFork className="w-3 h-3" />
@@ -777,7 +777,7 @@ export function ProcessConnectionMapModal({
           <DialogContent className="max-w-md p-5 bg-white rounded-xl">
             <DialogHeader>
               <DialogTitle className="text-sm font-bold text-[#272727] flex items-center gap-2">
-                <Info className="w-4 h-4 text-[#0C1BA8]" />
+                <Info className="w-4 h-4 text-[#ea580c]" />
                 {pt ? "Resumo da Conexão entre Processos" : "Connection Summary"}
               </DialogTitle>
             </DialogHeader>

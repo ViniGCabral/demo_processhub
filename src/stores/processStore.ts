@@ -141,6 +141,30 @@ function processToDb(p: Partial<ProcessData>, userId?: string) {
 type InitialProcessItem = Omit<ProcessData, 'id'> & { id?: string };
 
 const initialProcesses: InitialProcessItem[] = [
+  // ── Processos Novos ──
+  {
+    id: "proc-cadastro-conta-bancaria",
+    area: "FIN",
+    name: "Cadastro de Conta Bancária",
+    description: "Cadastrar a instituição financeira como Banco da Empresa (House Bank) e vínculo com G/L Account.",
+    hasDocumentation: true,
+    isFavorite: true,
+    documentationStatus: 'generated',
+    l1: "Financeiro",
+    l2: "Cadastro de Dados Mestres",
+    l3: "Contas Bancárias",
+    l4: "Criação de Banco",
+    automation: { maturity: 20, risk: 80 },
+    dataIntegrity: { maturity: 40, risk: 60 },
+    governance: { maturity: 30, risk: 70 },
+    executor: "Equipe de Cadastro (Operador SAP)",
+    approver: "Master Data",
+    frequency: "Sob demanda",
+    avgTime: "5 a 10 min",
+    systems: ["SAP (Manage Banks)", "E-mail"],
+    sla: "2 dias",
+    owner: "Equipe de Cadastro",
+  },
   // ── Gestão Comercial — Cadeia de Valor Mockada ──
   {
     id: "proc-requisitos-comerciais",

@@ -45,7 +45,7 @@ function statusOf(score: number): StatusKey {
 const STATUS_META: Record<StatusKey, { color: string; bg: string; labelPT: string; labelEN: string }> = {
   critical: { color: "#DC2626", bg: "#FEE2E2", labelPT: "Crítico", labelEN: "Critical" },
   warning:  { color: "#D97706", bg: "#FEF3C7", labelPT: "Atenção", labelEN: "Warning" },
-  moderate: { color: "#0C1BA8", bg: "#EEF0FF", labelPT: "Moderado", labelEN: "Moderate" },
+  moderate: { color: "#ea580c", bg: "#EEF0FF", labelPT: "Moderado", labelEN: "Moderate" },
   good:     { color: "#15803D", bg: "#DCFCE7", labelPT: "Bom", labelEN: "Good" },
 };
 
@@ -56,7 +56,7 @@ function manualStepsOf(p: ProcessData) {
 }
 
 const C = {
-  primary: "#0C1BA8",
+  primary: "#ea580c",
   primarySoft: "#EEF0FF",
   text: "#272727",
   muted: "#6B7280",
@@ -1820,8 +1820,8 @@ function ProcessDrillDrawer({ process, onClose, language }: { process: ProcessDa
 type DemoUseCase = { id: string; title: string; category: string };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  "Automação": "#0C1BA8",
-  "Automation": "#0C1BA8",
+  "Automação": "#ea580c",
+  "Automation": "#ea580c",
   "Dados": "#0EA5E9",
   "Data": "#0EA5E9",
   "Compliance": "#8B5CF6",

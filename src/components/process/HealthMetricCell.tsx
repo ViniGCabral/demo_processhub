@@ -22,7 +22,7 @@ export function HealthMetricCell({ maturity, risk }: HealthMetricCellProps) {
             style={{ 
               width: `${Math.min(maturity, 100)}%`, 
               height: "100%", 
-              backgroundColor: "#0C1BA8",
+              backgroundColor: "#ea580c",
               borderRadius: "2px"
             }}
           />
@@ -44,7 +44,7 @@ export function HealthMetricCell({ maturity, risk }: HealthMetricCellProps) {
             style={{ 
               width: `${Math.min(risk, 100)}%`, 
               height: "100%", 
-              backgroundColor: "#0C1BA8",
+              backgroundColor: "#ea580c",
               borderRadius: "2px"
             }}
           />

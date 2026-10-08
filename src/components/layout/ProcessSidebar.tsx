@@ -90,7 +90,7 @@ export function ProcessSidebar({
   const navGroups = mode === "to-be" ? (toBeGenerated ? toBeGroups : []) : asIsGroups;
 
   return (
-    <aside className="w-[240px] shrink-0 border-r border-border bg-card flex flex-col fixed h-[calc(100vh-56px)] z-10">
+    <aside className="w-[240px] shrink-0 border-r border-border bg-card flex flex-col fixed top-16 left-[72px] h-[calc(100vh-64px)] z-10">
       <div className="p-4 pt-5">
         {/* Breadcrumb */}
         <button 
@@ -161,7 +161,7 @@ export function ProcessSidebar({
               activeTab === "transform-pipeline" && "ring-2 ring-offset-2 ring-primary/40"
             )}
             style={{
-              background: "linear-gradient(135deg, #0C1BA8 0%, #1E35D4 100%)",
+              background: "linear-gradient(135deg, #ea580c 0%, #c2410c 100%)",
               color: "#fff",
               boxShadow: "0 4px 14px rgba(12,27,168,0.25)",
             }}

@@ -661,8 +661,205 @@ export const sopSpanLayer: SOPData = {
   ],
 };
 
+// Cadastro Conta Bancaria
+export const sopCadastroContaBancaria: SOPData = {
+  id: "proc-cadastro-conta-bancaria",
+  title: "Cadastro de conta bancária",
+  code: "FIN",
+  area: "FIN",
+  objective: "Cadastrar a instituição financeira como Banco da Empresa (House Bank), definir a conta corrente específica com seus dados de agência e moeda (Account ID) e vinculá-la a uma conta do razão contábil (G/L Account).",
+  metadata: {
+    objective: "Cadastrar a instituição financeira como Banco da Empresa (House Bank), definir a conta corrente específica com seus dados de agência e moeda (Account ID) e vinculá-la a uma conta do razão contábil (G/L Account).",
+    sla: "2 dias",
+    frequency: "Sob demanda",
+    estimatedTime: "5 a 10 minutos",
+    raci: {
+      responsible: "Equipe de Cadastro (Operador SAP)",
+      approver: "—",
+      consulted: "Master Data",
+      informed: "Master Data"
+    },
+    systems: ["SAP (Manage Banks)", "E-mail", "Google"],
+    inputsOutputs: {
+      inputs: [
+        { description: "E-mail de solicitação contendo: código do banco (Bank Number), Bank Key, agência (Bank Branch), endereço do banco", source: "Master Data" },
+        { description: "Anexos de e-mail (prints/extrato/cheque)", source: "Master Data" },
+        { description: "Pesquisa pública (Google) para confirmar código/nome do banco", source: "Google" }
+      ],
+      outputs: [
+        { description: "E-mail de resposta com print da tela SAP indicando banco já cadastrado", source: "SAP" },
+        { description: "E-mail de confirmação informando que o banco foi criado", source: "SAP" }
+      ]
+    }
+  },
+  steps: [
+    {
+      id: "1",
+      title: "Receber e conferir a solicitação de cadastro de banco enviada pela área de Master Data",
+      substeps: [
+        { id: "1.1", description: "Receber por e-mail a solicitação de inclusão dos dados bancários enviada pela área de Master Data, que precisa desses dados para pagamento", image: "/images/sop-cadastro/image1.jpg" },
+        { id: "1.2", description: "Conferir no e-mail recebido as informações necessárias para o cadastro do banco", image: "/images/sop-cadastro/image2.jpg" },
+        { id: "1.2.1", description: "Verificar se o e-mail traz o print do comprovante (cheque ou extrato); o anexo não é obrigatório, mas apoia a conferência das informações", image: "/images/sop-cadastro/image3.jpg" },
+        { id: "1.2.2", description: "Conferir se o e-mail contém banco, código do banco, agência e endereço do banco, que são a entrada obrigatória do processo", image: "/images/sop-cadastro/image4.jpg" }
+      ]
+    },
+    {
+      id: "2",
+      title: "Consultar no SAP se o Bank Key solicitado já está cadastrado",
+      substeps: [
+        { id: "2.1", description: "Abrir no SAP a transação Manage Banks", image: "/images/sop-cadastro/image5.jpg" },
+        { id: "2.1.1", description: "Pesquisar no SAP a transação \"Manage Banks\" (nome consultado na cola de transações utilizada pelo executor)" },
+        { id: "2.1.2", description: "Confirmar que o sistema abriu a tela da transação Manage Banks", image: "/images/sop-cadastro/image6.jpg" },
+        { id: "2.2", description: "Pesquisar na transação Manage Banks o Bank Key informado na solicitação", image: "/images/sop-cadastro/image7.jpg" },
+        { id: "2.2.1", description: "Copiar o Bank Key informado no e-mail da área de Master Data" },
+        { id: "2.2.2", description: "Colar o valor no campo Bank Key e acionar \"Go\" para executar a pesquisa", image: "/images/sop-cadastro/image7.jpg" },
+        { id: "2.3", description: "Avaliar o resultado retornado pela pesquisa do Bank Key", image: "/images/sop-cadastro/image8.jpg" },
+        { 
+          id: "2.3.1", 
+          description: "A pesquisa na transação Manage Banks mostra que o Bank Key solicitado já existe no SAP. Gerar o print da tela do SAP com as informações do Bank Key já cadastrado e responder o e-mail da área de Master Data informando que o banco já está cadastrado, anexando o print e informando a quantidade de usuários que já utilizam essa conta.", 
+          isConditional: true, 
+          conditionalText: "Se o Bank Key já está cadastrado",
+          image: "/images/sop-cadastro/image9.jpg"
+        },
+        { 
+          id: "2.3.2", 
+          description: "Criar o cadastro do novo banco na transação Manage Banks.", 
+          isConditional: true, 
+          conditionalText: "Se o Bank Key não for localizado"
+        }
+      ]
+    },
+    {
+      id: "3",
+      title: "Criar o cadastro do novo banco na transação Manage Banks",
+      substeps: [
+        { id: "3.1", description: "Acionar a opção \"Create\" na transação Manage Banks para abrir os campos de cadastro", image: "/images/sop-cadastro/image10.jpg" },
+        { id: "3.1.1", description: "Clicar na opção \"Create\" da tela Manage Banks", image: "/images/sop-cadastro/image11.jpg" },
+        { id: "3.1.2", description: "Confirmar que o sistema abriu as opções/campos de preenchimento do cadastro", image: "/images/sop-cadastro/image12.jpg" },
+        { id: "3.2", description: "Preencher os campos do cadastro conforme os dados solicitados pela área de Master Data", image: "/images/sop-cadastro/image13.jpg" },
+        { id: "3.2.1", description: "Preencher os campos abertos conforme as informações enviadas na solicitação da área de Master Data" },
+        { id: "3.2.2", description: "Abrir o campo Bank Country em \"mais informações\" e selecionar o país Brasil" },
+        { id: "3.2.3", description: "Informar o código do país (BR), dar dois cliques no campo e confirmar que o sistema preenche automaticamente conforme o padrão", image: "/images/sop-cadastro/image14.jpg" }
+      ]
+    },
+    {
+      id: "4",
+      title: "Iniciar a criação do cadastro de banco no SAP quando o banco não existe",
+      substeps: [
+        { id: "4.1", description: "Confirmar que nenhum banco foi localizado na consulta anterior antes de criar um novo cadastro" },
+        { id: "4.2", description: "Acessar a opção \"Create\" e abrir a tela de preenchimento dos dados do banco", image: "/images/sop-cadastro/image15.jpg" },
+        { id: "4.2.1", description: "Clicar na parte \"Create\" da tela para iniciar o novo cadastro de banco" },
+        { id: "4.2.2", description: "Conferir que o sistema abriu os campos de cadastro e preenchê-los conforme os dados solicitados pela área solicitante" }
+      ]
+    },
+    {
+      id: "5",
+      title: "Preencher os dados de identificação do banco (país, chave, nome e agência)",
+      substeps: [
+        { id: "5.1", description: "Preencher o campo \"Bank Country\" com o país do banco" },
+        { id: "5.1.1", description: "Clicar no campo \"Bank Country\" para abrir as informações adicionais de seleção de país", image: "/images/sop-cadastro/image16.jpg" },
+        { id: "5.1.2", description: "Selecionar \"Brasil\" como país do banco, pois as solicitações recebidas são apenas para o Brasil (as demais localidades fazem o próprio cadastro)" },
+        { id: "5.2", description: "Preencher o campo \"Bank Key\" conforme os dados enviados na solicitação", image: "/images/sop-cadastro/image17.jpg" },
+        { id: "5.2.1", description: "Dar dois cliques no campo \"Bank Key\" e conferir que o sistema preenche automaticamente conforme o padrão do SAP" },
+        { id: "5.2.2", description: "Informar no \"Bank Key\" o valor indicado pela área solicitante na solicitação" },
+        { id: "5.2.3", description: "Conferir a composição do \"Bank Key\": início com o número do banco (ex.: 033 para o Santander) e final com a agência", image: "/images/sop-cadastro/image18.jpg" },
+        { id: "5.3", description: "Preencher o campo \"Bank Name\" com o nome real (razão social) do banco" },
+        { id: "5.3.1", description: "Pesquisar o nome real do banco, pois não se usa apenas o nome comercial (ex.: não usar somente \"Santander\")", image: "/images/sop-cadastro/image19.jpg" },
+        { id: "5.3.2", description: "Fazer a pesquisa no Google e localizar a razão social do banco (ex.: \"Banco Santander SA\")", image: "/images/sop-cadastro/image20.jpg" },
+        { id: "5.3.3", description: "Quando a área solicitante enviar print/suporte, adotar o nome exatamente conforme o documento enviado (ex.: cooperativa de crédito)", image: "/images/sop-cadastro/image21.jpg" },
+        { id: "5.3.4", description: "Digitar o nome do banco encontrado no campo \"Bank Name\"" },
+        { id: "5.4", description: "Tratar os campos \"Swift\" e \"Bank Branch\"", image: "/images/sop-cadastro/image22.jpg" },
+        { id: "5.4.1", description: "Deixar o campo \"Swift\" sem preenchimento, pois ele é usado apenas para transferências para bancos no exterior", image: "/images/sop-cadastro/image22.jpg" },
+        { id: "5.4.2", description: "Preencher o campo \"Bank Branch\", que é o campo utilizado neste cadastro" }
+      ]
+    },
+    {
+      id: "6",
+      title: "Preencher a classificação e o código do banco e deixar em branco os campos não obrigatórios",
+      substeps: [
+        { id: "6.1", description: "Preencher o campo \"Bank Category\" sempre com \"Standard Bank\", sem exceção", image: "/images/sop-cadastro/image23.jpg" },
+        { id: "6.2", description: "Deixar o campo \"Bank Group\" sem preenchimento, pois não é necessário", image: "/images/sop-cadastro/image24.jpg" },
+        { id: "6.3", description: "Preencher o campo \"Bank Number\" com o código do banco", image: "/images/sop-cadastro/image25.jpg" },
+        { id: "6.3.1", description: "Pesquisar o código do banco no Google e identificar o número retornado (ex.: Banco Santander = 33)", image: "/images/sop-cadastro/image26.jpg" },
+        { id: "6.3.2", description: "Informar o código no campo \"Bank Number\" (ex.: 033)", image: "/images/sop-cadastro/image27.jpg" },
+        { id: "6.3.3", description: "Conferir que o código foi informado com 3 dígitos, completando com zero quando necessário (ex.: Santander 033; Cresol 133)", image: "/images/sop-cadastro/image25.jpg" },
+        { id: "6.4", description: "Deixar sem preenchimento os campos seguintes que não são necessários", image: "/images/sop-cadastro/image28.jpg" },
+        { id: "6.4.1", description: "Não preencher o campo seguinte ao \"Bank Number\", indicado como não necessário durante a demonstração" },
+        { id: "6.4.2", description: "Não preencher o campo \"Intraday\"" }
+      ]
+    },
+    {
+      id: "7",
+      title: "Tratar o endereço do banco no campo de região",
+      substeps: [
+        { id: "7.1", description: "Verificar se a área solicitante informou o endereço do banco", image: "/images/sop-cadastro/image29.jpg" },
+        { 
+          id: "7.1.1", 
+          description: "Preencher o campo de região com o endereço do banco informado pela área solicitante.", 
+          isConditional: true, 
+          conditionalText: "Se o endereço foi informado"
+        },
+        { 
+          id: "7.1.2", 
+          description: "Deixar o campo de endereço sem preenchimento, pois a informação não é obrigatória para o cadastro. Registrar a informação \"banco cadastrado sem informações de endereço\" no retorno à área solicitante.", 
+          isConditional: true, 
+          conditionalText: "Se o endereço NÃO foi informado"
+        },
+        { id: "7.2", description: "Preencher o campo de região com o endereço do banco informado pela área solicitante" }
+      ]
+    },
+    {
+      id: "8",
+      title: "Cadastrar o banco no SAP com os dados informados na solicitação",
+      substeps: [
+        { id: "8.1", description: "Verificar na solicitação se o endereço do banco foi informado", image: "/images/sop-cadastro/image30.jpg" },
+        { 
+          id: "8.1.1", 
+          description: "Preencher os campos de endereço do banco no SAP com os dados informados.", 
+          isConditional: true, 
+          conditionalText: "Se o endereço foi informado"
+        },
+        { 
+          id: "8.1.2", 
+          description: "Seguir com o cadastro sem preencher os campos de endereço, que permanecem em branco no cadastro e no print. Registrar na resposta à solicitante a observação de que o banco foi cadastrado/criado sem informação de endereço.", 
+          isConditional: true, 
+          conditionalText: "Se o endereço NÃO foi informado"
+        },
+        { id: "8.2", description: "Preencher os campos de endereço do banco no SAP com os dados informados", image: "/images/sop-cadastro/image31.jpg" },
+        { id: "8.2.1", description: "Acessar o campo de informações adicionais e informar a cidade do banco (ex.: São Paulo), mantendo o mesmo padrão de preenchimento já utilizado", image: "/images/sop-cadastro/image32.jpg" },
+        { id: "8.2.2", description: "Informar o estado do banco no campo Região (ex.: São Paulo)", image: "/images/sop-cadastro/image33.jpg" },
+        { id: "8.2.3", description: "Preencher os demais campos de endereço com rua ou avenida, número e bairro (ex.: Avenida 925 Higienópolis)", image: "/images/sop-cadastro/image34.jpg" },
+        { id: "8.3", description: "Preencher os dados bancários do cadastro no SAP", image: "/images/sop-cadastro/image35.jpg" },
+        { id: "8.3.1", description: "Informar no campo Bank Branch o número da agência enviado na solicitação (ex.: agência 1893)" },
+        { id: "8.3.2", description: "Informar no campo Bank Number o código do banco (ex.: Banco do Brasil 001, Santander 33)", image: "/images/sop-cadastro/image36.jpg" },
+        { id: "8.3.3", description: "Informar no campo Bank Key o código do banco somado ao número da conta que será utilizada nos pagamentos", image: "/images/sop-cadastro/image37.jpg" },
+        { id: "8.4", description: "Salvar o cadastro do banco e confirmar o resultado apresentado pelo SAP" },
+        { id: "8.4.1", description: "Concluído todo o preenchimento, salvar o cadastro do banco no SAP", image: "/images/sop-cadastro/image38.jpg" },
+        { 
+          id: "8.4.2", 
+          description: "Verificar se o SAP exibe alerta impedindo o salvamento por já existir cadastro desse banco. Não concluir novo cadastro para o banco; Responder à solicitante que o banco já possui cadastro.", 
+          isConditional: true, 
+          conditionalText: "Se o SAP exibe alerta de banco já existente",
+          image: "/images/sop-cadastro/image39.jpg"
+        },
+        { id: "8.4.3", description: "Com o salvamento bem-sucedido, conferir a tela apresentada pelo sistema com as informações do banco cadastrado", image: "/images/sop-cadastro/image40.jpg" }
+      ]
+    },
+    {
+      id: "9",
+      title: "Responder a solicitante com a evidência do cadastro realizado",
+      substeps: [
+        { id: "9.1", description: "Capturar o print da tela final do cadastro no SAP", image: "/images/sop-cadastro/image41.jpg" },
+        { id: "9.2", description: "Responder o e-mail da solicitante anexando o print e as informações do banco cadastrado" }
+      ]
+    }
+  ]
+};
+
+
 // Map of all SOPs by ID
 export const sopDataMap: Record<string, SOPData> = {
+  "proc-cadastro-conta-bancaria": sopCadastroContaBancaria,
   "1": sopS2P35,
   "2": sopH2R121,
   "7": sopIT01,

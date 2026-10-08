@@ -132,98 +132,477 @@ export const bpmnDataMap: Record<string, BPMNProcessData> = {
 
   // Span & Layer (demo for new "Span & Layer" process)
   "span-layer": {
-    phases: [
-      { id: 1, label: "Analista de People", y: 50, height: 380, color: "#E3F2FD" },
-      { id: 2, label: "Business Partners", y: 430, height: 200, color: "#F3E5F5" },
-      { id: 3, label: "Time de Finanças", y: 630, height: 220, color: "#FFF3E0" },
-    ],
-    elements: [
-      // ===== Lane 1: Analista de People =====
-      { id: "start", type: "start-event", x: 60, y: 222, width: 36, height: 36, label: "Início do ciclo trimestral", fillColor: "#C8E6C9", strokeColor: "#388E3C" },
 
-      { id: "ds-1", type: "data-store", x: 150, y: 110, width: 50, height: 50, label: "Workday" },
-      { id: "task-1", type: "task", x: 130, y: 190, width: 150, height: 80, label: "Extrair relatório Open and Filled Positions Master", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
+  "phases": [
+    {
+      "id": "lane_cadastro",
+      "label": "Equipe de Cadastro (Operador SAP)",
+      "y": 80.0,
+      "height": 720.0,
+      "color": "#E3F2FD"
+    }
+  ],
+  "elements": [
+    {
+      "id": "macro_start",
+      "type": "start-event",
+      "x": 150.0,
+      "y": 182.0,
+      "width": 36.0,
+      "height": 36.0,
+      "label": "Solicita\u00e7\u00e3o de cadastro recebida",
+      "fillColor": "#C8E6C9",
+      "strokeColor": "#388E3C"
+    },
+    {
+      "id": "end_cadastrado",
+      "type": "end-event",
+      "x": 2118.0,
+      "y": 342.0,
+      "width": 36.0,
+      "height": 36.0,
+      "label": "Banco cadastrado e solicitante informada",
+      "fillColor": "#FFCDD2",
+      "strokeColor": "#C62828"
+    },
+    {
+      "id": "end_preexistente",
+      "type": "end-event",
+      "x": 2286.0,
+      "y": 182.0,
+      "width": 36.0,
+      "height": 36.0,
+      "label": "Atendimento encerrado sem novo cadastro",
+      "fillColor": "#FFCDD2",
+      "strokeColor": "#C62828"
+    },
+    {
+      "id": "act_receber",
+      "type": "task",
+      "x": 286.0,
+      "y": 160.0,
+      "width": 100.0,
+      "height": 80.0,
+      "label": "Receber e conferir solicita\u00e7\u00e3o banc\u00e1ria",
+      "fillColor": "#E3F2FD",
+      "strokeColor": "#1976D2"
+    },
+    {
+      "id": "act_consultar",
+      "type": "task",
+      "x": 486.0,
+      "y": 160.0,
+      "width": 100.0,
+      "height": 80.0,
+      "label": "Consultar Bank Key no SAP",
+      "fillColor": "#E3F2FD",
+      "strokeColor": "#1976D2"
+    },
+    {
+      "id": "act_criar",
+      "type": "task",
+      "x": 836.0,
+      "y": 320.0,
+      "width": 100.0,
+      "height": 80.0,
+      "label": "Criar cadastro do banco com dados principais",
+      "fillColor": "#E3F2FD",
+      "strokeColor": "#1976D2"
+    },
+    {
+      "id": "act_endereco",
+      "type": "task",
+      "x": 1336.0,
+      "y": 320.0,
+      "width": 100.0,
+      "height": 80.0,
+      "label": "Preencher endere\u00e7o do banco",
+      "fillColor": "#E3F2FD",
+      "strokeColor": "#1976D2"
+    },
+    {
+      "id": "act_sem_endereco",
+      "type": "task",
+      "x": 1336.0,
+      "y": 640.0,
+      "width": 100.0,
+      "height": 80.0,
+      "label": "Seguir cadastro sem endere\u00e7o",
+      "fillColor": "#E3F2FD",
+      "strokeColor": "#1976D2"
+    },
+    {
+      "id": "act_salvar",
+      "type": "task",
+      "x": 1686.0,
+      "y": 320.0,
+      "width": 100.0,
+      "height": 80.0,
+      "label": "Salvar cadastro do banco",
+      "fillColor": "#E3F2FD",
+      "strokeColor": "#1976D2"
+    },
+    {
+      "id": "act_tratar_alerta",
+      "type": "task",
+      "x": 1886.0,
+      "y": 480.0,
+      "width": 100.0,
+      "height": 80.0,
+      "label": "Tratar alerta de banco j\u00e1 existente",
+      "fillColor": "#E3F2FD",
+      "strokeColor": "#1976D2"
+    },
+    {
+      "id": "act_informar_existente",
+      "type": "task",
+      "x": 2086.0,
+      "y": 160.0,
+      "width": 100.0,
+      "height": 80.0,
+      "label": "Informar banco j\u00e1 cadastrado",
+      "fillColor": "#E3F2FD",
+      "strokeColor": "#1976D2"
+    },
+    {
+      "id": "act_confirmar",
+      "type": "task",
+      "x": 1886.0,
+      "y": 320.0,
+      "width": 100.0,
+      "height": 80.0,
+      "label": "Confirmar cadastro \u00e0 solicitante",
+      "fillColor": "#E3F2FD",
+      "strokeColor": "#1976D2"
+    },
+    {
+      "id": "gw_existe",
+      "type": "gateway-exclusive",
+      "x": 686.0,
+      "y": 175.0,
+      "width": 50.0,
+      "height": 50.0,
+      "label": "O Bank Key solicitado j\u00e1 est\u00e1 cadastrado no SAP?",
+      "fillColor": "#FFF9C4",
+      "strokeColor": "#F57F17"
+    },
+    {
+      "id": "gw_endereco",
+      "type": "gateway-exclusive",
+      "x": 1036.0,
+      "y": 335.0,
+      "width": 50.0,
+      "height": 50.0,
+      "label": "A \u00e1rea solicitante informou o endere\u00e7o do banco?",
+      "fillColor": "#FFF9C4",
+      "strokeColor": "#F57F17"
+    },
+    {
+      "id": "gw_endereco_join",
+      "type": "gateway-exclusive",
+      "x": 1536.0,
+      "y": 335.0,
+      "width": 50.0,
+      "height": 50.0,
+      "label": "",
+      "fillColor": "#FFF9C4",
+      "strokeColor": "#F57F17"
+    },
+    {
+      "id": "gw_endereco3",
+      "type": "gateway-exclusive",
+      "x": 1186.0,
+      "y": 495.0,
+      "width": 50.0,
+      "height": 50.0,
+      "label": "A solicitante informou o endere\u00e7o do banco?",
+      "fillColor": "#FFF9C4",
+      "strokeColor": "#F57F17"
+    },
+    {
+      "id": "bnd_duplicado",
+      "type": "intermediate-event",
+      "x": 1718.0,
+      "y": 382.0,
+      "width": 36.0,
+      "height": 36.0,
+      "label": "Alerta de banco j\u00e1 existente",
+      "fillColor": "#FFECB3",
+      "strokeColor": "#FF8F00"
+    }
+  ],
+  "connections": [
+    {
+      "id": "f_start_receber",
+      "type": "sequence-flow",
+      "sourceId": "macro_start",
+      "targetId": "act_receber",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_receber_consultar",
+      "type": "sequence-flow",
+      "sourceId": "act_receber",
+      "targetId": "act_consultar",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_consultar_gw",
+      "type": "sequence-flow",
+      "sourceId": "act_consultar",
+      "targetId": "gw_existe",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_gw_existente",
+      "type": "sequence-flow",
+      "sourceId": "gw_existe",
+      "targetId": "act_informar_existente",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": "Bank Key j\u00e1 cadastrado"
+    },
+    {
+      "id": "f_gw_novo",
+      "type": "sequence-flow",
+      "sourceId": "gw_existe",
+      "targetId": "act_criar",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": "Bank Key n\u00e3o localizado"
+    },
+    {
+      "id": "f_criar_gwend",
+      "type": "sequence-flow",
+      "sourceId": "act_criar",
+      "targetId": "gw_endereco",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_gwend_sim",
+      "type": "sequence-flow",
+      "sourceId": "gw_endereco",
+      "targetId": "act_endereco",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": "Endere\u00e7o informado"
+    },
+    {
+      "id": "f_gwend_nao",
+      "type": "sequence-flow",
+      "sourceId": "gw_endereco",
+      "targetId": "gw_endereco3",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": "Endere\u00e7o n\u00e3o informado"
+    },
+    {
+      "id": "f_endereco_join",
+      "type": "sequence-flow",
+      "sourceId": "act_endereco",
+      "targetId": "gw_endereco_join",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_semendereco_join",
+      "type": "sequence-flow",
+      "sourceId": "act_sem_endereco",
+      "targetId": "gw_endereco_join",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_join_salvar",
+      "type": "sequence-flow",
+      "sourceId": "gw_endereco_join",
+      "targetId": "act_salvar",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_salvar_confirmar",
+      "type": "sequence-flow",
+      "sourceId": "act_salvar",
+      "targetId": "act_confirmar",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_confirmar_end",
+      "type": "sequence-flow",
+      "sourceId": "act_confirmar",
+      "targetId": "end_cadastrado",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_bnd_tratar",
+      "type": "sequence-flow",
+      "sourceId": "bnd_duplicado",
+      "targetId": "act_tratar_alerta",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_tratar_informar",
+      "type": "sequence-flow",
+      "sourceId": "act_tratar_alerta",
+      "targetId": "act_informar_existente",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_informar_end",
+      "type": "sequence-flow",
+      "sourceId": "act_informar_existente",
+      "targetId": "end_preexistente",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": ""
+    },
+    {
+      "id": "f_gwend3_sim",
+      "type": "sequence-flow",
+      "sourceId": "gw_endereco3",
+      "targetId": "act_endereco",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": "Endere\u00e7o informado"
+    },
+    {
+      "id": "f_gwend3_nao",
+      "type": "sequence-flow",
+      "sourceId": "gw_endereco3",
+      "targetId": "act_sem_endereco",
+      "sourcePoint": {
+        "x": 0,
+        "y": 0
+      },
+      "targetPoint": {
+        "x": 0,
+        "y": 0
+      },
+      "label": "Endere\u00e7o n\u00e3o informado"
+    }
+  ]
 
-      { id: "ds-2", type: "data-store", x: 320, y: 110, width: 50, height: 50, label: "Workday" },
-      { id: "task-2", type: "task", x: 300, y: 190, width: 150, height: 80, label: "Extrair relatório Supervisory Organization", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "ds-3", type: "data-store", x: 490, y: 110, width: 50, height: 50, label: "Workday" },
-      { id: "task-3", type: "task", x: 470, y: 190, width: 150, height: 80, label: "Exportar relatórios do Workday em formato Excel", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "ds-4", type: "data-store", x: 660, y: 110, width: 50, height: 50, label: "Google Drive" },
-      { id: "task-4", type: "task", x: 640, y: 190, width: 150, height: 80, label: "Mover arquivos para Google Drive e abrir no Sheets", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "ds-5", type: "data-store", x: 830, y: 110, width: 50, height: 50, label: "Google Sheets" },
-      { id: "task-5", type: "task", x: 810, y: 190, width: 150, height: 80, label: "Calcular níveis hierárquicos a partir do Supervisory Org.", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "ds-6", type: "data-store", x: 1000, y: 110, width: 50, height: 50, label: "Google Sheets" },
-      { id: "task-6", type: "task", x: 980, y: 190, width: 150, height: 80, label: "Calcular span por gestor contando reportes diretos", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "gw-incons", type: "gateway-exclusive", x: 1160, y: 218, width: 44, height: 44, label: "Inconsistência identificada?", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-      { id: "gw-merge-1", type: "gateway-exclusive", x: 1260, y: 218, width: 44, height: 44, label: "", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-      { id: "gw-custos", type: "gateway-exclusive", x: 1340, y: 218, width: 44, height: 44, label: "Custos disponíveis?", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "ds-7", type: "data-store", x: 1480, y: 110, width: 50, height: 50, label: "Google Sheets" },
-      { id: "task-7", type: "task", x: 1460, y: 190, width: 150, height: 80, label: "Criar tabelas dinâmicas e gráficos no Google Sheets", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "ds-8", type: "data-store", x: 1650, y: 110, width: 50, height: 50, label: "Google Sheets" },
-      { id: "task-8", type: "task", x: 1630, y: 190, width: 150, height: 80, label: "Inserir gráficos na apresentação para reuniões", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "ds-9", type: "data-store", x: 1820, y: 110, width: 50, height: 50, label: "Google Sheets" },
-      { id: "task-9", type: "task", x: 1800, y: 190, width: 150, height: 80, label: "Abrir dados por vice-presidência e área", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "ds-10", type: "data-store", x: 1990, y: 110, width: 50, height: 50, label: "Google Sheets" },
-      { id: "task-10", type: "task", x: 1970, y: 190, width: 150, height: 80, label: "Mapear bandas de compensação e construir pirâmide", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "ds-11", type: "data-store", x: 2160, y: 110, width: 50, height: 50, label: "Google Sheets" },
-      { id: "task-11", type: "task", x: 2140, y: 190, width: 150, height: 80, label: "Classificar por públicos manualmente", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-
-      { id: "end", type: "end-event", x: 2320, y: 222, width: 36, height: 36, label: "Fim do processo", fillColor: "#FFCDD2", strokeColor: "#C62828" },
-
-      // ===== Lane 2: Business Partners =====
-      { id: "task-bp-1", type: "task", x: 1100, y: 490, width: 150, height: 70, label: "Validar estrutura correta com Business Partner", fillColor: "#E1BEE7", strokeColor: "#7B1FA2" },
-      { id: "ds-bp", type: "data-store", x: 1300, y: 460, width: 50, height: 50, label: "Google Sheets" },
-      { id: "task-bp-2", type: "task", x: 1280, y: 530, width: 150, height: 70, label: "Realizar ajustes manuais na base conforme retorno", fillColor: "#E1BEE7", strokeColor: "#7B1FA2" },
-
-      // ===== Lane 3: Time de Finanças =====
-      { id: "task-fin-1", type: "task", x: 1320, y: 700, width: 150, height: 70, label: "Aplicar custos médios por banda e país", fillColor: "#FFE0B2", strokeColor: "#EF6C00" },
-      { id: "ds-fin-1", type: "data-store", x: 1380, y: 790, width: 50, height: 50, label: "Excel" },
-      { id: "gw-fin", type: "gateway-exclusive", x: 1500, y: 718, width: 44, height: 44, label: "", fillColor: "#FFF9C4", strokeColor: "#F57F17" },
-      { id: "task-fin-2", type: "task", x: 1570, y: 700, width: 150, height: 70, label: "Incorporar custos reais das pessoas no baseline", fillColor: "#FFE0B2", strokeColor: "#EF6C00" },
-      { id: "ds-fin-2", type: "data-store", x: 1630, y: 790, width: 50, height: 50, label: "Excel" },
-    ],
-    connections: [
-      // Lane 1 main flow
-      { id: "sl1", type: "sequence-flow", sourceId: "start", targetId: "task-1", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl2", type: "sequence-flow", sourceId: "task-1", targetId: "task-2", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl3", type: "sequence-flow", sourceId: "task-2", targetId: "task-3", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl4", type: "sequence-flow", sourceId: "task-3", targetId: "task-4", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl5", type: "sequence-flow", sourceId: "task-4", targetId: "task-5", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl6", type: "sequence-flow", sourceId: "task-5", targetId: "task-6", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl7", type: "sequence-flow", sourceId: "task-6", targetId: "gw-incons", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-
-      // Inconsistência? No -> merge | Sim -> BP lane
-      { id: "sl8", type: "sequence-flow", sourceId: "gw-incons", targetId: "gw-merge-1", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 }, label: "Não" },
-      { id: "sl9", type: "sequence-flow", sourceId: "gw-incons", targetId: "task-bp-1", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 }, label: "Sim" },
-      { id: "sl10", type: "sequence-flow", sourceId: "task-bp-1", targetId: "task-bp-2", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl11", type: "sequence-flow", sourceId: "task-bp-2", targetId: "gw-merge-1", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-
-      // Merge -> Custos disponíveis?
-      { id: "sl12", type: "sequence-flow", sourceId: "gw-merge-1", targetId: "gw-custos", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-
-      // Custos? Sim -> task-7 | Não -> finanças
-      { id: "sl13", type: "sequence-flow", sourceId: "gw-custos", targetId: "task-7", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 }, label: "Sim" },
-      { id: "sl14", type: "sequence-flow", sourceId: "gw-custos", targetId: "task-fin-1", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 }, label: "Não" },
-      { id: "sl15", type: "sequence-flow", sourceId: "task-fin-1", targetId: "gw-fin", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl16", type: "sequence-flow", sourceId: "gw-fin", targetId: "task-fin-2", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl17", type: "sequence-flow", sourceId: "task-fin-2", targetId: "task-7", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-
-      // Tail
-      { id: "sl18", type: "sequence-flow", sourceId: "task-7", targetId: "task-8", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl19", type: "sequence-flow", sourceId: "task-8", targetId: "task-9", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl20", type: "sequence-flow", sourceId: "task-9", targetId: "task-10", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl21", type: "sequence-flow", sourceId: "task-10", targetId: "task-11", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-      { id: "sl22", type: "sequence-flow", sourceId: "task-11", targetId: "end", sourcePoint: { x: 0, y: 0 }, targetPoint: { x: 0, y: 0 } },
-    ],
   },
 };

@@ -46,7 +46,7 @@ export function ProcessDetailModal({ open, onOpenChange, process }: ProcessDetai
         <SheetHeader className="p-6 border-b border-[#A5A7B0]/20 bg-gray-50/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-sm bg-[#c9dcf2] text-[#0C1BA8] uppercase tracking-wide">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-sm bg-[#c9dcf2] text-[#ea580c] uppercase tracking-wide">
                 {process.area}
               </span>
               <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-sm border uppercase tracking-wide", 
@@ -60,7 +60,7 @@ export function ProcessDetailModal({ open, onOpenChange, process }: ProcessDetai
               variant="outline"
               size="sm"
               onClick={() => setIsConnMapOpen(true)}
-              className="text-xs h-7 gap-1.5 border-[#0C1BA8]/30 text-[#0C1BA8] hover:bg-[#0C1BA8]/5 font-semibold"
+              className="text-xs h-7 gap-1.5 border-[#ea580c]/30 text-[#ea580c] hover:bg-[#ea580c]/5 font-semibold"
             >
               <GitFork className="w-3.5 h-3.5" />
               {pt ? "Mapa de Conexões" : "Connection Map"}
@@ -92,19 +92,19 @@ export function ProcessDetailModal({ open, onOpenChange, process }: ProcessDetai
         <div className="p-6 flex-1 bg-white">
           <Tabs defaultValue="context" className="w-full h-full flex flex-col">
             <TabsList className="bg-transparent border-b border-[#A5A7B0]/20 w-full justify-start rounded-none p-0 h-auto space-x-6">
-              <TabsTrigger value="context" className="data-[state=active]:border-b-2 data-[state=active]:border-[#0C1BA8] data-[state=active]:shadow-none rounded-none bg-transparent px-2 py-3 text-sm font-semibold text-[#6B7280] data-[state=active]:text-[#0C1BA8] flex items-center gap-2">
+              <TabsTrigger value="context" className="data-[state=active]:border-b-2 data-[state=active]:border-[#ea580c] data-[state=active]:shadow-none rounded-none bg-transparent px-2 py-3 text-sm font-semibold text-[#6B7280] data-[state=active]:text-[#ea580c] flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4" />
                 {pt ? "Saúde do Contexto" : "Context Health"}
               </TabsTrigger>
-              <TabsTrigger value="business" className="data-[state=active]:border-b-2 data-[state=active]:border-[#0C1BA8] data-[state=active]:shadow-none rounded-none bg-transparent px-2 py-3 text-sm font-semibold text-[#6B7280] data-[state=active]:text-[#0C1BA8] flex items-center gap-2">
+              <TabsTrigger value="business" className="data-[state=active]:border-b-2 data-[state=active]:border-[#ea580c] data-[state=active]:shadow-none rounded-none bg-transparent px-2 py-3 text-sm font-semibold text-[#6B7280] data-[state=active]:text-[#ea580c] flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
                 {pt ? "Desempenho do Negócio" : "Business Performance"}
               </TabsTrigger>
-              <TabsTrigger value="connections" className="data-[state=active]:border-b-2 data-[state=active]:border-[#0C1BA8] data-[state=active]:shadow-none rounded-none bg-transparent px-2 py-3 text-sm font-semibold text-[#6B7280] data-[state=active]:text-[#0C1BA8] flex items-center gap-2">
+              <TabsTrigger value="connections" className="data-[state=active]:border-b-2 data-[state=active]:border-[#ea580c] data-[state=active]:shadow-none rounded-none bg-transparent px-2 py-3 text-sm font-semibold text-[#6B7280] data-[state=active]:text-[#ea580c] flex items-center gap-2">
                 <GitFork className="h-4 w-4" />
                 {pt ? "Conexões Locais" : "Connections"} ({predecessors.length + successors.length})
               </TabsTrigger>
-              <TabsTrigger value="journeys" className="data-[state=active]:border-b-2 data-[state=active]:border-[#0C1BA8] data-[state=active]:shadow-none rounded-none bg-transparent px-2 py-3 text-sm font-semibold text-[#6B7280] data-[state=active]:text-[#0C1BA8] flex items-center gap-2">
+              <TabsTrigger value="journeys" className="data-[state=active]:border-b-2 data-[state=active]:border-[#ea580c] data-[state=active]:shadow-none rounded-none bg-transparent px-2 py-3 text-sm font-semibold text-[#6B7280] data-[state=active]:text-[#ea580c] flex items-center gap-2">
                 <GitBranch className="h-4 w-4" />
                 {pt ? "Participação em Jornadas" : "Journey Participation"}
               </TabsTrigger>
@@ -183,7 +183,7 @@ export function ProcessDetailModal({ open, onOpenChange, process }: ProcessDetai
                     onClick={() => {
                       setIsConnMapOpen(true);
                     }}
-                    className="h-7 text-xs gap-1 border-[#0C1BA8]/30 text-[#0C1BA8] hover:bg-[#0C1BA8]/5 font-semibold"
+                    className="h-7 text-xs gap-1 border-[#ea580c]/30 text-[#ea580c] hover:bg-[#ea580c]/5 font-semibold"
                   >
                     <GitFork className="w-3.5 h-3.5" />
                     {pt ? "Abrir Mapa de Conexões" : "Open Connection Map"}
@@ -195,7 +195,7 @@ export function ProcessDetailModal({ open, onOpenChange, process }: ProcessDetai
                       setConnDirection("predecessor");
                       setIsNewConnOpen(true);
                     }}
-                    className="h-7 text-xs gap-1 bg-[#0C1BA8] text-white hover:bg-[#04223D]"
+                    className="h-7 text-xs gap-1 bg-[#ea580c] text-white hover:bg-[#04223D]"
                   >
                     <Plus className="w-3 h-3" />
                     {pt ? "Nova Conexão" : "New"}
@@ -224,7 +224,7 @@ export function ProcessDetailModal({ open, onOpenChange, process }: ProcessDetai
                         return (
                           <div key={c.id} className="p-2.5 rounded border border-gray-100 bg-gray-50/60 space-y-1">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-[#0C1BA8] uppercase">
+                              <span className="text-[10px] font-semibold text-[#ea580c] uppercase">
                                 {c.sourceDomain}
                               </span>
                               <span
@@ -275,7 +275,7 @@ export function ProcessDetailModal({ open, onOpenChange, process }: ProcessDetai
                         return (
                           <div key={c.id} className="p-2.5 rounded border border-gray-100 bg-gray-50/60 space-y-1">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-[#0C1BA8] uppercase">
+                              <span className="text-[10px] font-semibold text-[#ea580c] uppercase">
                                 {c.targetDomain}
                               </span>
                               <span
@@ -331,7 +331,7 @@ export function ProcessDetailModal({ open, onOpenChange, process }: ProcessDetai
                       <div key={j.id} className="bg-white border border-[#A5A7B0]/30 p-5 rounded-md shadow-sm">
                         <div className="flex justify-between items-start mb-4">
                           <div>
-                            <h4 className="font-bold text-[#0C1BA8]">{j.name}</h4>
+                            <h4 className="font-bold text-[#ea580c]">{j.name}</h4>
                             <p className="text-xs text-[#6B7280] mt-1">{j.objective}</p>
                           </div>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-sm bg-blue-50 text-blue-800 uppercase border border-blue-100">
@@ -358,8 +358,8 @@ export function ProcessDetailModal({ open, onOpenChange, process }: ProcessDetai
 
                           {/* Atual */}
                           <div className="flex-1 text-center">
-                            <span className="block text-[10px] font-bold text-[#0C1BA8] uppercase mb-2">{pt ? "Neste Processo" : "In this Process"}</span>
-                            <div className="text-xs font-bold text-white bg-[#0C1BA8] border border-[#0C1BA8] p-2 rounded-sm truncate shadow-md" title={currentStep?.stepName}>
+                            <span className="block text-[10px] font-bold text-[#ea580c] uppercase mb-2">{pt ? "Neste Processo" : "In this Process"}</span>
+                            <div className="text-xs font-bold text-white bg-[#ea580c] border border-[#ea580c] p-2 rounded-sm truncate shadow-md" title={currentStep?.stepName}>
                               {currentStep?.stepName || process.name}
                             </div>
                           </div>

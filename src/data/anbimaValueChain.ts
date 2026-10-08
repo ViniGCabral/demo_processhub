@@ -9014,7 +9014,7 @@ export const anbimaArchitectureL1: ArchNodeL1[] = [
   },
   {
     "id": "anb-l1-m2c",
-    "name": "Associado a Caixa",
+    "name": "Associados e profissionais certificados",
     "code": "M2C",
     "domain": "Processo Finalístico",
     "category": "PRIMARY",
@@ -9124,7 +9124,7 @@ export const anbimaArchitectureL1: ArchNodeL1[] = [
     "childrenL2": [
       {
         "id": "anb-l2-m2c-1",
-        "name": "Engajar Associados e Mercado",
+        "name": "Engajar Associados e Profissionais certificados",
         "code": "M2C.1",
         "description": "Engajar associados e mercado via marca, comunicação, eventos e proposta de valor.",
         "objective": "Engajar associados e mercado via marca, comunicação, eventos e proposta de valor.",
@@ -9517,7 +9517,7 @@ export const anbimaArchitectureL1: ArchNodeL1[] = [
       },
       {
         "id": "anb-l2-m2c-2",
-        "name": "Atender e Relacionar",
+        "name": "Atender e relacionar",
         "code": "M2C.2",
         "description": "Atender e relacionar-se com associados e mercado.",
         "objective": "Atender e relacionar-se com associados e mercado.",
@@ -9940,7 +9940,7 @@ export const anbimaArchitectureL1: ArchNodeL1[] = [
       },
       {
         "id": "anb-l2-m2c-4",
-        "name": "Apurar e Faturar Receitas",
+        "name": "Apurar e faturar receitas",
         "code": "M2C.4",
         "description": "Apurar e faturar contribuições, taxas, produtos e serviços.",
         "objective": "Apurar e faturar contribuições, taxas, produtos e serviços.",
@@ -10424,7 +10424,7 @@ export const anbimaArchitectureL1: ArchNodeL1[] = [
       },
       {
         "id": "anb-l2-m2c-5",
-        "name": "Receber e Cobrar",
+        "name": "Receber e cobrar",
         "code": "M2C.5",
         "description": "Receber, conciliar e cobrar.",
         "objective": "Receber, conciliar e cobrar.",
@@ -17270,8 +17270,8 @@ export function buildAnbimaValueChain(): L1Process[] {
     },
     {
       "id": "anb-l1-m2c",
-      "name": "Associado a Caixa",
-      "namePT": "Associado a Caixa",
+      "name": "Associados e profissionais certificados",
+      "namePT": "Associados e profissionais certificados",
       "nameEN": "Member-to-Cash",
       "code": "M2C",
       "category": "PRIMARY",
@@ -17281,7 +17281,7 @@ export function buildAnbimaValueChain(): L1Process[] {
       "l2Processes": [
         {
           "id": "anb-l2-m2c-1",
-          "name": "Engajar Associados e Mercado",
+          "name": "Engajar Associados e Profissionais certificados",
           "code": "M2C.1",
           "description": "Engajar associados e mercado via marca, comunicação, eventos e proposta de valor.",
           "responsible": "Comunicação & Marketing, Tecnologia, Infraestrutura, Cyper e SI",
@@ -17374,7 +17374,7 @@ export function buildAnbimaValueChain(): L1Process[] {
         },
         {
           "id": "anb-l2-m2c-2",
-          "name": "Atender e Relacionar",
+          "name": "Atender e relacionar",
           "code": "M2C.2",
           "description": "Atender e relacionar-se com associados e mercado.",
           "responsible": "Relacionamento, Finanças, Atendimento, Gestão de Contratos",
@@ -17472,7 +17472,7 @@ export function buildAnbimaValueChain(): L1Process[] {
         },
         {
           "id": "anb-l2-m2c-4",
-          "name": "Apurar e Faturar Receitas",
+          "name": "Apurar e faturar receitas",
           "code": "M2C.4",
           "description": "Apurar e faturar contribuições, taxas, produtos e serviços.",
           "responsible": "Supervisão de Mercados, Tecnologia, Finanças, Gente Saúde e D&I, Business Analytics, Soluções Corporativas",
@@ -17609,7 +17609,7 @@ export function buildAnbimaValueChain(): L1Process[] {
         },
         {
           "id": "anb-l2-m2c-5",
-          "name": "Receber e Cobrar",
+          "name": "Receber e cobrar",
           "code": "M2C.5",
           "description": "Receber, conciliar e cobrar.",
           "responsible": "Finanças, Contas a Receber",

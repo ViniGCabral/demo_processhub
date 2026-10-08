@@ -1,0 +1,440 @@
+export const cadastroContaBancariaXml = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="macro_process_definitions" targetNamespace="https://contextus.app/bpmn" exporter="Contextus ProcessIR compiler" exporterVersion="1.0.0">
+  <bpmn:process id="macro_process" name="Cadastro de conta bancária" isExecutable="false">
+    <bpmn:laneSet id="macro_process_lane_set">
+      <bpmn:lane id="lane_cadastro" name="Equipe de Cadastro (Operador SAP)">
+        <bpmn:flowNodeRef>macro_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>act_receber</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>act_consultar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>gw_existe</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>act_criar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>gw_endereco</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>act_endereco</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>act_sem_endereco</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>gw_endereco_join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>act_salvar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bnd_duplicado</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>act_tratar_alerta</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>act_informar_existente</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>act_confirmar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end_cadastrado</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end_preexistente</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>gw_endereco3</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="macro_start" name="Solicitação de cadastro recebida">
+      <bpmn:documentation>Início sob demanda a partir de e-mail da área de Master Data.</bpmn:documentation>
+      <bpmn:outgoing>f_start_receber</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="act_receber" name="Receber e conferir solicitação bancária">
+      <bpmn:documentation>ACT-001, ACT-002, ACT-003, ACT-049, ACT-052, ACT-053, ACT-054. Solicitação recebida por e-mail no modelo padrão com tabela de informações; conferência de banco, código do banco, agência e endereço; print de cheque ou extrato quando anexado apoia a conferência (opcional). CTRL-001: o e-mail deve conter banco, código do banco, agência e endereço do banco para que o cadastro possa ser executado.
+System: E-mail</bpmn:documentation>
+      <bpmn:incoming>f_start_receber</bpmn:incoming>
+      <bpmn:outgoing>f_receber_consultar</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="act_consultar" name="Consultar Bank Key no SAP">
+      <bpmn:documentation>ACT-004, ACT-005, ACT-006, ACT-007, ACT-008, ACT-055. Acessar a transação Manage Banks, colar o Bank Key informado no e-mail, acionar Go e avaliar o resultado retornado.
+System: SAP (transação Manage Banks)</bpmn:documentation>
+      <bpmn:incoming>f_receber_consultar</bpmn:incoming>
+      <bpmn:outgoing>f_consultar_gw</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="gw_existe" name="O Bank Key solicitado já está cadastrado no SAP?" gatewayDirection="Diverging">
+      <bpmn:documentation>DEC-001.</bpmn:documentation>
+      <bpmn:incoming>f_consultar_gw</bpmn:incoming>
+      <bpmn:outgoing>f_gw_existente</bpmn:outgoing>
+      <bpmn:outgoing>f_gw_novo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="act_criar" name="Criar cadastro do banco com dados principais">
+      <bpmn:documentation>ACT-009, ACT-010, ACT-011, ACT-012, ACT-013, ACT-014, ACT-015, ACT-016, ACT-017, ACT-018, ACT-019, ACT-020, ACT-021, ACT-022, ACT-023, ACT-024, ACT-025, ACT-026, ACT-027, ACT-028, ACT-029, ACT-030, ACT-031, ACT-032, ACT-033, ACT-034, ACT-035, ACT-037, ACT-041, ACT-042, ACT-043, ACT-056. Iniciar em Create: país Brasil, Bank Key (código do banco + agência/conta), nome real do banco obtido em pesquisa pública no Google ou conforme documento enviado, Bank Branch com a agência, Bank Category sempre Standard Bank e Bank Number com três dígitos; Swift, Bank Group e Intraday em branco. Ao final verifica-se na solicitação se o endereço do banco foi informado. CTRL-002: preencher estritamente conforme os dados enviados pela área solicitante.
+System: SAP (transação Manage Banks)</bpmn:documentation>
+      <bpmn:incoming>f_gw_novo</bpmn:incoming>
+      <bpmn:outgoing>f_criar_gwend</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="gw_endereco" name="A área solicitante informou o endereço do banco?" gatewayDirection="Diverging">
+      <bpmn:documentation>DEC-002 (verificação do endereço no passo 7-1).</bpmn:documentation>
+      <bpmn:incoming>f_criar_gwend</bpmn:incoming>
+      <bpmn:outgoing>f_gwend_sim</bpmn:outgoing>
+      <bpmn:outgoing>f_gwend_nao</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="act_endereco" name="Preencher endereço do banco">
+      <bpmn:documentation>ACT-036, ACT-038, ACT-039, ACT-040. Registrar cidade, estado no campo Região e rua/avenida, número e bairro. CTRL-003: encaixar rua/avenida, número e bairro no limite de 35 caracteres do campo.
+System: SAP (transação Manage Banks)</bpmn:documentation>
+      <bpmn:incoming>f_gwend_sim</bpmn:incoming>
+      <bpmn:incoming>f_gwend3_sim</bpmn:incoming>
+      <bpmn:outgoing>f_endereco_join</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="act_sem_endereco" name="Seguir cadastro sem endereço">
+      <bpmn:documentation>ACT-061, ACT-062, ACT-063, ACT-064. Campos de endereço permanecem em branco no cadastro e no print; observação de banco criado sem informação de endereço registrada para constar no retorno à solicitante.
+System: SAP (transação Manage Banks)</bpmn:documentation>
+      <bpmn:incoming>f_gwend3_nao</bpmn:incoming>
+      <bpmn:outgoing>f_semendereco_join</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="gw_endereco_join" name="" gatewayDirection="Converging">
+      <bpmn:documentation>Convergência dos caminhos de endereço.</bpmn:documentation>
+      <bpmn:incoming>f_endereco_join</bpmn:incoming>
+      <bpmn:incoming>f_semendereco_join</bpmn:incoming>
+      <bpmn:outgoing>f_join_salvar</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="act_salvar" name="Salvar cadastro do banco">
+      <bpmn:documentation>ACT-044, ACT-046, ACT-057, ACT-058. Salvar no SAP após o preenchimento e conferir a tela de confirmação com as informações do banco cadastrado.
+System: SAP (transação Manage Banks)</bpmn:documentation>
+      <bpmn:incoming>f_join_salvar</bpmn:incoming>
+      <bpmn:outgoing>f_salvar_confirmar</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="bnd_duplicado" name="Alerta de banco já existente" attachedToRef="act_salvar">
+      <bpmn:documentation>EXC-001 e EXC-002: ao salvar, o SAP não permite a gravação e exibe alerta de que o banco já existe.</bpmn:documentation>
+      <bpmn:outgoing>f_bnd_tratar</bpmn:outgoing>
+      <bpmn:errorEventDefinition />
+    </bpmn:boundaryEvent>
+    <bpmn:userTask id="act_tratar_alerta" name="Tratar alerta de banco já existente">
+      <bpmn:documentation>ACT-045. Novo cadastro não é concluído; a solicitação é reclassificada como banco preexistente para retorno à área solicitante.
+System: SAP (transação Manage Banks)</bpmn:documentation>
+      <bpmn:incoming>f_bnd_tratar</bpmn:incoming>
+      <bpmn:outgoing>f_tratar_informar</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="act_informar_existente" name="Informar banco já cadastrado">
+      <bpmn:documentation>ACT-059, ACT-060. Gerar print da tela do SAP com o Bank Key existente e responder o e-mail à área de Master Data informando que o banco já está cadastrado, com print anexado e a quantidade de usuários que já utilizam essa conta.
+System: E-mail</bpmn:documentation>
+      <bpmn:incoming>f_gw_existente</bpmn:incoming>
+      <bpmn:incoming>f_tratar_informar</bpmn:incoming>
+      <bpmn:outgoing>f_informar_end</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="act_confirmar" name="Confirmar cadastro à solicitante">
+      <bpmn:documentation>ACT-047, ACT-048, ACT-050, ACT-051. Capturar print da tela final do SAP e responder o e-mail confirmando a criação do banco com as informações cadastradas como comprovação. CTRL-004: responder no mesmo momento do recebimento, pois o cadastro leva poucos minutos.
+System: E-mail</bpmn:documentation>
+      <bpmn:incoming>f_salvar_confirmar</bpmn:incoming>
+      <bpmn:outgoing>f_confirmar_end</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="end_cadastrado" name="Banco cadastrado e solicitante informada">
+      <bpmn:incoming>f_confirmar_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="end_preexistente" name="Atendimento encerrado sem novo cadastro">
+      <bpmn:incoming>f_informar_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="gw_endereco3" name="A solicitante informou o endereço do banco?" gatewayDirection="Diverging">
+      <bpmn:documentation>DEC-003 (confirmação do endereço na solicitação no passo 8-1).</bpmn:documentation>
+      <bpmn:incoming>f_gwend_nao</bpmn:incoming>
+      <bpmn:outgoing>f_gwend3_sim</bpmn:outgoing>
+      <bpmn:outgoing>f_gwend3_nao</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="f_start_receber" name="" sourceRef="macro_start" targetRef="act_receber" />
+    <bpmn:sequenceFlow id="f_receber_consultar" name="" sourceRef="act_receber" targetRef="act_consultar" />
+    <bpmn:sequenceFlow id="f_consultar_gw" name="" sourceRef="act_consultar" targetRef="gw_existe" />
+    <bpmn:sequenceFlow id="f_gw_existente" name="Bank Key já cadastrado" sourceRef="gw_existe" targetRef="act_informar_existente">
+      <bpmn:documentation>ROUTE-DEC-001-001.</bpmn:documentation>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Bank Key já cadastrado no SAP</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_gw_novo" name="Bank Key não localizado" sourceRef="gw_existe" targetRef="act_criar">
+      <bpmn:documentation>ROUTE-DEC-001-002.</bpmn:documentation>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Bank Key não localizado na consulta</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_criar_gwend" name="" sourceRef="act_criar" targetRef="gw_endereco" />
+    <bpmn:sequenceFlow id="f_gwend_sim" name="Endereço informado" sourceRef="gw_endereco" targetRef="act_endereco">
+      <bpmn:documentation>ROUTE-DEC-002-001.</bpmn:documentation>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Endereço do banco informado na solicitação</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_gwend_nao" name="Endereço não informado" sourceRef="gw_endereco" targetRef="gw_endereco3">
+      <bpmn:documentation>ROUTE-DEC-002-002.</bpmn:documentation>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Endereço do banco não informado</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_endereco_join" name="" sourceRef="act_endereco" targetRef="gw_endereco_join" />
+    <bpmn:sequenceFlow id="f_semendereco_join" name="" sourceRef="act_sem_endereco" targetRef="gw_endereco_join" />
+    <bpmn:sequenceFlow id="f_join_salvar" name="" sourceRef="gw_endereco_join" targetRef="act_salvar" />
+    <bpmn:sequenceFlow id="f_salvar_confirmar" name="" sourceRef="act_salvar" targetRef="act_confirmar" />
+    <bpmn:sequenceFlow id="f_confirmar_end" name="" sourceRef="act_confirmar" targetRef="end_cadastrado" />
+    <bpmn:sequenceFlow id="f_bnd_tratar" name="" sourceRef="bnd_duplicado" targetRef="act_tratar_alerta" />
+    <bpmn:sequenceFlow id="f_tratar_informar" name="" sourceRef="act_tratar_alerta" targetRef="act_informar_existente" />
+    <bpmn:sequenceFlow id="f_informar_end" name="" sourceRef="act_informar_existente" targetRef="end_preexistente" />
+    <bpmn:sequenceFlow id="f_gwend3_sim" name="Endereço informado" sourceRef="gw_endereco3" targetRef="act_endereco">
+      <bpmn:documentation>ROUTE-DEC-003-001.</bpmn:documentation>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Endereço do banco informado na solicitação</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_gwend3_nao" name="Endereço não informado" sourceRef="gw_endereco3" targetRef="act_sem_endereco">
+      <bpmn:documentation>ROUTE-DEC-003-002.</bpmn:documentation>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Endereço do banco não informado na solicitação</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:textAnnotation id="act_receber_system">
+      <bpmn:text>System: E-mail</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="act_receber_system_association" sourceRef="act_receber" targetRef="act_receber_system" />
+    <bpmn:textAnnotation id="act_consultar_system">
+      <bpmn:text>System: SAP (transação Manage Banks)</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="act_consultar_system_association" sourceRef="act_consultar" targetRef="act_consultar_system" />
+    <bpmn:textAnnotation id="act_criar_system">
+      <bpmn:text>System: SAP (transação Manage Banks)</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="act_criar_system_association" sourceRef="act_criar" targetRef="act_criar_system" />
+    <bpmn:textAnnotation id="act_endereco_system">
+      <bpmn:text>System: SAP (transação Manage Banks)</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="act_endereco_system_association" sourceRef="act_endereco" targetRef="act_endereco_system" />
+    <bpmn:textAnnotation id="act_sem_endereco_system">
+      <bpmn:text>System: SAP (transação Manage Banks)</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="act_sem_endereco_system_association" sourceRef="act_sem_endereco" targetRef="act_sem_endereco_system" />
+    <bpmn:textAnnotation id="act_salvar_system">
+      <bpmn:text>System: SAP (transação Manage Banks)</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="act_salvar_system_association" sourceRef="act_salvar" targetRef="act_salvar_system" />
+    <bpmn:textAnnotation id="act_tratar_alerta_system">
+      <bpmn:text>System: SAP (transação Manage Banks)</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="act_tratar_alerta_system_association" sourceRef="act_tratar_alerta" targetRef="act_tratar_alerta_system" />
+    <bpmn:textAnnotation id="act_informar_existente_system">
+      <bpmn:text>System: E-mail</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="act_informar_existente_system_association" sourceRef="act_informar_existente" targetRef="act_informar_existente_system" />
+    <bpmn:textAnnotation id="act_confirmar_system">
+      <bpmn:text>System: E-mail</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="act_confirmar_system_association" sourceRef="act_confirmar" targetRef="act_confirmar_system" />
+  </bpmn:process>
+  <bpmn:collaboration id="macro_process_collaboration">
+    <bpmn:participant id="macro_process_participant" name="Cadastro de conta bancária" processRef="macro_process" />
+  </bpmn:collaboration>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_macro_process_collaboration">
+    <bpmndi:BPMNPlane id="BPMNPlane_macro_process_collaboration" bpmnElement="macro_process_collaboration">
+      <bpmndi:BPMNShape id="BPMNShape_macro_process_participant" bpmnElement="macro_process_participant" isHorizontal="true">
+        <dc:Bounds x="80" y="80" width="2282" height="720" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_lane_cadastro" bpmnElement="lane_cadastro" isHorizontal="true">
+        <dc:Bounds x="110" y="80" width="2252" height="720" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_macro_start" bpmnElement="macro_start">
+        <dc:Bounds x="150" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="148" y="223" width="115" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_receber" bpmnElement="act_receber">
+        <dc:Bounds x="286" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_consultar" bpmnElement="act_consultar">
+        <dc:Bounds x="486" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_gw_existe" bpmnElement="gw_existe" isMarkerVisible="true">
+        <dc:Bounds x="686" y="175" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="658" y="100" width="106" height="70" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_criar" bpmnElement="act_criar">
+        <dc:Bounds x="836" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_gw_endereco" bpmnElement="gw_endereco" isMarkerVisible="true">
+        <dc:Bounds x="1036" y="335" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1005" y="260" width="113" height="70" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_endereco" bpmnElement="act_endereco">
+        <dc:Bounds x="1336" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_sem_endereco" bpmnElement="act_sem_endereco">
+        <dc:Bounds x="1336" y="640" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_gw_endereco_join" bpmnElement="gw_endereco_join" isMarkerVisible="true">
+        <dc:Bounds x="1536" y="335" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_salvar" bpmnElement="act_salvar">
+        <dc:Bounds x="1686" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_tratar_alerta" bpmnElement="act_tratar_alerta">
+        <dc:Bounds x="1886" y="480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_informar_existente" bpmnElement="act_informar_existente">
+        <dc:Bounds x="2086" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_confirmar" bpmnElement="act_confirmar">
+        <dc:Bounds x="1886" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_end_cadastrado" bpmnElement="end_cadastrado">
+        <dc:Bounds x="2118" y="342" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2078" y="383" width="117" height="56" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_end_preexistente" bpmnElement="end_preexistente">
+        <dc:Bounds x="2286" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2236" y="223" width="118" height="56" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_gw_endereco3" bpmnElement="gw_endereco3" isMarkerVisible="true">
+        <dc:Bounds x="1186" y="495" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1155" y="420" width="113" height="70" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_bnd_duplicado" bpmnElement="bnd_duplicado">
+        <dc:Bounds x="1718" y="382" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1663" y="423" width="67" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_consultar_system" bpmnElement="act_consultar_system">
+        <dc:Bounds x="466" y="260" width="140" height="62" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_criar_system" bpmnElement="act_criar_system">
+        <dc:Bounds x="816" y="238" width="140" height="62" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_endereco_system" bpmnElement="act_endereco_system">
+        <dc:Bounds x="1316" y="238" width="140" height="62" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_sem_endereco_system" bpmnElement="act_sem_endereco_system">
+        <dc:Bounds x="1316" y="558" width="140" height="62" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_salvar_system" bpmnElement="act_salvar_system">
+        <dc:Bounds x="1666" y="238" width="140" height="62" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_tratar_alerta_system" bpmnElement="act_tratar_alerta_system">
+        <dc:Bounds x="2006" y="489" width="140" height="62" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_receber_system" bpmnElement="act_receber_system">
+        <dc:Bounds x="266" y="100" width="140" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_informar_existente_system" bpmnElement="act_informar_existente_system">
+        <dc:Bounds x="2066" y="100" width="140" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_act_confirmar_system" bpmnElement="act_confirmar_system">
+        <dc:Bounds x="1866" y="252" width="100" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_start_receber" bpmnElement="f_start_receber">
+        <di:waypoint x="186" y="200" />
+        <di:waypoint x="286" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_receber_consultar" bpmnElement="f_receber_consultar">
+        <di:waypoint x="386" y="200" />
+        <di:waypoint x="486" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_consultar_gw" bpmnElement="f_consultar_gw">
+        <di:waypoint x="586" y="200" />
+        <di:waypoint x="686" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_gw_existente" bpmnElement="f_gw_existente">
+        <di:waypoint x="736" y="200" />
+        <di:waypoint x="2086" y="200" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1362" y="167" width="79" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_informar_end" bpmnElement="f_informar_end">
+        <di:waypoint x="2186" y="200" />
+        <di:waypoint x="2286" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_gwend_sim" bpmnElement="f_gwend_sim">
+        <di:waypoint x="1086" y="360" />
+        <di:waypoint x="1336" y="360" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1176" y="327" width="70" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_endereco_join" bpmnElement="f_endereco_join">
+        <di:waypoint x="1436" y="360" />
+        <di:waypoint x="1536" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_join_salvar" bpmnElement="f_join_salvar">
+        <di:waypoint x="1586" y="360" />
+        <di:waypoint x="1686" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_salvar_confirmar" bpmnElement="f_salvar_confirmar">
+        <di:waypoint x="1786" y="360" />
+        <di:waypoint x="1886" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_confirmar_end" bpmnElement="f_confirmar_end">
+        <di:waypoint x="1986" y="360" />
+        <di:waypoint x="2118" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_gwend3_sim" bpmnElement="f_gwend3_sim">
+        <di:waypoint x="1236" y="520" />
+        <di:waypoint x="1386" y="520" />
+        <di:waypoint x="1386" y="400" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1276" y="487" width="70" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_gw_novo" bpmnElement="f_gw_novo">
+        <di:waypoint x="711" y="225" />
+        <di:waypoint x="711" y="360" />
+        <di:waypoint x="836" y="360" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="716" y="279" width="86" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_gwend_nao" bpmnElement="f_gwend_nao">
+        <di:waypoint x="1061" y="385" />
+        <di:waypoint x="1061" y="520" />
+        <di:waypoint x="1186" y="520" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1066" y="439" width="87" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_gwend3_nao" bpmnElement="f_gwend3_nao">
+        <di:waypoint x="1211" y="545" />
+        <di:waypoint x="1211" y="680" />
+        <di:waypoint x="1336" y="680" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1216" y="599" width="87" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_criar_gwend" bpmnElement="f_criar_gwend">
+        <di:waypoint x="936" y="360" />
+        <di:waypoint x="1036" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_semendereco_join" bpmnElement="f_semendereco_join">
+        <di:waypoint x="1436" y="680" />
+        <di:waypoint x="1561" y="680" />
+        <di:waypoint x="1561" y="385" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_tratar_informar" bpmnElement="f_tratar_informar">
+        <di:waypoint x="1986" y="520" />
+        <di:waypoint x="2066" y="520" />
+        <di:waypoint x="2066" y="200" />
+        <di:waypoint x="2086" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_bnd_tratar" bpmnElement="f_bnd_tratar">
+        <di:waypoint x="1736" y="418" />
+        <di:waypoint x="1736" y="520" />
+        <di:waypoint x="1886" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_act_consultar_system_association" bpmnElement="act_consultar_system_association">
+        <di:waypoint x="536" y="240" />
+        <di:waypoint x="536" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_act_criar_system_association" bpmnElement="act_criar_system_association">
+        <di:waypoint x="886" y="320" />
+        <di:waypoint x="886" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_act_endereco_system_association" bpmnElement="act_endereco_system_association">
+        <di:waypoint x="1386" y="320" />
+        <di:waypoint x="1386" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_act_sem_endereco_system_association" bpmnElement="act_sem_endereco_system_association">
+        <di:waypoint x="1386" y="640" />
+        <di:waypoint x="1386" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_act_salvar_system_association" bpmnElement="act_salvar_system_association">
+        <di:waypoint x="1736" y="320" />
+        <di:waypoint x="1736" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_act_tratar_alerta_system_association" bpmnElement="act_tratar_alerta_system_association">
+        <di:waypoint x="1986" y="520" />
+        <di:waypoint x="2006" y="520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_act_receber_system_association" bpmnElement="act_receber_system_association">
+        <di:waypoint x="336" y="160" />
+        <di:waypoint x="336" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_act_informar_existente_system_association" bpmnElement="act_informar_existente_system_association">
+        <di:waypoint x="2136" y="160" />
+        <di:waypoint x="2136" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_act_confirmar_system_association" bpmnElement="act_confirmar_system_association">
+        <di:waypoint x="1936" y="320" />
+        <di:waypoint x="1916" y="300" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+`;

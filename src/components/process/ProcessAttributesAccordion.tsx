@@ -487,7 +487,7 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
           code: areaCode, 
           name: value, 
           description: '', 
-          color: '#0C1BA8' 
+          color: '#ea580c' 
         });
         updateField('area', areaCode);
         break;
@@ -904,7 +904,7 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
                 <AccordionTrigger className="px-5 py-4 hover:no-underline hover:bg-muted/30 transition-colors duration-300">
                   <div className="flex items-center justify-between w-full pr-4">
                     <div className="flex items-center gap-2">
-                      <GitFork className="w-4 h-4 text-[#0C1BA8]" />
+                      <GitFork className="w-4 h-4 text-[#ea580c]" />
                       <span className="text-sm font-semibold uppercase tracking-wide text-foreground">
                         {language === "PT" ? "Conexões do Processo" : "Process Connections"}
                       </span>
@@ -940,7 +940,7 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
                           variant="outline"
                           size="sm"
                           onClick={() => setIsConnMapModalOpen(true)}
-                          className="h-8 text-xs gap-1.5 border-[#0C1BA8]/30 text-[#0C1BA8] hover:bg-[#0C1BA8]/5"
+                          className="h-8 text-xs gap-1.5 border-[#ea580c]/30 text-[#ea580c] hover:bg-[#ea580c]/5"
                         >
                           <GitFork className="w-3.5 h-3.5" />
                           {language === "PT" ? "Ver Mapa de Conexões" : "View Connection Map"}
@@ -967,7 +967,7 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
                               setConnDefaultDir("predecessor");
                               setIsConnModalOpen(true);
                             }}
-                            className="h-7 text-[11px] px-2 text-[#0C1BA8] hover:bg-[#0C1BA8]/5 font-semibold gap-1"
+                            className="h-7 text-[11px] px-2 text-[#ea580c] hover:bg-[#ea580c]/5 font-semibold gap-1"
                           >
                             <Plus className="w-3 h-3" />
                             {language === "PT" ? "Adicionar" : "Add"}
@@ -991,7 +991,7 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
                                 >
                                   <div className="flex items-start justify-between gap-1">
                                     <div>
-                                      <span className="text-[10px] text-[#0C1BA8] font-semibold block uppercase">
+                                      <span className="text-[10px] text-[#ea580c] font-semibold block uppercase">
                                         {c.sourceDomain || "Geral"}
                                       </span>
                                       <h6 className="text-xs font-bold text-gray-800">
@@ -1071,7 +1071,7 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
                               setConnDefaultDir("successor");
                               setIsConnModalOpen(true);
                             }}
-                            className="h-7 text-[11px] px-2 text-[#0C1BA8] hover:bg-[#0C1BA8]/5 font-semibold gap-1"
+                            className="h-7 text-[11px] px-2 text-[#ea580c] hover:bg-[#ea580c]/5 font-semibold gap-1"
                           >
                             <Plus className="w-3 h-3" />
                             {language === "PT" ? "Adicionar" : "Add"}
@@ -1095,7 +1095,7 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
                                 >
                                   <div className="flex items-start justify-between gap-1">
                                     <div>
-                                      <span className="text-[10px] text-[#0C1BA8] font-semibold block uppercase">
+                                      <span className="text-[10px] text-[#ea580c] font-semibold block uppercase">
                                         {c.targetDomain || "Geral"}
                                       </span>
                                       <h6 className="text-xs font-bold text-gray-800">

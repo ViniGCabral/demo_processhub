@@ -206,13 +206,13 @@ export function ProcessAssistant() {
               }}
               rows={2}
               placeholder={language === "PT" ? "Ex.: O que faço quando a distância do frete passa de 500 km?" : "E.g. What do I do when the freight distance is over 500 km?"}
-              className="min-h-[72px] w-full resize-none rounded-xl border border-[#dfe2ea] bg-[#fbfbfd] px-4 py-3.5 pr-14 text-[15px] text-[#272727] outline-none transition placeholder:text-[#9296a3] focus:border-[#2638c4] focus:bg-white focus:ring-4 focus:ring-[#0c1ba8]/[0.07]"
+              className="min-h-[72px] w-full resize-none rounded-xl border border-[#dfe2ea] bg-[#fbfbfd] px-4 py-3.5 pr-14 text-[15px] text-[#272727] outline-none transition placeholder:text-[#9296a3] focus:border-[#2638c4] focus:bg-white focus:ring-4 focus:ring-[#ea580c]/[0.07]"
             />
             <button
               type="submit"
               disabled={!question.trim() || loading}
               aria-label={language === "PT" ? "Enviar pergunta" : "Send question"}
-              className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[#0c1ba8] text-white transition hover:bg-[#081578] disabled:cursor-not-allowed disabled:bg-[#c8cad4]"
+              className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[#ea580c] text-white transition hover:bg-[#081578] disabled:cursor-not-allowed disabled:bg-[#c8cad4]"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </button>
@@ -230,7 +230,7 @@ export function ProcessAssistant() {
                     setQuestion(suggestion);
                     ask(suggestion);
                   }}
-                  className="rounded-full border border-[#e2e4eb] bg-white px-3 py-1.5 text-xs text-[#515563] transition hover:border-[#aeb6ed] hover:bg-[#f6f7ff] hover:text-[#0c1ba8]"
+                  className="rounded-full border border-[#e2e4eb] bg-white px-3 py-1.5 text-xs text-[#515563] transition hover:border-[#aeb6ed] hover:bg-[#f6f7ff] hover:text-[#ea580c]"
                 >
                   {suggestion}
                 </button>
@@ -248,12 +248,12 @@ export function ProcessAssistant() {
 
               {loading ? (
                 <div className="flex items-center gap-3 text-sm text-[#777b88]">
-                  <Loader2 className="h-4 w-4 animate-spin text-[#0c1ba8]" />
+                  <Loader2 className="h-4 w-4 animate-spin text-[#ea580c]" />
                   {language === "PT" ? "Consultando as SOPs disponíveis…" : "Checking available SOPs…"}
                 </div>
               ) : answer ? (
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eef0ff] text-[#0c1ba8]">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eef0ff] text-[#ea580c]">
                     <Sparkles className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -271,12 +271,12 @@ export function ProcessAssistant() {
 
                     <div className="mt-4 flex flex-col gap-3 rounded-xl border border-[#dfe3f4] bg-[#f8f9ff] p-3.5 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex min-w-0 items-start gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[#0c1ba8] shadow-sm ring-1 ring-[#e2e5f2]">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[#ea580c] shadow-sm ring-1 ring-[#e2e5f2]">
                           <FileText className="h-4 w-4" />
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <span className="text-xs font-semibold text-[#0c1ba8]">
+                            <span className="text-xs font-semibold text-[#ea580c]">
                               {language === "PT" ? "Fonte consultada" : "Source checked"}
                             </span>
                             <span className="rounded bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[#636775] ring-1 ring-[#e2e4eb]">SOP v3.0</span>
@@ -289,7 +289,7 @@ export function ProcessAssistant() {
                       </div>
                       <button
                         onClick={openSource}
-                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-3.5 py-2 text-xs font-semibold text-[#0c1ba8] shadow-sm ring-1 ring-[#cfd5f3] transition hover:bg-[#eef0ff]"
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-3.5 py-2 text-xs font-semibold text-[#ea580c] shadow-sm ring-1 ring-[#cfd5f3] transition hover:bg-[#eef0ff]"
                       >
                         <BookOpen className="h-4 w-4" />
                         {language === "PT" ? "Ver trecho na SOP" : "View SOP section"}
@@ -303,7 +303,7 @@ export function ProcessAssistant() {
                         setAnswer(null);
                         setQuestion("");
                       }}
-                      className="mt-3 text-xs font-medium text-[#777b88] hover:text-[#0c1ba8]"
+                      className="mt-3 text-xs font-medium text-[#777b88] hover:text-[#ea580c]"
                     >
                       {language === "PT" ? "Fazer outra pergunta" : "Ask another question"}
                     </button>
