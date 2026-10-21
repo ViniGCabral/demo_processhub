@@ -1168,6 +1168,8 @@ export function getProcessAutomationDetail(
     // Para esta demonstração de framework agêntico, forçamos o uso do novo dataset (P66_L6DTP)
     result = { 
       ...specialHandlingAutomationData,
+      processName: processName || "Cadastro de Conta Bancária",
+      sopTitle: "Cadastro de Conta Bancária (House Bank)",
       solutions: specialHandlingAutomationData.solutions?.length ? specialHandlingAutomationData.solutions : CANONICAL_DEMO_SOLUTIONS.map((s) => ({ ...s })),
       digitalLayers: specialHandlingAutomationData.digitalLayers || DIGITAL_LAYERS_DEMO,
       humanControls: specialHandlingAutomationData.humanControls?.length ? specialHandlingAutomationData.humanControls : HUMAN_CONTROLS_DEMO,

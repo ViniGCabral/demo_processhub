@@ -173,7 +173,7 @@ export function AutomationDetailView({
     link.setAttribute("download", `automation_details_${data.sopCode || "process"}.csv`);
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
   };
 
   return (

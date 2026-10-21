@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Home, Share2, Activity, Network, ShieldCheck, Folder, Settings, RefreshCw, ChevronDown, LogOut, Zap
+  Home, Share2, Activity, Network, ShieldCheck, Folder, Settings, RefreshCw, ChevronDown, LogOut, Zap, BrainCircuit
 } from "lucide-react";
 import contextusLogo from "@/assets/contextus-logo.png";
 import {
@@ -97,6 +97,26 @@ export function AppLayout({ children, activeMenu = "processos", onLogout }: AppL
                <ShieldCheck className="h-5 w-5 text-slate-500 group-hover:text-slate-900 transition-colors" />
              </div>
              <span className="text-[10px] text-slate-500 group-hover:text-slate-900">Normativos</span>
+          </button>
+
+          {/* Org. Intelligence */}
+          <button
+            onClick={() => navigate("/org-intelligence")}
+            className={`group flex flex-col items-center justify-center py-1 transition-colors ${activeMenu === "org-intelligence" ? "text-[#ea580c]" : "text-slate-500 hover:text-slate-900"}`}
+            title="Org. Intelligence"
+          >
+            {activeMenu === "org-intelligence" ? (
+              <div className="w-12 h-11 rounded-xl border border-[#ea580c] bg-orange-50/40 flex items-center justify-center transition-all">
+                <BrainCircuit className="h-5 w-5 text-[#ea580c]" />
+              </div>
+            ) : (
+              <div className="w-10 h-9 flex items-center justify-center">
+                <BrainCircuit className="h-5 w-5 text-slate-500 group-hover:text-slate-900 transition-colors" />
+              </div>
+            )}
+            <span className={`text-[10px] leading-tight text-center ${activeMenu === "org-intelligence" ? "font-medium text-[#ea580c] mt-1" : "text-slate-500 group-hover:text-slate-900"}`}>
+              Org. Intel
+            </span>
           </button>
           
           {/* Pastas ONEDRIVE */}

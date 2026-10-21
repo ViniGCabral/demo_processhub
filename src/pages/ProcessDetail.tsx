@@ -1,10 +1,12 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { FileText, GitBranch, ChevronRight, Info, TrendingUp, TrendingDown, Sparkles, Edit2 } from "lucide-react";
+import { FileText, GitBranch, ChevronRight, Info, TrendingUp, TrendingDown, Sparkles, Edit2, Building2, Scale } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ProcessSidebar } from "@/components/layout/ProcessSidebar";
 import { POPEditorView } from "@/components/process/POPEditorView";
+import { POPComparisonView } from "@/components/process/POPComparisonView";
 import { BPMNEditor } from "@/components/process/BPMNEditor";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ProcessAttributes } from "@/components/process/ProcessAttributes";
 import { ProcessSheet } from "@/components/process/ProcessSheet";
 import { ProcessEditForm } from "@/components/process/ProcessEditForm";
@@ -24,7 +26,9 @@ import { ProcessTransformationView } from "@/components/process/transformation/P
 import { ProcessIndicatorsView } from "@/components/process/ProcessIndicatorsView";
 import { useProcessStore } from "@/stores/processStore";
 import { useSopStore } from "@/stores/sopStore";
+import { useSopVariantsStore } from "@/stores/sopVariantsStore";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { cn } from "@/lib/utils";
 import { Layers } from "lucide-react";
 import {
@@ -54,6 +58,7 @@ interface LocalProcessData {
   id: string;
   name: string;
   area: string;
+  businessUnit?: string;
   description: string;
   executor: string;
   approver: string;
@@ -189,6 +194,8 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
   const { processes, updateProcessDocumentation } = useProcessStore();
   const sopMap = useSopStore(state => state.sopMap);
   const getSOP = useSopStore(state => state.getSOP);
+  const variantsByProcess = useSopVariantsStore(state => state.variantsByProcess);
+  const getVariantsForProcess = useSopVariantsStore(state => state.getVariantsForProcess);
   const storeProcess = processes.find(p => p.id === id);
   
   // Get process data based on ID (check store first, then mock data)
@@ -208,6 +215,7 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
         id: storeProcess.id,
         name: storeProcess.name,
         area: storeProcess.area,
+        businessUnit: storeProcess.businessUnit,
         description: storeProcess.description,
         executor: storeProcess.executor || "",
         approver: storeProcess.approver || "",
@@ -263,8 +271,14 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
   const sopLookupId = process.name?.toLowerCase().includes("span") && process.name?.toLowerCase().includes("layer") ? "span-layer" : (id || "1");
   const processSop = sopMap[id || "1"] || sopMap[sopLookupId] || getSOP(sopLookupId);
   const customizationCount = processSop?.steps.filter(step => step.hasSystemCustomization).length || 0;
+  const popVariants = useMemo(
+    () => getVariantsForProcess(id || "1", process.name, process.businessUnit),
+    [variantsByProcess, id, process.name, process.businessUnit, getVariantsForProcess]
+  );
 
+  const [isLocallyGenerated, setIsLocallyGenerated] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAddVariantModal, setShowAddVariantModal] = useState(false);
   const [preMapping, setPreMapping] = useState<PreMappingData | null>(null);
 
   // Track unsaved changes in attributes page
@@ -276,19 +290,22 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
   // Update process state when store changes
   useEffect(() => {
     if (storeProcess) {
-      setProcess({
+      const hasDoc = isLocallyGenerated || storeProcess.hasDocumentation;
+      setProcess((prev) => ({
+        ...prev,
         id: storeProcess.id,
         name: storeProcess.name,
         area: storeProcess.area,
+        businessUnit: storeProcess.businessUnit,
         description: storeProcess.description,
         executor: storeProcess.executor || "",
         approver: storeProcess.approver || "",
         frequency: storeProcess.frequency || "",
         avgTime: storeProcess.avgTime || "",
-        hasPOP: storeProcess.hasDocumentation,
-        hasBPMN: storeProcess.hasDocumentation,
-        hasDocumentation: storeProcess.hasDocumentation,
-        documentationStatus: storeProcess.documentationStatus,
+        hasPOP: hasDoc,
+        hasBPMN: hasDoc,
+        hasDocumentation: hasDoc,
+        documentationStatus: hasDoc ? 'generated' : storeProcess.documentationStatus,
         automation: storeProcess.automation || demoScores.automation,
         dataIntegrity: storeProcess.dataIntegrity || demoScores.dataIntegrity,
         governanceCompliance: storeProcess.governance || demoScores.governanceCompliance,
@@ -310,9 +327,9 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
         docLastReview: storeProcess.docLastReview,
         docNextReview: storeProcess.docNextReview,
         executionEffort: storeProcess.executionEffort,
-      });
+      }));
     }
-  }, [storeProcess]);
+  }, [storeProcess, isLocallyGenerated]);
 
   const handleModeChange = (newMode: "as-is" | "to-be") => {
     setMode(newMode);
@@ -344,20 +361,28 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
     navigate('/processes');
   };
 
-  // A visão geral fica sempre disponível: o fluxo de geração só abre quando o usuário pedir.
+  // Se o processo não possui documentação gerada, abre diretamente a tela de cadastro/upload
   useEffect(() => {
+    if (isLocallyGenerated) {
+      setShowOnboarding(false);
+      return;
+    }
+    const hasDoc = storeProcess ? storeProcess.hasDocumentation : false;
+    setShowOnboarding(!hasDoc);
+  }, [id, storeProcess?.hasDocumentation, isLocallyGenerated]);
+
+
+  const handleDocumentUploaded = (opts?: { openComparison?: boolean }) => {
+    setIsLocallyGenerated(true);
     setShowOnboarding(false);
-  }, [id]);
 
-
-  const handleDocumentUploaded = () => {
     // Update store
-    if (id && storeProcess) {
+    if (id) {
       updateProcessDocumentation(id, 'generated');
     }
     
-    setProcess({ 
-      ...process, 
+    setProcess((prev) => ({ 
+      ...prev, 
       hasPOP: true, 
       hasBPMN: true, 
       hasDocumentation: true,
@@ -369,13 +394,16 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
       bpmnVersion: "1.0",
       bpmnStatus: language === "PT" ? "Rascunho" : "Draft",
       bpmnUpdated: language === "PT" ? "agora" : "now",
-      // Generate mock scores
       automation: { maturity: Math.floor(Math.random() * 30) + 50, risk: Math.floor(Math.random() * 30) + 20 },
       dataIntegrity: { maturity: Math.floor(Math.random() * 30) + 55, risk: Math.floor(Math.random() * 25) + 15 },
       governanceCompliance: { maturity: Math.floor(Math.random() * 30) + 45, risk: Math.floor(Math.random() * 35) + 25 },
-    });
-    setShowOnboarding(false);
-    setActiveTab("overview");
+    }));
+
+    if (opts?.openComparison) {
+      setActiveTab("pop-comparison");
+    } else {
+      setActiveTab("pop-sop");
+    }
   };
 
   const handlePreMappingGenerated = (input: { name: string; description: string; area: string; systems: string[] }) => {
@@ -411,14 +439,19 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
     if (mode === "to-be") return renderToBeContent();
 
     // Show full onboarding (3 options) when on overview without anything yet
-    if (showOnboarding && activeTab === "overview") {
+    const isDocGenerated = process.hasDocumentation || isLocallyGenerated;
+
+    // Show full onboarding (3 options) when on overview without anything yet
+    if ((showOnboarding || !isDocGenerated) && activeTab === "overview") {
       return (
         <DocumentUploadFlow
           onComplete={handleDocumentUploaded}
           onPreMappingComplete={!preMapping ? handlePreMappingGenerated : undefined}
+          processId={id || "1"}
           initialName={process.name}
           initialDescription={process.description}
           initialArea={process.area}
+          initialBusinessUnit={process.businessUnit}
           mode="all"
         />
       );
@@ -430,22 +463,26 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
         <DocumentUploadFlow
           onComplete={handleDocumentUploaded}
           onPreMappingComplete={handlePreMappingGenerated}
+          processId={id || "1"}
           initialName={process.name}
           initialDescription={process.description}
           initialArea={process.area}
+          initialBusinessUnit={process.businessUnit}
           mode="premapping-only"
         />
       );
     }
 
-    // POP/BPMN/Assessment without docs → show only docs options (centered)
-    if (!process.hasDocumentation && (activeTab === "pop-sop" || activeTab === "bpmn" || activeTab === "assessment")) {
+    // POP/BPMN/Assessment/Comparison without docs → show only docs options (centered)
+    if (!isDocGenerated && (activeTab === "pop-sop" || activeTab === "pop-comparison" || activeTab === "bpmn" || activeTab === "assessment")) {
       return (
         <DocumentUploadFlow
           onComplete={handleDocumentUploaded}
+          processId={id || "1"}
           initialName={process.name}
           initialDescription={process.description}
           initialArea={process.area}
+          initialBusinessUnit={process.businessUnit}
           mode="docs-only"
         />
       );
@@ -483,7 +520,34 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
           />
         ) : <ProcessOverview process={process} onNavigate={setActiveTab} onGenerateDocs={handleStartFullDocumentation} />;
       case "pop-sop":
-        return <POPEditorView hasPOP={process.hasPOP} processId={id} processName={process.name} isNewlyGenerated={process.isNewlyGenerated} />;
+        return (
+          <POPEditorView
+            key={`pop-asis-${id || "1"}`}
+            hasPOP={process.hasPOP}
+            processId={id || "1"}
+            processName={process.name}
+            processArea={process.area}
+            defaultBusinessUnit={process.businessUnit}
+            isNewlyGenerated={process.isNewlyGenerated}
+            initialSubMode="as-is"
+          />
+        );
+      case "pop-comparison":
+        return (
+          <div className="p-8 max-w-7xl mx-auto">
+            <POPComparisonView
+              processId={id || "1"}
+              processName={process.name}
+              processArea={process.area}
+              defaultBusinessUnit={process.businessUnit}
+              onSwitchToAsIsVariant={(variantId) => {
+                useSopVariantsStore.getState().setActiveVariant(id || "1", variantId);
+                setActiveTab("pop-sop");
+              }}
+              onOpenAddVariantModal={() => setShowAddVariantModal(true)}
+            />
+          </div>
+        );
       case "modifications":
         return <ProcessModifications processId={id || "1"} processName={process.name} onOpenStep={(stepId) => {
           navigate(`/processes/${id || "1"}?tab=pop-sop&step=${encodeURIComponent(stepId)}`);
@@ -565,10 +629,13 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
           toBeGenerated={toBeGenerated}
           onOpenTransformPipeline={() => requestTabChange("transform-pipeline")}
           customizationCount={customizationCount}
+          popVariantsCount={process.hasDocumentation ? popVariants.length : 0}
         />
 
         <main className={cn("flex-1 ml-[240px] overflow-auto", showChat && (chatOpen ? "mr-[320px]" : "mr-12"))}>
-          {renderContent()}
+          <ErrorBoundary key={`${id || "1"}-${mode}-${activeTab}-${showOnboarding}-${Boolean(process.hasDocumentation || isLocallyGenerated)}`}>
+            {renderContent()}
+          </ErrorBoundary>
         </main>
 
         {showChat && (
@@ -612,6 +679,27 @@ export function ProcessDetail({ onLogout }: ProcessDetailProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Variant Modal */}
+      <Dialog open={showAddVariantModal} onOpenChange={setShowAddVariantModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+          <DocumentUploadFlow
+            mode="add-variant"
+            processId={id || "1"}
+            initialName={process.name}
+            initialArea={process.area}
+            initialBusinessUnit={process.businessUnit}
+            onComplete={(opts) => {
+              setShowAddVariantModal(false);
+              if (opts?.openComparison) {
+                setActiveTab("pop-comparison");
+              } else {
+                setActiveTab("pop-sop");
+              }
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
@@ -715,10 +803,18 @@ function ProcessOverview({ process, onNavigate, onGenerateDocs }: ProcessOvervie
       {/* Process Header - No card background */}
       <div className="mb-8 relative flex items-start justify-between gap-4">
         <div>
-          {/* Area Badge */}
-          <span className="inline-flex px-2.5 py-1 bg-muted rounded-md text-[12px] font-medium text-muted-foreground mb-2.5">
-            {process.area}
-          </span>
+          <div className="flex flex-wrap items-center gap-2 mb-2.5">
+            {/* Area Badge */}
+            <span className="inline-flex px-2.5 py-1 bg-muted rounded-md text-[12px] font-medium text-muted-foreground">
+              {process.area}
+            </span>
+            {process.businessUnit && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-md text-[12px] font-medium">
+                <Building2 className="h-3.5 w-3.5" />
+                {process.businessUnit}
+              </span>
+            )}
+          </div>
           
           {/* Title */}
           <h1 className="text-[22px] font-semibold text-foreground mb-1.5">
@@ -726,13 +822,24 @@ function ProcessOverview({ process, onNavigate, onGenerateDocs }: ProcessOvervie
           </h1>
         </div>
         
-        <button
-          onClick={() => onNavigate("attributes")}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-border text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-sm"
-        >
-          <Edit2 className="h-3.5 w-3.5" />
-          {language === "PT" ? "Editar atributos" : "Edit attributes"}
-        </button>
+        <div className="flex items-center gap-2">
+          {process.hasDocumentation && (
+            <button
+              onClick={() => onNavigate("pop-comparison")}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-[13px] font-medium text-primary hover:bg-primary/15 transition-colors shadow-sm"
+            >
+              <Scale className="h-3.5 w-3.5" />
+              {language === "PT" ? "Comparativo & Benchmark" : "Comparison & Benchmark"}
+            </button>
+          )}
+          <button
+            onClick={() => onNavigate("process-attributes")}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-border text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-sm"
+          >
+            <Edit2 className="h-3.5 w-3.5" />
+            {language === "PT" ? "Editar atributos" : "Edit attributes"}
+          </button>
+        </div>
       </div>
 
       {/* Process Datasheet */}
@@ -885,3 +992,4 @@ function ProcessOverview({ process, onNavigate, onGenerateDocs }: ProcessOvervie
     </div>
   );
 }
+

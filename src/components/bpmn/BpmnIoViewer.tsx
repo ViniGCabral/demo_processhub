@@ -11,10 +11,17 @@ export function BpmnIoViewer({ xml }: BpmnIoViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const host = containerRef.current;
+    if (!host) return;
+
+    let disposed = false;
+    host.innerHTML = "";
+    const mountNode = document.createElement("div");
+    mountNode.className = "w-full h-full";
+    host.appendChild(mountNode);
 
     const viewer = new BpmnViewer({
-      container: containerRef.current,
+      container: mountNode,
       keyboard: {
         bindTo: window
       }
@@ -23,17 +30,26 @@ export function BpmnIoViewer({ xml }: BpmnIoViewerProps) {
     const loadBpmn = async () => {
       try {
         await viewer.importXML(xml);
+        if (disposed) return;
         const canvas = viewer.get("canvas") as any;
         canvas.zoom("fit-viewport", "auto");
       } catch (err) {
-        console.error("Failed to render BPMN", err);
+        if (!disposed) {
+          console.error("Failed to render BPMN", err);
+        }
       }
     };
 
     loadBpmn();
 
     return () => {
-      viewer.destroy();
+      disposed = true;
+      try {
+        viewer.destroy();
+      } catch {
+        // Ignore cleanup errors on unmount
+      }
+      host.innerHTML = "";
     };
   }, [xml]);
 

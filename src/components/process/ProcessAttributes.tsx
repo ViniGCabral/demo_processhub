@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { TrendingUp, Shield, Database, FileText, AlertTriangle, CheckCircle2, XCircle, AlertCircle, Sparkles, ChevronRight, ChevronDown, Cpu, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage, translations } from "@/contexts/LanguageContext";
@@ -404,10 +405,37 @@ export function ProcessAttributes({
   processId,
   initialView = "summary",
 }: ProcessAttributesProps) {
-  const { t: _unused } = useLanguage();
-  const language = "EN";
-  const t = translations["EN"];
+  const { language, t } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+
   const [viewMode, setViewMode] = useState<"summary" | "detail">(initialView);
+  const [showAutoDetails, setShowAutoDetails] = useState(false);
+
+  const [showDataDetails, setShowDataDetails] = useState(false);
+  const [showGovDetails, setShowGovDetails] = useState(false);
+
+  // Sync viewMode when searchParams changes
+  useEffect(() => {
+    const isDetailParam = searchParams.get("view") === "detail" || searchParams.get("subview") === "automation-detail";
+    if (isDetailParam && viewMode !== "detail") {
+      setViewMode("detail");
+    }
+  }, [searchParams]);
+
+  const handleBackToAssessment = () => {
+    setViewMode("summary");
+    if (searchParams.has("view") || searchParams.has("subview")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("view");
+      next.delete("subview");
+      setSearchParams(next, { replace: true });
+    }
+  };
+
+  const handleOpenDetail = () => {
+    setViewMode("detail");
+  };
 
   if (!hasPOP) {
     return (
@@ -432,9 +460,8 @@ export function ProcessAttributes({
   const attributesData = getAttributesData(language, automationScores, dataIntegrityScores, governanceScores, spanLayer);
   const { automation, dataIntegrity, governance } = attributesData;
   const pillarDetails = getPillarDetails(language, spanLayer);
-  const [showAutoDetails, setShowAutoDetails] = useState(false);
-  const [showDataDetails, setShowDataDetails] = useState(false);
-  const [showGovDetails, setShowGovDetails] = useState(false);
+
+
 
   // Se estiver no modo detalhado de automação, renderiza a visão completa do Mapa de Processos e Soluções Digitais
   if (viewMode === "detail") {
@@ -444,10 +471,10 @@ export function ProcessAttributes({
       pillarDetails?.automation
     );
     return (
-      <div className="animate-fade-in -mx-6 -mt-6">
+      <div key="assessment-detail-view" className="animate-fade-in -mx-6 -mt-6">
         <AutomationDetailView
           data={detailData}
-          onBackToAssessment={() => setViewMode("summary")}
+          onBackToAssessment={handleBackToAssessment}
         />
       </div>
     );
@@ -477,14 +504,21 @@ export function ProcessAttributes({
     secMedium: isPT ? "Risco Médio" : "Medium Risk",
     secHigh: isPT ? "Risco Alto" : "High Risk",
   };
-  const securityLabel = (s: SecurityLevel) => s === "SAFE" ? L.secSafe : s === "LOW" ? L.secLow : s === "MEDIUM" ? L.secMedium : L.secHigh;
+  const securityLabel = (s?: string) => {
+    if (s === "SAFE") return L.secSafe;
+    if (s === "LOW") return L.secLow;
+    if (s === "MEDIUM") return L.secMedium;
+    if (s === "HIGH") return L.secHigh;
+    return s || L.secSafe;
+  };
   
   // Calculate potential gains based on automatable steps (with overrides for demo)
-  const potentialGainHours = (automation as any).potentialGainOverride ?? automation.automatableSteps * automation.effortPerStep;
-  const currentEffort = (automation as any).currentEffortOverride ?? automation.manualSteps * automation.effortPerStep;
+  const potentialGainHours = Number((automation as any)?.potentialGainOverride ?? ((automation?.automatableSteps || 0) * (automation?.effortPerStep || 0))) || 0;
+  const currentEffort = Number((automation as any)?.currentEffortOverride ?? ((automation?.manualSteps || 0) * (automation?.effortPerStep || 0))) || 0;
+  const reductionPercentage = currentEffort > 0 ? Math.round((potentialGainHours / currentEffort) * 100) : 0;
 
   return (
-    <div className="max-w-4xl mx-auto animate-fade-in">
+    <div key="assessment-summary-view" className="max-w-4xl mx-auto animate-fade-in">
       {/* Header with AI indicator */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-foreground mb-2">{t.processAssessment}</h1>
@@ -568,10 +602,10 @@ export function ProcessAttributes({
             <span className="text-sm font-medium text-emerald-700">{t.potentialGain} ({t.automatingSteps} {automation.automatableSteps} steps)</span>
           </div>
           <div className="text-lg font-semibold text-emerald-700">
-            {potentialGainHours.toFixed(1)}h/{language === "PT" ? "mês" : "month"} ({Math.round((potentialGainHours / currentEffort) * 100)}% {t.reduction})
+            {potentialGainHours.toFixed(1)}h/{language === "PT" ? "mês" : "month"} ({reductionPercentage}% {t.reduction})
           </div>
           <div className="text-xs text-emerald-600 mt-1">
-            {t.currentEffortManual}: {currentEffort.toFixed(1)}h/{language === "PT" ? "mês" : "month"} → {t.afterAutomation}: {(currentEffort - potentialGainHours).toFixed(1)}h/{language === "PT" ? "mês" : "month"}
+            {t.currentEffortManual}: {currentEffort.toFixed(1)}h/{language === "PT" ? "mês" : "month"} → {t.afterAutomation}: {Math.max(0, currentEffort - potentialGainHours).toFixed(1)}h/{language === "PT" ? "mês" : "month"}
           </div>
         </div>
 
@@ -595,7 +629,7 @@ export function ProcessAttributes({
           </div>
           <Button
             size="sm"
-            onClick={() => setViewMode("detail")}
+            onClick={handleOpenDetail}
             className="text-xs gap-1.5 shrink-0 shadow-xs"
           >
             {isPT ? "Abrir detalhamento" : "Open detailing"}
@@ -623,35 +657,43 @@ export function ProcessAttributes({
                     </tr>
                   </thead>
                   <tbody>
-                    {pillarDetails.automation.map((row) => (
-                      <tr key={row.step} className="border-t border-border">
-                        <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{row.step}</td>
-                        <td className="px-3 py-2 text-foreground">{row.title}</td>
-                        <td className="px-3 py-2">
-                          <TooltipProvider delayDuration={100}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button type="button" className={cn("inline-block text-xs font-medium px-2 py-0.5 rounded cursor-help", classificationStyle[row.classification])}>
-                                  {row.classification}
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="max-w-xs">
-                                <div className="text-xs font-semibold mb-1">
-                                  {row.classification} — {classificationInfo[row.classification][isPT ? "pt" : "en"].label}
-                                </div>
-                                <div className="text-xs mb-1.5 opacity-90">
-                                  {classificationInfo[row.classification][isPT ? "pt" : "en"].def}
-                                </div>
-                                <div className="text-[11px] italic opacity-80">
-                                  {isPT ? "Ex.: " : "e.g.: "}{classificationInfo[row.classification][isPT ? "pt" : "en"].ex}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </td>
-                        <td className="px-3 py-2 text-muted-foreground">{row.tech}</td>
-                      </tr>
-                    ))}
+                    {(pillarDetails.automation || []).map((row) => {
+                      const info = (classificationInfo as any)[row.classification]?.[isPT ? "pt" : "en"] || {
+                        label: row.classification || (isPT ? "Manual" : "Manual"),
+                        def: isPT ? "Classificação da etapa" : "Step classification",
+                        ex: "—",
+                      };
+                      const style = (classificationStyle as any)[row.classification] || "bg-muted text-muted-foreground";
+                      return (
+                        <tr key={row.step} className="border-t border-border">
+                          <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{row.step}</td>
+                          <td className="px-3 py-2 text-foreground">{row.title}</td>
+                          <td className="px-3 py-2">
+                            <TooltipProvider delayDuration={100}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button type="button" className={cn("inline-block text-xs font-medium px-2 py-0.5 rounded cursor-help", style)}>
+                                    {row.classification}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <div className="text-xs font-semibold mb-1">
+                                    {row.classification} — {info.label}
+                                  </div>
+                                  <div className="text-xs mb-1.5 opacity-90">
+                                    {info.def}
+                                  </div>
+                                  <div className="text-[11px] italic opacity-80">
+                                    {isPT ? "Ex.: " : "e.g.: "}{info.ex}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </td>
+                          <td className="px-3 py-2 text-muted-foreground">{row.tech}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 <div className="px-3 py-2 text-[11px] text-muted-foreground bg-muted/30 border-t border-border">
@@ -766,7 +808,7 @@ export function ProcessAttributes({
                       </tr>
                     </thead>
                     <tbody>
-                      {pillarDetails.dataSources.map((row) => (
+                      {(pillarDetails.dataSources || []).map((row) => (
                         <tr key={row.step + row.title} className="border-t border-border">
                           <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{row.step}</td>
                           <td className="px-3 py-2 text-foreground">{row.title}</td>
@@ -777,7 +819,7 @@ export function ProcessAttributes({
                             </span>
                           </td>
                           <td className="px-3 py-2">
-                            <span className={cn("inline-block text-xs font-medium px-2 py-0.5 rounded", securityStyle[row.security])}>
+                            <span className={cn("inline-block text-xs font-medium px-2 py-0.5 rounded", (securityStyle as any)[row.security] || "bg-muted text-muted-foreground")}>
                               {securityLabel(row.security)}
                             </span>
                           </td>
@@ -800,7 +842,7 @@ export function ProcessAttributes({
                       </tr>
                     </thead>
                     <tbody>
-                      {pillarDetails.redflags.map((row) => (
+                      {(pillarDetails.redflags || []).map((row) => (
                         <tr key={row.step + row.flag} className="border-t border-border">
                           <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{row.step}</td>
                           <td className="px-3 py-2 text-foreground">{row.title}</td>
@@ -903,7 +945,7 @@ export function ProcessAttributes({
                     </tr>
                   </thead>
                   <tbody>
-                    {pillarDetails.governance.map((row, idx) => {
+                    {(pillarDetails.governance || []).map((row, idx) => {
                       const Icon = getSeverityIcon(row.severity);
                       return (
                         <tr key={idx} className="border-t border-border">

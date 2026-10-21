@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 type Language = "PT" | "EN";
 
@@ -726,12 +726,20 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
-    const saved = localStorage.getItem('processhub-language');
-    return (saved === 'EN' || saved === 'PT') ? saved : 'PT';
+    try {
+      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('processhub-language') : null;
+      return (saved === 'EN' || saved === 'PT') ? saved : 'PT';
+    } catch {
+      return 'PT';
+    }
   });
 
   useEffect(() => {
-    localStorage.setItem('processhub-language', language);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('processhub-language', language);
+      }
+    } catch {}
   }, [language]);
 
   return (

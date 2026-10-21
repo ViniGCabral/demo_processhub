@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const configuredUrl = import.meta.env.VITE_SUPABASE_URL;
-const configuredPublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const configuredUrl = typeof import.meta !== "undefined" && import.meta.env ? import.meta.env.VITE_SUPABASE_URL : undefined;
+const configuredPublishableKey = typeof import.meta !== "undefined" && import.meta.env ? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY : undefined;
 
 // The public prototype can run with local demo data when Supabase is not
 // configured in the hosting environment. A valid, inert client keeps imports
@@ -20,7 +20,7 @@ const SUPABASE_PUBLISHABLE_KEY = configuredPublishableKey ?? "demo-placeholder-k
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: localStorage,
+    storage: typeof localStorage !== "undefined" ? localStorage : undefined,
     persistSession: isSupabaseConfigured,
     autoRefreshToken: isSupabaseConfigured,
   }

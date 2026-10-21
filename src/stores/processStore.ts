@@ -147,9 +147,9 @@ const initialProcesses: InitialProcessItem[] = [
     area: "FIN",
     name: "Cadastro de Conta Bancária",
     description: "Cadastrar a instituição financeira como Banco da Empresa (House Bank) e vínculo com G/L Account.",
-    hasDocumentation: true,
+    hasDocumentation: false,
     isFavorite: true,
-    documentationStatus: 'generated',
+    documentationStatus: 'pending',
     l1: "Financeiro",
     l2: "Cadastro de Dados Mestres",
     l3: "Contas Bancárias",
@@ -568,19 +568,51 @@ const spanLayerDemoProcess: ProcessData = {
 const isSpanLayer = (p: ProcessData) =>
   !!p.name && p.name.toLowerCase().includes('span') && p.name.toLowerCase().includes('layer');
 
-// Garante que o processo demo exista sempre no topo da lista
+const isCadastroContaBancaria = (p: ProcessData) =>
+  p.id === "proc-cadastro-conta-bancaria" ||
+  (!!p.name && p.name.toLowerCase().includes("cadastro de conta banc"));
+
+let initialDemoResetDone = false;
+
+// Garante que o processo demo exista sempre no topo da lista e o 2º processo seja Cadastro de Conta Bancária não gerado no load inicial
 function withDemoProcess(processes: ProcessData[]): ProcessData[] {
-  const base = processes.some(isSpanLayer) ? processes : [spanLayerDemoProcess, ...processes];
-  const existing = new Set(base.map((p) => p.name.toLowerCase()));
+  const spanLayer = processes.find(isSpanLayer) || spanLayerDemoProcess;
+  
+  // Encontra ou recupera o processo de Cadastro de Conta Bancária
+  const cadastroOriginal = processes.find(isCadastroContaBancaria) || 
+    (initialProcesses.find(p => p.id === "proc-cadastro-conta-bancaria") as ProcessData);
+  
+  // No load inicial (F5 / abertura), força como NÃO gerado. Se já foi gerado na sessão atual, preserva!
+  const shouldReset = !initialDemoResetDone;
+  initialDemoResetDone = true;
+
+  const cadastroProcess: ProcessData = {
+    ...cadastroOriginal,
+    id: "proc-cadastro-conta-bancaria",
+    name: "Cadastro de Conta Bancária",
+    hasDocumentation: shouldReset ? false : (cadastroOriginal.hasDocumentation ?? false),
+    documentationStatus: shouldReset ? 'pending' : (cadastroOriginal.documentationStatus ?? 'pending'),
+  };
+
+  const others = processes.filter((p) => !isSpanLayer(p) && !isCadastroContaBancaria(p));
+  const existing = new Set([
+    spanLayer.name.toLowerCase(),
+    cadastroProcess.name.toLowerCase(),
+    ...others.map((p) => p.name.toLowerCase()),
+  ]);
+
   const initialMissing = initialProcesses
     .filter((p) => !existing.has(p.name.toLowerCase()))
     .map((p, idx) => ({
       ...p,
       id: p.id || `init-${idx}`,
-      documentationStatus: p.documentationStatus || 'generated',
+      documentationStatus: p.documentationStatus || 'pending',
     } as ProcessData));
+
   const eduMissing = EDUCATION_DEMO_PROCESSES.filter((p) => !existing.has(p.name.toLowerCase()));
-  return [...base, ...initialMissing, ...eduMissing];
+
+  // 1º Span & Layer, 2º Cadastro de Conta Bancária (sempre não gerado ao recarregar a página)
+  return [spanLayer, cadastroProcess, ...others, ...initialMissing, ...eduMissing];
 }
 
 
@@ -752,6 +784,9 @@ export const useProcessStore = create<ProcessStore>()((set, get) => ({
   },
 
   updateProcessDocumentation: async (id, status) => {
+    // Garante que durante a sessão atual o processo de demonstração não seja resetado
+    initialDemoResetDone = true;
+
     set((state) => ({
       processes: state.processes.map(p =>
         p.id === id
@@ -760,17 +795,20 @@ export const useProcessStore = create<ProcessStore>()((set, get) => ({
       )
     }));
 
-    const { error } = await supabase
-      .from('processes')
-      .update({
-        documentation_status: status,
-        has_documentation: status === 'generated',
-      })
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('processes')
+        .update({
+          documentation_status: status,
+          has_documentation: status === 'generated',
+        })
+        .eq('id', id);
 
-    if (error) {
-      console.error('Error updating documentation:', error);
-      get().fetchProcesses();
+      if (error) {
+        console.warn('Supabase documentation update (demo mode fallback):', error.message);
+      }
+    } catch (err) {
+      console.warn('Supabase update failed:', err);
     }
   },
 

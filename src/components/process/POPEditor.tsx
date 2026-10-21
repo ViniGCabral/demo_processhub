@@ -29,7 +29,7 @@ export function POPEditor({ hasPOP, processId = "1" }: POPEditorProps) {
   // Get the correct SOP data based on process ID
   const getSOP = useSopStore(state => state.getSOP);
   const currentSopData: SOPData = getSOP(processId) || { id: '', title: '', code: '', area: '', objective: '', steps: [] };
-  const [steps, setSteps] = useState(currentSopData.steps);
+  const [steps, setSteps] = useState(currentSopData?.steps || []);
 
   if (!showEditor) {
     return <POPEmptyState onUpload={() => setShowEditor(true)} onGenerate={() => setShowEditor(true)} />;
@@ -172,7 +172,7 @@ export function POPEditor({ hasPOP, processId = "1" }: POPEditorProps) {
                 </h3>
 
                 <div className="space-y-8">
-                  {steps.map((step, index) => (
+                  {(steps || []).map((step, index) => (
                     <div key={step.id} className="group">
                       <div className="flex gap-5">
                         {/* Step Number */}

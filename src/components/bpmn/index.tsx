@@ -314,7 +314,7 @@ export function BPMNEditor({ hasBPMN, hasPOP, isNewlyGenerated = false, popSteps
                         a.download = 'IT_Prepaid_Amortization_Process.bpmn';
                         document.body.appendChild(a);
                         a.click();
-                        document.body.removeChild(a);
+                        a.remove();
                         window.URL.revokeObjectURL(url);
                       });
                   }}

@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { 
   Upload, Sparkles, FileText, Check, Eye, Edit3, 
   Bold, Italic, Underline, List, ListOrdered, Link, Image, Plus, Trash2, 
   Download, Printer, MoreHorizontal, RefreshCw, Target, Shield, Clock, 
   Users, Monitor, ArrowRight, ArrowLeft, ChevronDown, ChevronUp, AlertTriangle, Loader2, GripVertical,
-  Repeat, Layers, BarChart3
+  Repeat, Layers, BarChart3, Building2, Scale, GitCompare
 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useProcessStore } from "@/stores/processStore";
+import { sopDataMap, sopDemoDefault } from "@/data/sopMockData";
 import { useSopStore, SOPData, SOPStep, SOPSubstep } from "@/stores/sopStore";
+import { useSopVariantsStore } from "@/stores/sopVariantsStore";
+import { POPComparisonView } from "./POPComparisonView";
+import { DocumentUploadFlow } from "@/components/onboarding/DocumentUploadFlow";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PublishDialog } from "./PublishDialog";
 import { ImageAlternatives } from "./ImageAlternatives";
 import { ImageAnnotator, AnnotatedImage, type Annotation } from "./ImageAnnotator";
@@ -56,7 +72,11 @@ interface POPEditorViewProps {
   hasPOP: boolean;
   processId?: string;
   processName?: string;
+  processArea?: string;
+  defaultBusinessUnit?: string;
   isNewlyGenerated?: boolean;
+  initialSubMode?: "as-is" | "comparison";
+  onNavigateToAsIsTab?: () => void;
 }
 
 interface Version {
@@ -85,32 +105,66 @@ const isSpanLayerDemo = (name?: string) => {
   return n.includes("span") && n.includes("layer");
 };
 
-export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGenerated = false }: POPEditorViewProps) {
+export function POPEditorView({
+  hasPOP,
+  processId = "1",
+  processName,
+  processArea,
+  defaultBusinessUnit,
+  isNewlyGenerated = false,
+  initialSubMode = "as-is",
+  onNavigateToAsIsTab,
+}: POPEditorViewProps) {
   const { t, language } = useLanguage();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const [showEditor, setShowEditor] = useState(hasPOP);
+  const [showEditor, setShowEditor] = useState(hasPOP || initialSubMode === "comparison");
   const [isEditMode, setIsEditMode] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({});
   const [annotationsMap, setAnnotationsMap] = useState<Record<string, Annotation[]>>({});
   const [annotatingSubstep, setAnnotatingSubstep] = useState<{ stepId: string; substepId: string; imageSrc: string } | null>(null);
-  
-  // Get the correct SOP data based on process ID
-  // DEMO MODE: For new processes (no explicit data), use IT Prepaid mock data
-  // For "Span & Layer" demo process, use the dedicated mock SOP
+  const [popSubMode, setPopSubMode] = useState<"as-is" | "comparison">(initialSubMode);
+  const [showAddVariantModal, setShowAddVariantModal] = useState(false);
+
+  // Variants store integration
+  const variantsByProcess = useSopVariantsStore((s) => s.variantsByProcess);
+  const activeVariantByProcess = useSopVariantsStore((s) => s.activeVariantByProcess);
+  const getVariantsForProcess = useSopVariantsStore((s) => s.getVariantsForProcess);
+  const setActiveVariant = useSopVariantsStore((s) => s.setActiveVariant);
+  const updateVariantSOP = useSopVariantsStore((s) => s.updateVariantSOP);
+
+  const variants = useMemo(
+    () => getVariantsForProcess(processId, processName, defaultBusinessUnit),
+    [variantsByProcess, processId, processName, defaultBusinessUnit, getVariantsForProcess]
+  );
+
+  const activeVariantId = activeVariantByProcess[processId] || variants[0]?.id || "";
+  const activeVariant = useMemo(
+    () => variants.find((v) => v.id === activeVariantId) || variants[0],
+    [variants, activeVariantId]
+  );
+
+  // Get the correct SOP data based on active variant or fallback store
   const getSOP = useSopStore(state => state.getSOP);
   const sopMap = useSopStore(state => state.sopMap);
   const upsertSOP = useSopStore(state => state.upsertSOP);
   const lookupId = isSpanLayerDemo(processName) ? "span-layer" : processId;
-  const currentSopData: SOPData = sopMap[processId] || getSOP(lookupId) || { id: '', title: '', code: '', area: '', objective: '', steps: [] };
+  const currentSopData: SOPData = activeVariant?.sopData || sopMap[processId] || getSOP(lookupId) || {
+    id: processId,
+    title: processName || '',
+    code: '',
+    area: processArea || '',
+    objective: '',
+    steps: [],
+  };
   
   // Editable state
   const [editableTitle, setEditableTitle] = useState(currentSopData.title);
   const [editableProcessId, setEditableProcessId] = useState(currentSopData.processId || "");
   const [editableObjective, setEditableObjective] = useState(currentSopData.objective);
-  const [editableSteps, setEditableSteps] = useState<SOPStep[]>(currentSopData.steps);
+  const [editableSteps, setEditableSteps] = useState<SOPStep[]>(() => currentSopData.steps || []);
 
   // Navigation / search
   const [search, setSearch] = useState("");
@@ -149,14 +203,14 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
   ]);
   const [selectedVersion, setSelectedVersion] = useState("v1");
 
-  // Reset data when processId changes
+  // Reset data when processId or activeVariant changes
   useEffect(() => {
     const targetId = isSpanLayerDemo(processName) ? "span-layer" : processId;
-    const newSopData = sopMap[processId] || getSOP(targetId) || { id: '', title: '', code: '', area: '', objective: '', steps: [] as SOPStep[], metadata: undefined };
+    const newSopData = activeVariant?.sopData || sopMap[processId] || getSOP(targetId) || { id: '', title: '', code: '', area: '', objective: '', steps: [] as SOPStep[], metadata: undefined };
     setEditableTitle(newSopData.title);
     setEditableProcessId(newSopData.processId || "");
     setEditableObjective(newSopData.objective);
-    setEditableSteps(newSopData.steps);
+    setEditableSteps(newSopData.steps || []);
     setEditableMetadata({
       soxControls: newSopData.metadata?.soxControls || "",
       sla: newSopData.metadata?.sla || "",
@@ -170,7 +224,7 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
       systems: newSopData.metadata?.systems?.join(", ") || "",
     });
     setHasUnsavedChanges(false);
-  }, [processId, processName]);
+  }, [processId, processName, activeVariant?.id]);
 
   // Deep-link from the process assistant: open, highlight and focus the cited SOP excerpt.
   useEffect(() => {
@@ -696,8 +750,8 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
       setSelectedVersion(newDraft.id);
     }
 
-    // Persist to database
-    await upsertSOP(processId, {
+    const updatedSopPayload: SOPData = {
+      id: currentSopData.id || processId,
       title: editableTitle,
       code: currentSopData.code,
       area: currentSopData.area,
@@ -720,15 +774,21 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
         inputsOutputs: currentSopData.metadata?.inputsOutputs,
       },
       steps: editableSteps,
+    };
 
-    });
+    if (activeVariant) {
+      updateVariantSOP(processId, activeVariant.id, updatedSopPayload);
+    }
+
+    // Persist to database
+    await upsertSOP(processId, updatedSopPayload);
     
     setHasUnsavedChanges(false);
     toast({
       title: language === "PT" ? "Rascunho salvo" : "Draft saved",
       description: language === "PT" 
-        ? "Suas alterações foram salvas no banco de dados."
-        : "Your changes have been saved to the database.",
+        ? "Suas alterações foram salvas no procedimento selecionado."
+        : "Your changes have been saved to the selected procedure.",
     });
   };
 
@@ -777,104 +837,157 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
   };
 
   // Calculate total substeps for progress
-  const totalSubsteps = editableSteps.reduce((acc, step) => acc + (step.substeps?.length || 0), 0);
+  const totalSubsteps = (editableSteps || []).reduce((acc, step) => acc + (step?.substeps?.length || 0), 0);
 
-  if (!showEditor) {
+  if (!showEditor && popSubMode !== "comparison") {
     return <POPEmptyState onUpload={() => setShowEditor(true)} onGenerate={() => setShowEditor(true)} />;
   }
 
   return (
-    <div className="fixed inset-0 top-[56px] left-[220px] flex animate-fade-in bg-surface-document z-10">
-      {/* Outline + Versions Panel */}
-      <SOPOutlinePanel
-        steps={editableSteps}
-        activeStepId={activeSection}
-        onSelectStep={handleSelectSection}
-        search={search}
-        onSearchChange={setSearch}
-        matches={searchMatches}
-        onSelectSubstep={handleSelectSubstep}
-        totalHits={totalHits}
-        currentHit={currentHit}
-        onNextHit={() => goToHit(1)}
-        onPrevHit={() => goToHit(-1)}
-        versionsSlot={
-          <div className="flex flex-col h-full">
-            <div className="space-y-2.5 flex-1">
-              {versions.map((version) => (
-                <button
-                  key={version.id}
-                  onClick={() => setSelectedVersion(version.id)}
-                  className={cn(
-                    "w-full text-left p-3.5 rounded-[10px] transition-all",
-                    selectedVersion === version.id
-                      ? "bg-card border-2 border-primary"
-                      : "bg-card border border-border hover:border-muted-foreground/40"
-                  )}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={cn(
-                      "text-[14px]",
-                      selectedVersion === version.id ? "font-semibold text-foreground" : "font-medium text-foreground"
-                    )}>
-                      {version.label}
-                    </span>
-                    {selectedVersion === version.id && (
-                      <Check className="h-4 w-4 text-primary" />
+    <div className="fixed inset-0 top-16 left-[312px] flex animate-fade-in bg-surface-document z-10">
+      {/* Outline + Versions Panel (shown only when viewing AS-IS POPs) */}
+      {popSubMode === "as-is" && (
+        <SOPOutlinePanel
+          steps={editableSteps}
+          activeStepId={activeSection}
+          onSelectStep={handleSelectSection}
+          search={search}
+          onSearchChange={setSearch}
+          matches={searchMatches}
+          onSelectSubstep={handleSelectSubstep}
+          totalHits={totalHits}
+          currentHit={currentHit}
+          onNextHit={() => goToHit(1)}
+          onPrevHit={() => goToHit(-1)}
+          versionsSlot={
+            <div className="flex flex-col h-full">
+              <div className="space-y-2.5 flex-1">
+                {versions.map((version) => (
+                  <button
+                    key={version.id}
+                    onClick={() => setSelectedVersion(version.id)}
+                    className={cn(
+                      "w-full text-left p-3.5 rounded-[10px] transition-all",
+                      selectedVersion === version.id
+                        ? "bg-card border-2 border-primary"
+                        : "bg-card border border-border hover:border-muted-foreground/40"
                     )}
-                  </div>
-                  <p className="text-[12px] text-muted-foreground mb-2">{version.date}</p>
-                  <span className={cn(
-                    "inline-flex text-[11px] font-medium px-2 py-0.5 rounded",
-                    getStatusBadgeStyles(version.status)
-                  )}>
-                    {getStatusLabel(version.status)}
-                  </span>
-                </button>
-              ))}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={cn(
+                        "text-[14px]",
+                        selectedVersion === version.id ? "font-semibold text-foreground" : "font-medium text-foreground"
+                      )}>
+                        {version.label}
+                      </span>
+                      {selectedVersion === version.id && (
+                        <Check className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                    <p className="text-[12px] text-muted-foreground mb-2">{version.date}</p>
+                    <span className={cn(
+                      "inline-flex text-[11px] font-medium px-2 py-0.5 rounded",
+                      getStatusBadgeStyles(version.status)
+                    )}>
+                      {getStatusLabel(version.status)}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
+          }
+        />
+      )}
 
-            <div className="pt-4 border-t border-border mt-4">
-              <button className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-primary transition-colors">
-                <RefreshCw className="h-4 w-4" />
-                {language === "PT" ? "Comparar versões" : "Compare versions"}
+      {/* Document / Comparison Area */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {popSubMode === "comparison" ? (
+          <div className="flex-1 overflow-y-auto bg-slate-50/50 p-6 sm:p-8">
+            <POPComparisonView
+              processId={processId}
+              processName={processName}
+              processArea={processArea}
+              defaultBusinessUnit={defaultBusinessUnit}
+              onSwitchToAsIsVariant={(variantId) => {
+                setActiveVariant(processId, variantId);
+                if (onNavigateToAsIsTab) {
+                  onNavigateToAsIsTab();
+                } else {
+                  setPopSubMode("as-is");
+                }
+              }}
+              onOpenAddVariantModal={() => setShowAddVariantModal(true)}
+            />
+          </div>
+        ) : (
+          <>
+        {/* Top Toolbar */}
+        <div className="sticky top-0 z-10 bg-card border-b border-border px-8 py-3 flex items-center justify-between gap-4">
+          {/* Left side - View/Edit Toggle + Variant Select Dropdown + (+ Nova Variante only in Edit mode) */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="inline-flex border border-border rounded-lg overflow-hidden">
+              <button
+                onClick={() => setIsEditMode(false)}
+                className={cn(
+                  "flex items-center gap-1.5 px-4 py-2 text-[13px] transition-colors",
+                  !isEditMode 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-card text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Eye className="h-4 w-4" />
+                {language === "PT" ? "Visualizar" : "View"}
+              </button>
+              <button
+                onClick={() => setIsEditMode(true)}
+                className={cn(
+                  "flex items-center gap-1.5 px-4 py-2 text-[13px] transition-colors",
+                  isEditMode 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-card text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Edit3 className="h-4 w-4" />
+                {language === "PT" ? "Editar" : "Edit"}
               </button>
             </div>
-          </div>
-        }
-      />
 
+            {/* Dropdown list to switch between POP variants */}
+            <Select
+              value={activeVariant?.id || ""}
+              onValueChange={(val) => setActiveVariant(processId, val)}
+            >
+              <SelectTrigger className="h-9 min-w-[220px] max-w-[300px] bg-card border-border text-[13px] font-medium">
+                <div className="flex items-center gap-2 truncate">
+                  <Building2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <SelectValue placeholder={language === "PT" ? "Selecionar procedimento" : "Select procedure"} />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {variants.map((variant) => (
+                  <SelectItem key={variant.id} value={variant.id} className="text-[13px]">
+                    <span className="font-medium">{variant.name}</span>
+                    {variant.businessUnit && variant.businessUnit !== variant.name && (
+                      <span className="text-muted-foreground ml-1.5 text-xs">
+                        ({variant.businessUnit})
+                      </span>
+                    )}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-      {/* Document Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Top Toolbar */}
-        <div className="sticky top-0 z-10 bg-card border-b border-border px-8 py-3 flex items-center justify-between">
-          {/* Left side - Toggle */}
-          <div className="inline-flex border border-border rounded-lg overflow-hidden">
-            <button
-              onClick={() => setIsEditMode(false)}
-              className={cn(
-                "flex items-center gap-1.5 px-4 py-2 text-[13px] transition-colors",
-                !isEditMode 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-card text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Eye className="h-4 w-4" />
-              {language === "PT" ? "Visualizar" : "View"}
-            </button>
-            <button
-              onClick={() => setIsEditMode(true)}
-              className={cn(
-                "flex items-center gap-1.5 px-4 py-2 text-[13px] transition-colors",
-                isEditMode 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-card text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Edit3 className="h-4 w-4" />
-              {language === "PT" ? "Editar" : "Edit"}
-            </button>
+            {/* + Nova Variante button ONLY visible in Edit mode */}
+            {isEditMode && (
+              <button
+                type="button"
+                onClick={() => setShowAddVariantModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold border border-dashed border-primary/40 text-primary bg-primary/5 hover:bg-primary/10 transition-colors shrink-0"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {language === "PT" ? "Nova Variante" : "New Variant"}
+              </button>
+            )}
           </div>
 
           {/* Right side - Actions */}
@@ -1108,7 +1221,7 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
                     </div>
                   </div>
 
-                  {/* Controles SoX e Políticas */}
+                  {/* Controles SoX */}
                   <div className="flex gap-3 items-start">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                       <Shield className="h-4 w-4 text-primary" />
@@ -1373,7 +1486,7 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
                 </div>
 
                 {/* Inputs/Outputs Section */}
-                {currentSopData.metadata.inputsOutputs && (
+                {currentSopData?.metadata?.inputsOutputs && (
                   <div className="mt-6 pt-6 border-t border-border/50">
                     <h4 className="text-[14px] font-semibold text-[#272727] mb-4">
                       {language === "PT" ? "Entradas e Saídas" : "Inputs & Outputs"}
@@ -1394,7 +1507,7 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
                       </div>
                       
                       {/* Input Rows */}
-                      {currentSopData.metadata.inputsOutputs.inputs.map((input, idx) => (
+                      {(currentSopData.metadata.inputsOutputs.inputs || []).map((input, idx) => (
                         <div key={`input-${idx}`} className="grid grid-cols-3 border-b border-border last:border-b-0">
                           <div className="px-4 py-3 flex items-center gap-2">
                             <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-primary/10 text-primary text-[12px] font-medium rounded">
@@ -1412,7 +1525,7 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
                       ))}
                       
                       {/* Output Rows */}
-                      {currentSopData.metadata.inputsOutputs.outputs.map((output, idx) => (
+                      {(currentSopData.metadata.inputsOutputs.outputs || []).map((output, idx) => (
                         <div key={`output-${idx}`} className="grid grid-cols-3 border-b border-border last:border-b-0">
                           <div className="px-4 py-3 flex items-center gap-2">
                             <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-success/10 text-success text-[12px] font-medium rounded">
@@ -1757,7 +1870,30 @@ export function POPEditorView({ hasPOP, processId = "1", processName, isNewlyGen
             )}
           </div>
         </div>
+          </>
+        )}
       </div>
+
+      {/* Add Variant Modal */}
+      <Dialog open={showAddVariantModal} onOpenChange={setShowAddVariantModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+          <DocumentUploadFlow
+            mode="add-variant"
+            processId={processId}
+            initialName={processName}
+            initialArea={processArea}
+            initialBusinessUnit={defaultBusinessUnit}
+            onComplete={(opts) => {
+              setShowAddVariantModal(false);
+              if (opts?.openComparison) {
+                setPopSubMode("comparison");
+              } else {
+                setPopSubMode("as-is");
+              }
+            }}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Image Annotator Dialog */}
       {annotatingSubstep && (

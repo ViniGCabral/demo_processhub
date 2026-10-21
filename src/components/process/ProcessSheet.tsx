@@ -28,6 +28,7 @@ interface SheetProcess {
   id?: string;
   name: string;
   area: string;
+  businessUnit?: string;
   description: string;
   executor?: string;
   approver?: string;
@@ -68,7 +69,7 @@ export function ProcessSheet({ process }: { process: SheetProcess }) {
 
   const extra = isProduzirOriginais
     ? {
-        bu: "Somos",
+        bu: process.businessUnit || "Somos",
         l1: process.l1 || "Editorial",
         l2: process.l2 || "Jornada de Construção do Produto",
         l3: process.l3 || "Planejar ciclo de produção de conteúdo",
@@ -88,7 +89,7 @@ export function ProcessSheet({ process }: { process: SheetProcess }) {
     : demo
 
     ? {
-        bu: "Corporate Functions — People & Organization",
+        bu: process.businessUnit || "Corporate Functions — People & Organization",
         l1: process.l1 || "Gestão de Pessoas (H2R)",
         l2: process.l2 || "Organizational Design",
         l3: process.l3 || "Análise de Estrutura Organizacional",
@@ -106,7 +107,7 @@ export function ProcessSheet({ process }: { process: SheetProcess }) {
           : "Highly dependent on manual handling of Workday data. Prioritized in the transformation pipeline for automation and a dynamic dashboard.",
       }
     : {
-        bu: process.area || "—",
+        bu: process.businessUnit || process.area || "—",
         l1: process.l1 || "—",
         l2: process.l2 || "—",
         l3: process.l3 || "—",

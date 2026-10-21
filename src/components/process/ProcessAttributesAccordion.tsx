@@ -50,6 +50,7 @@ import { useProcessStore } from "@/stores/processStore";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { BusinessUnitField } from "@/components/architecture/modals/hierarchyFields";
 
 type OptionType = 'area' | 'l1' | 'l2' | 'l3' | 'l4';
 
@@ -58,6 +59,7 @@ interface ProcessAttributesAccordionProps {
     id?: string;
     name: string;
     area: string;
+    businessUnit?: string;
     description: string;
     executor: string;
     approver: string;
@@ -113,6 +115,7 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
     name: process.name || "",
     description: process.description || "",
     area: process.area || "",
+    businessUnit: process.businessUnit || "",
 
     // Stakeholders
     executor: process.executor || "",
@@ -220,6 +223,7 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
       name: formData.name,
       description: formData.description,
       area: formData.area,
+      businessUnit: formData.businessUnit || undefined,
       executor: formData.executor,
       approver: formData.approver,
       frequency: formData.frequency,
@@ -744,6 +748,12 @@ export function ProcessAttributesAccordion({ process, onSave, onCancel, onDirtyC
                         </SelectContent>
                       </Select>
                     </div>
+                    <BusinessUnitField
+                      id="attr-process-bu"
+                      value={formData.businessUnit}
+                      onChange={(v) => updateField("businessUnit", v)}
+                      language={language}
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>

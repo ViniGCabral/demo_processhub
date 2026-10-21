@@ -1,4 +1,4 @@
-import { List, FileText, GitBranch, SlidersHorizontal, ArrowLeft, Check, Settings2, Database, BookOpen, Wand2, Wrench, Workflow, Layers, Sparkles, BarChart3, type LucideIcon } from "lucide-react";
+import { List, FileText, GitBranch, SlidersHorizontal, ArrowLeft, Check, Settings2, Database, BookOpen, Wand2, Wrench, Workflow, Layers, Sparkles, BarChart3, Scale, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -16,6 +16,7 @@ interface ProcessSidebarProps {
   toBeGenerated?: boolean;
   onOpenTransformPipeline?: () => void;
   customizationCount?: number;
+  popVariantsCount?: number;
 }
 
 interface SidebarItem {
@@ -24,6 +25,7 @@ interface SidebarItem {
   icon: LucideIcon;
   hasContent: boolean;
   count?: number;
+  children?: SidebarItem[];
 }
 
 export function ProcessSidebar({ 
@@ -40,10 +42,11 @@ export function ProcessSidebar({
   toBeGenerated = false,
   onOpenTransformPipeline,
   customizationCount = 0,
+  popVariantsCount = 0,
 }: ProcessSidebarProps) {
   const { language } = useLanguage();
 
-  const asIsGroups = [
+  const asIsGroups: { name: string; items: SidebarItem[] }[] = [
     {
       name: "",
       items: [
@@ -62,7 +65,21 @@ export function ProcessSidebar({
       name: language === "PT" ? "Processos & Documentação" : "Processes & Documentation",
       items: [
         { id: "bpmn", label: "BPMN", icon: GitBranch, hasContent: hasBPMN },
-        { id: "pop-sop", label: language === "PT" ? "POP" : "SOP", icon: FileText, hasContent: hasPOP },
+        {
+          id: "pop-sop",
+          label: language === "PT" ? "POP" : "SOP",
+          icon: FileText,
+          hasContent: hasPOP,
+          count: hasPOP && popVariantsCount > 1 ? popVariantsCount : undefined,
+          children: [
+            {
+              id: "pop-comparison",
+              label: language === "PT" ? "Comparativo POP" : "SOP Comparison",
+              icon: Scale,
+              hasContent: false,
+            },
+          ],
+        },
         { id: "process-attributes", label: language === "PT" ? "Atributos" : "Attributes", icon: Settings2, hasContent: false },
       ]
     },
@@ -76,7 +93,7 @@ export function ProcessSidebar({
     }
   ];
 
-  const toBeGroups = [
+  const toBeGroups: { name: string; items: SidebarItem[] }[] = [
     {
       name: "",
       items: [
@@ -120,30 +137,51 @@ export function ProcessSidebar({
               )}
               <div className="space-y-1">
                 {group.items.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => onTabChange(item.id)}
-                    className={cn(
-                      "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150",
-                      activeTab === item.id
-                        ? "bg-sidebar-accent text-primary border-l-[3px] border-primary pl-[9px]"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  <div key={item.id}>
+                    <button
+                      onClick={() => onTabChange(item.id)}
+                      className={cn(
+                        "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150",
+                        activeTab === item.id
+                          ? "bg-sidebar-accent text-primary border-l-[3px] border-primary pl-[9px]"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span className="flex-1 text-left">{item.label}</span>
+                      {typeof item.count === "number" && item.count > 0 && (
+                        <span className={cn(
+                          "min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-semibold",
+                          activeTab === item.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                        )}>
+                          {item.count}
+                        </span>
+                      )}
+                      {item.hasContent && (
+                        <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                      )}
+                    </button>
+
+                    {item.children && item.children.length > 0 && (
+                      <div className="ml-5 pl-2.5 border-l border-border/80 mt-0.5 space-y-0.5">
+                        {item.children.map((child) => (
+                          <button
+                            key={child.id}
+                            onClick={() => onTabChange(child.id)}
+                            className={cn(
+                              "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12.5px] font-medium transition-all duration-150",
+                              activeTab === child.id
+                                ? "bg-sidebar-accent text-primary font-semibold"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                            )}
+                          >
+                            <child.icon className="h-3.5 w-3.5 shrink-0" />
+                            <span className="flex-1 text-left truncate">{child.label}</span>
+                          </button>
+                        ))}
+                      </div>
                     )}
-                  >
-                    <item.icon className="h-4 w-4 shrink-0" />
-                    <span className="flex-1 text-left">{item.label}</span>
-                    {typeof item.count === "number" && item.count > 0 && (
-                      <span className={cn(
-                        "min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-semibold",
-                        activeTab === item.id ? "bg-primary text-primary-foreground" : "bg-violet-100 text-violet-700"
-                      )}>
-                        {item.count}
-                      </span>
-                    )}
-                    {item.hasContent && (
-                      <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
-                    )}
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>

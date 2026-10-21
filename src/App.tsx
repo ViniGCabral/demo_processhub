@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Login } from "./pages/Login";
 import { ResetPassword } from "./pages/ResetPassword";
 import { Dashboard } from "./pages/Dashboard";
@@ -15,7 +16,7 @@ import { Settings } from "./pages/Settings";
 import { ProcessArchitecture } from "./pages/ProcessArchitecture";
 import { UseCases } from "./pages/UseCases";
 import { SavedUseCases } from "./pages/SavedUseCases";
-import { OrgIntelligenceHub } from "./pages/OrgIntelligenceHub";
+import { OrgIntelligencePage } from "./pages/OrgIntelligencePage";
 import { ProcessAnalysis } from "./pages/ProcessAnalysis";
 import { DiscoverOpportunities } from "./pages/DiscoverOpportunities";
 import { TransformProcesses } from "./pages/TransformProcesses";
@@ -107,36 +108,39 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              {/* Rota pública dedicada para o cliente / demonstração Natura */}
-              <Route path="/demo_natura" element={<ProcessArchitecture onLogout={() => {}} isClientDemo />} />
-              <Route path="/processes/:id" element={<ProcessDetail onLogout={handleLogout} />} />
+            <ErrorBoundary>
+              <Routes>
+                {/* Rota pública dedicada para o cliente / demonstração Natura */}
+                <Route path="/demo_natura" element={<ProcessArchitecture onLogout={() => {}} isClientDemo />} />
+                <Route path="/processes/:id" element={<ProcessDetail onLogout={handleLogout} />} />
 
-              {!isAuthenticated ? (
-                <>
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="*" element={<Login />} />
-                </>
-              ) : (
-                <>
-                  <Route path="/" element={<Dashboard onLogout={handleLogout} />} />
-                  <Route path="/processes" element={<ProcessList onLogout={handleLogout} />} />
-                  <Route path="/processes/new" element={<NewProcess onLogout={handleLogout} />} />
-                  <Route path="/processes/:id/canvas" element={<ProcessCanvasPage onLogout={handleLogout} />} />
-                  <Route path="/architecture" element={<ProcessArchitecture onLogout={handleLogout} />} />
-                  <Route path="/use-cases" element={<UseCases onLogout={handleLogout} />} />
-                  <Route path="/saved-use-cases" element={<SavedUseCases onLogout={handleLogout} />} />
-                  <Route path="/process-analysis" element={<ProcessAnalysis onLogout={handleLogout} />} />
-                  <Route path="/org-intelligence-hub" element={<OrgIntelligenceHub onLogout={handleLogout} />} />
-                  <Route path="/org-intelligence-hub/discover" element={<DiscoverOpportunities onLogout={handleLogout} />} />
-                  <Route path="/org-intelligence-hub/transform" element={<TransformProcesses onLogout={handleLogout} />} />
-                  <Route path="/settings" element={<Settings onLogout={handleLogout} />} />
-                  <Route path="/normatives/*" element={<Normatives onLogout={handleLogout} />} />
-                  <Route path="/academy/*" element={<ProcessAcademy onLogout={handleLogout} />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </>
-              )}
-            </Routes>
+                {!isAuthenticated ? (
+                  <>
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="*" element={<Login />} />
+                  </>
+                ) : (
+                  <>
+                    <Route path="/" element={<Dashboard onLogout={handleLogout} />} />
+                    <Route path="/processes" element={<ProcessList onLogout={handleLogout} />} />
+                    <Route path="/processes/new" element={<NewProcess onLogout={handleLogout} />} />
+                    <Route path="/processes/:id/canvas" element={<ProcessCanvasPage onLogout={handleLogout} />} />
+                    <Route path="/architecture" element={<ProcessArchitecture onLogout={handleLogout} />} />
+                    <Route path="/use-cases" element={<UseCases onLogout={handleLogout} />} />
+                    <Route path="/saved-use-cases" element={<SavedUseCases onLogout={handleLogout} />} />
+                    <Route path="/process-analysis" element={<ProcessAnalysis onLogout={handleLogout} />} />
+                    <Route path="/org-intelligence" element={<OrgIntelligencePage onLogout={handleLogout} />} />
+                    <Route path="/org-intelligence-hub" element={<OrgIntelligencePage onLogout={handleLogout} />} />
+                    <Route path="/org-intelligence-hub/discover" element={<DiscoverOpportunities onLogout={handleLogout} />} />
+                    <Route path="/org-intelligence-hub/transform" element={<TransformProcesses onLogout={handleLogout} />} />
+                    <Route path="/settings" element={<Settings onLogout={handleLogout} />} />
+                    <Route path="/normatives/*" element={<Normatives onLogout={handleLogout} />} />
+                    <Route path="/academy/*" element={<ProcessAcademy onLogout={handleLogout} />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </>
+                )}
+              </Routes>
+            </ErrorBoundary>
           </BrowserRouter>
         </TooltipProvider>
       </LanguageProvider>

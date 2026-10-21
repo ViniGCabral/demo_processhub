@@ -2,10 +2,10 @@ import { ProcessAutomationDetailData } from "@/types/automationDetailTypes";
 
 export const specialHandlingAutomationData: ProcessAutomationDetailData = {
   processId: "special-handling",
-  processName: "Secondary Invoice Processing (P66)",
-  sopCode: "P66_L6DTP",
-  sopTitle: "Secondary Invoices and Rebill",
-  summaryText: "Evaluation dataset for Secondary Invoice Processing and Credit/Debit Rebill. End-to-end evaluation with 31 main operational steps extracted from the SOP.",
+  processName: "Cadastro de Conta Bancária",
+  sopCode: "FIN_BANK_01",
+  sopTitle: "Cadastro de Conta Bancária (House Bank)",
+  summaryText: "Dataset de avaliação para o processo de Cadastro de Conta Bancária e vínculo com G/L Account no SAP. Avaliação ponta a ponta com etapas operacionais extraídas do POP.",
   volumetrySummary: "31 main activities identified in the SOP, encompassing intake, SAP GUI routines, VIM, and manual approvals.",
   macroBlocks: [
     {

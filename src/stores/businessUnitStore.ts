@@ -8,7 +8,7 @@ interface BusinessUnitState {
   setUnits: (units: string[]) => void;
 }
 
-const DEFAULT_UNITS = ["SOMOS/Saber", "Red Ballon", "PROFS"];
+const DEFAULT_UNITS = ["Brasil", "México", "Argentina", "SOMOS/Saber", "Red Ballon", "PROFS"];
 
 export const useBusinessUnitStore = create<BusinessUnitState>()(
   persist(
@@ -31,7 +31,7 @@ export const useBusinessUnitStore = create<BusinessUnitState>()(
     }),
     {
       name: "business-units-storage",
-      version: 4,
+      version: 5,
       // Refresh the seeded example units for existing sessions.
       migrate: () => ({ units: DEFAULT_UNITS }) as Partial<BusinessUnitState>,
     }

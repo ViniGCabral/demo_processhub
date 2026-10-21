@@ -17,6 +17,7 @@ import {
   RefreshCw,
   LogOut,
   Zap,
+  BrainCircuit,
 } from "lucide-react";
 import contextusLogo from "@/assets/contextus-logo.png";
 import {
@@ -185,6 +186,18 @@ export function Dashboard({ onLogout }: DashboardProps) {
               <ShieldCheck className="h-5 w-5 text-slate-500 group-hover:text-slate-900 transition-colors" />
             </div>
             <span className="text-[10px] text-slate-500 group-hover:text-slate-900">Normativos</span>
+          </button>
+
+          {/* Org. Intelligence */}
+          <button
+            onClick={() => navigate("/org-intelligence")}
+            className="group flex flex-col items-center justify-center py-1 text-slate-500 hover:text-slate-900 transition-colors"
+            title="Org. Intelligence"
+          >
+            <div className="w-10 h-9 flex items-center justify-center">
+              <BrainCircuit className="h-5 w-5 text-slate-500 group-hover:text-slate-900 transition-colors" />
+            </div>
+            <span className="text-[10px] text-slate-500 group-hover:text-slate-900">Org. Intel</span>
           </button>
 
           {/* Pastas ONEDRIVE */}
@@ -360,8 +373,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
             </div>
           </div>
 
-          {/* 4. GRID DE 4 CARDS EM DESTAQUE */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+          {/* 4. GRID DE 5 CARDS EM DESTAQUE */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-10">
             {/* Card 1: Processos */}
             <div
               onClick={() => navigate("/processes")}
@@ -536,6 +549,53 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
               <div className="flex items-center justify-between text-xs font-semibold text-[#ea580c] pt-2">
                 <span>Acessar módulo</span>
+                <ArrowRight className="h-4 w-4 text-[#ea580c] transition-transform group-hover:translate-x-1" />
+              </div>
+            </div>
+
+            {/* Card 5: Org. Intelligence */}
+            <div
+              onClick={() => navigate("/org-intelligence")}
+              className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs hover:shadow-md hover:border-orange-200 transition-all cursor-pointer flex flex-col justify-between"
+            >
+              <div>
+                {/* Banner Ondulado Laranja/Pêssego */}
+                <div className="relative h-20 w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#ffedd5] via-[#fdecd5] to-[#fed7aa]/50 p-3.5">
+                  <svg
+                    className="pointer-events-none absolute inset-0 h-full w-full opacity-35"
+                    viewBox="0 0 300 80"
+                    preserveAspectRatio="none"
+                    fill="none"
+                  >
+                    <path
+                      d="M0 25 C70 5 130 45 200 20 C250 5 280 30 300 25 L300 80 L0 80 Z"
+                      fill="#ea580c"
+                      fillOpacity="0.18"
+                    />
+                    <path
+                      d="M0 45 C60 25 140 60 210 35 C260 15 285 45 300 40 L300 80 L0 80 Z"
+                      fill="#ea580c"
+                      fillOpacity="0.12"
+                    />
+                  </svg>
+                  <div className="relative z-10 flex items-center justify-between">
+                    <BrainCircuit className="h-6 w-6 text-[#ea580c]" strokeWidth={2.2} />
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#ea580c] text-white">
+                      Novo
+                    </span>
+                  </div>
+                </div>
+
+                <h3 className="text-base font-semibold text-slate-800 group-hover:text-[#ea580c] transition-colors mt-4">
+                  Org. Intelligence
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed mt-1.5 mb-6">
+                  Simule impactos de mudanças de diretrizes, consulte o comitê virtual de áreas e gerencie contextos.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between text-xs font-semibold text-[#ea580c] pt-2">
+                <span>Simular impactos</span>
                 <ArrowRight className="h-4 w-4 text-[#ea580c] transition-transform group-hover:translate-x-1" />
               </div>
             </div>
