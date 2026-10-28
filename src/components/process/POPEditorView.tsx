@@ -63,6 +63,7 @@ import {
   activeHitStepId,
 } from "@/lib/sopSearchHighlight";
 import { StepMicroAttributes } from "./StepMicroAttributes";
+import { DocAIEditSidebar, type POPEditProposal } from "./DocAIEditSidebar";
 import { useSearchParams } from "react-router-dom";
 
 import html2canvas from "html2canvas";
@@ -127,6 +128,13 @@ export function POPEditorView({
   const [annotatingSubstep, setAnnotatingSubstep] = useState<{ stepId: string; substepId: string; imageSrc: string } | null>(null);
   const [popSubMode, setPopSubMode] = useState<"as-is" | "comparison">(initialSubMode);
   const [showAddVariantModal, setShowAddVariantModal] = useState(false);
+  const [aiChatOpen, setAiChatOpen] = useState(true);
+  const [aiHighlightedTarget, setAiHighlightedTarget] = useState<{
+    stepId?: string;
+    substepId?: string;
+    metadataField?: string;
+  } | null>(null);
+  const [aiModifiedIds, setAiModifiedIds] = useState<Record<string, boolean>>({});
 
   // Variants store integration
   const variantsByProcess = useSopVariantsStore((s) => s.variantsByProcess);
@@ -730,6 +738,134 @@ export function POPEditorView({
     setHasUnsavedChanges(true);
   };
 
+  const handleFocusPOPTarget = (target: { stepId?: string; substepId?: string; metadataField?: string }) => {
+    setAiHighlightedTarget(target);
+    if (target.stepId && target.stepId !== "__header__") {
+      setActiveSection(target.stepId);
+      setExpandedSteps(prev => ({ ...prev, [target.stepId!]: true }));
+    } else if (target.metadataField) {
+      setActiveSection("__header__");
+    }
+
+    window.setTimeout(() => {
+      if (target.substepId) {
+        const subEl = scrollRef.current?.querySelector<HTMLElement>(`[data-substep-id="${target.substepId}"]`);
+        subEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else if (target.stepId && target.stepId !== "__header__") {
+        stepRefs.current[target.stepId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        headerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
+
+    window.setTimeout(() => {
+      setAiHighlightedTarget(prev => (prev === target ? null : prev));
+    }, 4500);
+  };
+
+  const handleApplyPOPProposal = (proposal: POPEditProposal, revert = false) => {
+    setHasUnsavedChanges(true);
+
+    if (proposal.kind === "update-metadata") {
+      const valueToSet = revert ? proposal.before : proposal.after;
+      if (proposal.field === "objective") {
+        setEditableObjective(valueToSet);
+      } else if (proposal.field === "title") {
+        setEditableTitle(valueToSet);
+      } else {
+        setEditableMetadata(prev => ({ ...prev, [proposal.field]: valueToSet }));
+      }
+      setAiModifiedIds(prev => ({ ...prev, [`meta-${proposal.field}`]: !revert }));
+      handleFocusPOPTarget({ metadataField: proposal.field });
+    } else if (proposal.kind === "update-step-title") {
+      const valueToSet = revert ? proposal.before : proposal.after;
+      setEditableSteps(prev =>
+        prev.map(s => (s.id === proposal.stepId ? { ...s, title: valueToSet } : s))
+      );
+      setAiModifiedIds(prev => ({ ...prev, [`step-${proposal.stepId}`]: !revert }));
+      handleFocusPOPTarget({ stepId: proposal.stepId });
+    } else if (proposal.kind === "update-substep") {
+      const valueToSet = revert ? proposal.before : proposal.after;
+      setEditableSteps(prev =>
+        prev.map(s =>
+          s.id === proposal.stepId
+            ? {
+                ...s,
+                substeps: s.substeps?.map(sub =>
+                  sub.id === proposal.substepId ? { ...sub, description: valueToSet } : sub
+                ),
+              }
+            : s
+        )
+      );
+      setAiModifiedIds(prev => ({ ...prev, [`substep-${proposal.substepId}`]: !revert }));
+      handleFocusPOPTarget({ stepId: proposal.stepId, substepId: proposal.substepId });
+    } else if (proposal.kind === "add-step") {
+      if (revert) {
+        setEditableSteps(prev => prev.filter(s => s.id !== proposal.newStep.id));
+      } else {
+        setEditableSteps(prev => [...prev, proposal.newStep]);
+        setExpandedSteps(prev => ({ ...prev, [proposal.newStep.id]: true }));
+        setAiModifiedIds(prev => ({ ...prev, [`step-${proposal.newStep.id}`]: true }));
+        window.setTimeout(() => {
+          handleFocusPOPTarget({ stepId: proposal.newStep.id });
+        }, 120);
+      }
+    } else if (proposal.kind === "add-substep") {
+      if (revert) {
+        setEditableSteps(prev =>
+          prev.map(s =>
+            s.id === proposal.stepId
+              ? { ...s, substeps: s.substeps?.filter(sub => sub.id !== proposal.newSubstep.id) }
+              : s
+          )
+        );
+      } else {
+        setEditableSteps(prev =>
+          prev.map(s =>
+            s.id === proposal.stepId
+              ? { ...s, substeps: [...(s.substeps || []), proposal.newSubstep] }
+              : s
+          )
+        );
+        setExpandedSteps(prev => ({ ...prev, [proposal.stepId]: true }));
+        setAiModifiedIds(prev => ({ ...prev, [`substep-${proposal.newSubstep.id}`]: true }));
+        window.setTimeout(() => {
+          handleFocusPOPTarget({ stepId: proposal.stepId, substepId: proposal.newSubstep.id });
+        }, 120);
+      }
+    } else if (proposal.kind === "remove-step") {
+      if (revert) {
+        setEditableSteps(prev => {
+          const next = [...prev];
+          next.splice(Math.min(proposal.stepNumber - 1, next.length), 0, proposal.removedStep);
+          return next;
+        });
+        setExpandedSteps(prev => ({ ...prev, [proposal.removedStep.id]: true }));
+        handleFocusPOPTarget({ stepId: proposal.removedStep.id });
+      } else {
+        setEditableSteps(prev => prev.filter(s => s.id !== proposal.stepId));
+      }
+    }
+
+    toast({
+      title: revert
+        ? language === "PT"
+          ? "Alteração desfeita"
+          : "Change reverted"
+        : language === "PT"
+          ? "Alteração aplicada pela IA"
+          : "AI change applied",
+      description: revert
+        ? language === "PT"
+          ? "O conteúdo anterior foi restaurado no POP."
+          : "The previous content was restored in the SOP."
+        : language === "PT"
+          ? "O POP foi atualizado. Lembre-se de salvar o rascunho ou publicar quando terminar."
+          : "The SOP has been updated. Remember to save draft or publish when done.",
+    });
+  };
+
   const handleSaveDraft = async () => {
     const existingDraft = versions.find(v => v.status === "Draft");
     
@@ -988,6 +1124,21 @@ export function POPEditorView({
                 {language === "PT" ? "Nova Variante" : "New Variant"}
               </button>
             )}
+
+            {/* Editar com IA button */}
+            <button
+              type="button"
+              onClick={() => setAiChatOpen(prev => !prev)}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-semibold border transition-all shrink-0",
+                aiChatOpen
+                  ? "bg-primary/10 border-primary/40 text-primary shadow-sm"
+                  : "bg-card border-border text-foreground hover:border-primary/40 hover:text-primary"
+              )}
+            >
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              {language === "PT" ? "Editar com IA" : "Edit with AI"}
+            </button>
           </div>
 
           {/* Right side - Actions */}
@@ -1199,14 +1350,26 @@ export function POPEditorView({
                 {/* All items stacked vertically */}
                 <div className="space-y-4">
                   {/* Objetivo */}
-                  <div className="flex gap-3 items-start">
+                  <div className={cn(
+                    "flex gap-3 items-start rounded-lg p-2 -mx-2 transition-all",
+                    aiHighlightedTarget?.metadataField === "objective" && "ring-2 ring-primary/50 bg-primary/5",
+                    aiModifiedIds["meta-objective"] && "bg-emerald-50/50"
+                  )}>
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                       <Target className="h-4 w-4 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-[14px] font-semibold text-[#272727] mb-1">
-                        {language === "PT" ? "Objetivo" : "Objective"}
-                      </h4>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-[14px] font-semibold text-[#272727]">
+                          {language === "PT" ? "Objetivo" : "Objective"}
+                        </h4>
+                        {aiModifiedIds["meta-objective"] && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700">
+                            <Sparkles className="h-2.5 w-2.5" />
+                            {language === "PT" ? "Editado por IA" : "Edited by AI"}
+                          </span>
+                        )}
+                      </div>
                       {isEditMode ? (
                         <Textarea
                           value={editableObjective}
@@ -1222,14 +1385,26 @@ export function POPEditorView({
                   </div>
 
                   {/* Controles SoX */}
-                  <div className="flex gap-3 items-start">
+                  <div className={cn(
+                    "flex gap-3 items-start rounded-lg p-2 -mx-2 transition-all",
+                    aiHighlightedTarget?.metadataField === "soxControls" && "ring-2 ring-primary/50 bg-primary/5",
+                    aiModifiedIds["meta-soxControls"] && "bg-emerald-50/50"
+                  )}>
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                       <Shield className="h-4 w-4 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-[14px] font-semibold text-[#272727] mb-1">
-                        {language === "PT" ? "Controles SoX e Políticas" : "SoX Controls & Policies"}
-                      </h4>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-[14px] font-semibold text-[#272727]">
+                          {language === "PT" ? "Controles SoX e Políticas" : "SoX Controls & Policies"}
+                        </h4>
+                        {aiModifiedIds["meta-soxControls"] && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700">
+                            <Sparkles className="h-2.5 w-2.5" />
+                            {language === "PT" ? "Editado por IA" : "Edited by AI"}
+                          </span>
+                        )}
+                      </div>
                       {isEditMode ? (
                         <Textarea
                           value={editableMetadata.soxControls}
@@ -1246,12 +1421,24 @@ export function POPEditorView({
                   </div>
 
                   {/* SLA */}
-                  <div className="flex gap-3 items-start">
+                  <div className={cn(
+                    "flex gap-3 items-start rounded-lg p-2 -mx-2 transition-all",
+                    aiHighlightedTarget?.metadataField === "sla" && "ring-2 ring-primary/50 bg-primary/5",
+                    aiModifiedIds["meta-sla"] && "bg-emerald-50/50"
+                  )}>
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                       <Clock className="h-4 w-4 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-[14px] font-semibold text-[#272727] mb-1">SLA</h4>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-[14px] font-semibold text-[#272727]">SLA</h4>
+                        {aiModifiedIds["meta-sla"] && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700">
+                            <Sparkles className="h-2.5 w-2.5" />
+                            {language === "PT" ? "Editado por IA" : "Edited by AI"}
+                          </span>
+                        )}
+                      </div>
                       {isEditMode ? (
                         <Input
                           value={editableMetadata.sla}
@@ -1583,8 +1770,10 @@ export function POPEditorView({
                         onOpenChange={() => toggleStep(step.id)}
                       >
                         <div className={cn(
-                          "bg-card border rounded-xl overflow-hidden transition-colors",
-                          activeSection === step.id ? "border-primary/60" : "border-border"
+                          "bg-card border rounded-xl overflow-hidden transition-all",
+                          activeSection === step.id ? "border-primary/60" : "border-border",
+                          aiHighlightedTarget?.stepId === step.id && !aiHighlightedTarget?.substepId && "ring-2 ring-primary/60 shadow-md",
+                          aiModifiedIds[`step-${step.id}`] && "border-emerald-500/50"
                         )}>
                     {/* Step Header with Blue Left Border */}
                     <div className="border-l-4 border-l-primary">
@@ -1608,7 +1797,15 @@ export function POPEditorView({
                                 className="text-[18px] font-semibold text-foreground border-none bg-transparent px-0 h-auto focus-visible:ring-1 focus-visible:ring-primary/30"
                               />
                             ) : (
-                              <h3 className="text-[18px] font-semibold text-[#272727]">{step.title}</h3>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="text-[18px] font-semibold text-[#272727]">{step.title}</h3>
+                                {aiModifiedIds[`step-${step.id}`] && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                                    <Sparkles className="h-2.5 w-2.5" />
+                                    {language === "PT" ? "Gerado/Editado por IA" : "AI Edited"}
+                                  </span>
+                                )}
+                              </div>
                             )}
                             {!isEditMode && (
                               <StepMicroAttributes step={step} isEditMode={false} onChange={() => {}} />
@@ -1664,10 +1861,12 @@ export function POPEditorView({
                                   <div 
                                     data-substep-id={substep.id}
                                     className={cn(
-                                      "rounded-lg p-4 group/substep pl-8 scroll-mt-6",
+                                      "rounded-lg p-4 group/substep pl-8 scroll-mt-6 transition-all",
                                       substep.isConditional 
                                         ? "bg-[#FEF3C7] border-l-[3px] border-l-[#F59E0B]" 
-                                        : "bg-surface-subtle"
+                                        : "bg-surface-subtle",
+                                      aiHighlightedTarget?.substepId === substep.id && "ring-2 ring-primary/60 bg-primary/5",
+                                      aiModifiedIds[`substep-${substep.id}`] && "border border-emerald-500/40 bg-emerald-50/40"
                                     )}
                                   >
                               {/* Substep Header */}
@@ -1873,6 +2072,22 @@ export function POPEditorView({
           </>
         )}
       </div>
+
+      {/* Right-side AI Edit Copilot Sidebar */}
+      {popSubMode === "as-is" && (
+        <DocAIEditSidebar
+          mode="pop"
+          open={aiChatOpen}
+          onToggle={() => setAiChatOpen(prev => !prev)}
+          processName={editableTitle || processName}
+          popTitle={editableTitle}
+          popObjective={editableObjective}
+          popMetadata={editableMetadata}
+          popSteps={editableSteps}
+          onApplyPOPProposal={handleApplyPOPProposal}
+          onFocusPOPTarget={handleFocusPOPTarget}
+        />
+      )}
 
       {/* Add Variant Modal */}
       <Dialog open={showAddVariantModal} onOpenChange={setShowAddVariantModal}>
