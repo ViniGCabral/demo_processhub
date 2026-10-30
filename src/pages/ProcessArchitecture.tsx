@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import {
   ChevronLeft, Layers, Network, Home, Share2, Activity,
@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { ValueChainOnboarding } from "@/components/architecture/ValueChainOnboarding";
 import { ArchitectureCanvas } from "@/components/architecture/ArchitectureCanvas";
 import { ArchitectureHeader } from "@/components/architecture/ArchitectureHeader";
+import { ArchitectureAIChatDrawer, AI_DRAWER_WIDTH } from "@/components/architecture/ArchitectureAIChatDrawer";
 import {
   useValueChainStore,
   generateAIValueChainForCompany,
@@ -34,6 +35,16 @@ export function ProcessArchitecture({ onLogout, isClientDemo }: ProcessArchitect
   const [searchParams, setSearchParams] = useSearchParams();
   const { language, setLanguage } = useLanguage();
   const pt = language === "PT";
+  const [aiOpen, setAiOpen] = useState(false);
+  // Em telas largas o painel empurra o conteúdo (nada fica coberto); em telas estreitas sobrepõe.
+  const [isWide, setIsWide] = useState(
+    typeof window !== "undefined" ? window.innerWidth >= 1100 : true
+  );
+  useEffect(() => {
+    const onResize = () => setIsWide(window.innerWidth >= 1100);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const { l1Processes, isFirstAccess, setFirstAccessComplete, setL1Processes } =
     useValueChainStore();
 
@@ -215,7 +226,10 @@ export function ProcessArchitecture({ onLogout, isClientDemo }: ProcessArchitect
       </aside>
 
       {/* ÁREA PRINCIPAL COM HEADER E CONTEÚDO */}
-      <div className="ml-[72px] flex flex-col min-h-screen w-[calc(100%-72px)]">
+      <div
+        className="ml-[72px] flex flex-col min-h-screen w-[calc(100%-72px)] transition-[padding] duration-200 ease-out"
+        style={{ paddingRight: aiOpen && isWide ? AI_DRAWER_WIDTH : 0 }}
+      >
         {/* CABEÇALHO SUPERIOR */}
         <header className="h-16 bg-white border-b border-[#e5e7eb] px-8 flex items-center justify-between sticky top-0 z-20">
           {/* Esquerda: Logo + Base de Conhecimento + Idioma */}
@@ -343,6 +357,9 @@ export function ProcessArchitecture({ onLogout, isClientDemo }: ProcessArchitect
           </div>
         </main>
       </div>
+
+      {/* ── ASSISTENTE IA FLUTUANTE (GAVETA ELO IA) ─────────────── */}
+      <ArchitectureAIChatDrawer open={aiOpen} onOpenChange={setAiOpen} />
     </div>
   );
 }

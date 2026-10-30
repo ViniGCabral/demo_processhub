@@ -35,10 +35,10 @@ export function MacroBlockStepsTable({
           <thead className="bg-muted/40 border-b border-border text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
             <tr>
               <th className="px-3 py-3 w-16 shrink-0 text-center">Step</th>
-              <th className="px-4 py-3 min-w-[280px]">Step Title</th>
-              <th className="px-3 py-3 w-36 shrink-0 text-center">Classification(s)</th>
-              <th className="px-4 py-3 min-w-[200px]">Technological Solution</th>
-              <th className="px-4 py-3 w-32 shrink-0 text-center">Effort</th>
+              <th className="px-4 py-3 min-w-[280px]">Título do Step</th>
+              <th className="px-3 py-3 w-36 shrink-0 text-center">Classificação(ões)</th>
+              <th className="px-4 py-3 min-w-[200px]">Solução Tecnológica</th>
+              <th className="px-4 py-3 w-32 shrink-0 text-center">Esforço</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">

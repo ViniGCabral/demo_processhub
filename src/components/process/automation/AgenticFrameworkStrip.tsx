@@ -13,13 +13,16 @@ import { ArrowRight } from "lucide-react";
 const TECH_TYPE_STYLES: Record<string, { bg: string; border: string; text: string; badge: string; badgeBorder: string; badgeText: string }> = {
   rpa:                  { bg: "bg-blue-50",    border: "border-blue-200",   text: "text-blue-900",   badge: "bg-blue-100",   badgeBorder: "border-blue-200",   badgeText: "text-blue-800" },
   workflow:             { bg: "bg-emerald-50", border: "border-emerald-200",text: "text-emerald-900",badge: "bg-emerald-100",badgeBorder: "border-emerald-200",badgeText: "text-emerald-800" },
+  workflows:            { bg: "bg-emerald-50", border: "border-emerald-200",text: "text-emerald-900",badge: "bg-emerald-100",badgeBorder: "border-emerald-200",badgeText: "text-emerald-800" },
   agentes:              { bg: "bg-violet-50",  border: "border-violet-200", text: "text-violet-900", badge: "bg-violet-100", badgeBorder: "border-violet-200", badgeText: "text-violet-800" },
   "ia / agente":        { bg: "bg-violet-50",  border: "border-violet-200", text: "text-violet-900", badge: "bg-violet-100", badgeBorder: "border-violet-200", badgeText: "text-violet-800" },
   "motor de regras":    { bg: "bg-amber-50",   border: "border-amber-200",  text: "text-amber-900",  badge: "bg-amber-100",  badgeBorder: "border-amber-200",  badgeText: "text-amber-800" },
   "motores de regras":  { bg: "bg-amber-50",   border: "border-amber-200",  text: "text-amber-900",  badge: "bg-amber-100",  badgeBorder: "border-amber-200",  badgeText: "text-amber-800" },
   analytics:            { bg: "bg-cyan-50",    border: "border-cyan-200",   text: "text-cyan-900",   badge: "bg-cyan-100",   badgeBorder: "border-cyan-200",   badgeText: "text-cyan-800" },
-  integrations:          { bg: "bg-indigo-50",  border: "border-indigo-200", text: "text-indigo-900", badge: "bg-indigo-100", badgeBorder: "border-indigo-200", badgeText: "text-indigo-800" },
-  "spreadsheet automation": { bg: "bg-lime-50", border: "border-lime-200",  text: "text-lime-900",  badge: "bg-lime-100",  badgeBorder: "border-lime-200",  badgeText: "text-lime-800" },
+  "analytics / monitoramento": { bg: "bg-cyan-50", border: "border-cyan-200", text: "text-cyan-900", badge: "bg-cyan-100", badgeBorder: "border-cyan-200", badgeText: "text-cyan-800" },
+  integrações:          { bg: "bg-indigo-50",  border: "border-indigo-200", text: "text-indigo-900", badge: "bg-indigo-100", badgeBorder: "border-indigo-200", badgeText: "text-indigo-800" },
+  "automação de planilha": { bg: "bg-lime-50", border: "border-lime-200",  text: "text-lime-900",  badge: "bg-lime-100",  badgeBorder: "border-lime-200",  badgeText: "text-lime-800" },
+  "rpa / planilha":     { bg: "bg-lime-50",    border: "border-lime-200",  text: "text-lime-900",  badge: "bg-lime-100",  badgeBorder: "border-lime-200",  badgeText: "text-lime-800" },
 };
 
 function getTechStyle(techType: string) {
@@ -79,10 +82,10 @@ export function AgenticFrameworkStrip({
   return (
     <div className="relative w-full border-2 border-dashed border-[#8A96A9]/40 rounded-2xl p-4 sm:p-6 bg-slate-50/30 overflow-hidden">
       <div className="absolute top-2 left-3 text-[10px] font-bold text-[#8A96A9] uppercase tracking-wider bg-transparent">
-        The agentic flow
+        Fluxo agêntico
       </div>
       <div className="absolute top-2 right-3 text-[10px] italic text-[#8A96A9] bg-transparent">
-        Looping engineer: the next case starts smarter and cheaper
+        Engenharia de retroalimentação: o próximo caso começa mais inteligente e mais econômico
       </div>
 
       <div className="w-full flex flex-col gap-4 sm:gap-6 mt-6">
@@ -93,7 +96,7 @@ export function AgenticFrameworkStrip({
             <ArrowRight className="h-4 w-4 text-slate-400 ml-1 shrink-0" />
           </div>
           <div className="z-10 bg-slate-100 px-4 text-sm font-semibold text-slate-700 flex flex-col items-center">
-            Human-in-the-loop layer
+            Camada Human-in-the-loop
             <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
               {humanControls.map((hc, idx) => (
                 <span key={idx} className="text-[9px] sm:text-[10px] px-2 py-1 bg-white border border-slate-200 rounded-full shadow-2xs font-medium text-slate-600 truncate max-w-full">
@@ -107,22 +110,22 @@ export function AgenticFrameworkStrip({
         {/* 2. Digital Agent Layer */}
         <div className="bg-slate-100 rounded-xl p-4 border border-slate-200 mt-2 relative">
           <div className="absolute -top-3 bg-slate-100 px-2 left-1/2 -translate-x-1/2 text-xs font-bold text-slate-600">
-            Digital agents layer
+            Camada de agentes digitais
           </div>
 
           <div className="flex flex-col gap-3 pt-3">
             {/* Transversal Bars (Orchestrator and MCP) */}
             <div className="flex flex-col gap-2 w-full">
               <div className="w-full bg-white border border-blue-200 rounded-lg p-2.5 flex items-center justify-center shadow-xs">
-                <span className="font-bold text-xs text-blue-800">{digitalLayers?.orchestrator?.name || "Orchestrator Agent"}</span>
+                <span className="font-bold text-xs text-blue-800">{digitalLayers?.orchestrator?.name || "Agente Orquestrador"}</span>
                 <span className="hidden xl:inline-block ml-2 bg-blue-50 text-blue-700 text-[9px] sm:text-[10px] font-medium px-2 py-0.5 rounded-full border border-blue-100 truncate">
-                  Transversal Orchestrator
+                  Orquestrador Transversal
                 </span>
               </div>
               <div className="w-full bg-white border border-indigo-200 rounded-lg p-2.5 flex items-center justify-center shadow-xs">
-                <span className="font-bold text-xs text-indigo-800">{digitalLayers?.integrationLayer?.name || "MCP / Integration Layer"}</span>
+                <span className="font-bold text-xs text-indigo-800">{digitalLayers?.integrationLayer?.name || "MCP / Camada de Integração"}</span>
                 <span className="hidden xl:inline-block ml-2 bg-indigo-50 text-indigo-700 text-[9px] sm:text-[10px] font-medium px-2 py-0.5 rounded-full border border-indigo-100 truncate">
-                  Transversal Integration
+                  Integração Transversal
                 </span>
               </div>
             </div>
@@ -165,7 +168,7 @@ export function AgenticFrameworkStrip({
 
               {stepsByTechType.length === 0 && (
                 <div className="col-span-full text-center text-xs text-muted-foreground py-4">
-                  No technological solution identified in steps.
+                  Nenhuma solução tecnológica identificada nos steps.
                 </div>
               )}
             </div>

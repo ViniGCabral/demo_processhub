@@ -69,9 +69,37 @@ export interface L1Process {
   l2Processes: L2Process[];
 }
 
+export interface NodeScopeOverrides {
+  name?: string;
+  description?: string;
+  objective?: string;
+  valueProposition?: string;
+  scopeBoundary?: string;
+  startCondition?: string;
+  endCondition?: string;
+  inputs?: string;
+  outputs?: string;
+  stakeholders?: string;
+  responsible?: string;
+  businessUnit?: string;
+  validationPercent?: number;
+  lastUpdate?: string;
+  systems?: string[];
+  painPoints?: string[];
+  indicators?: Array<{
+    name: string;
+    currentValue: string;
+    target: string;
+    unit?: string;
+    status?: "dentro_da_meta" | "atencao" | "critico" | "sem_dados";
+  }>;
+}
+
 interface ValueChainState {
   l1Processes: L1Process[];
   isFirstAccess: boolean;
+  nodeOverrides: Record<string, NodeScopeOverrides>;
+  setNodeOverrides: (nodeId: string, data: Partial<NodeScopeOverrides>) => void;
   setFirstAccessComplete: () => void;
   // L1 operations
   addL1: (l1: Omit<L1Process, "id" | "name" | "l2Processes">) => void;
@@ -116,6 +144,19 @@ export const useValueChainStore = create<ValueChainState>()(
     (set, get) => ({
       l1Processes: initialL1Processes,
       isFirstAccess: false,
+      nodeOverrides: {},
+
+      setNodeOverrides: (nodeId, data) =>
+        set((state) => ({
+          nodeOverrides: {
+            ...state.nodeOverrides,
+            [nodeId]: {
+              ...(state.nodeOverrides[nodeId] || {}),
+              ...data,
+              lastUpdate: data.lastUpdate || "Agora via Elo IA",
+            },
+          },
+        })),
 
       setFirstAccessComplete: () =>
         set({ isFirstAccess: false }),

@@ -80,7 +80,7 @@ export function getCategoryMeta(category: string) {
       };
     case "Integrações":
       return {
-        label: "Integrations",
+        label: "Integrações",
         icon: ArrowLeftRight,
         color: "text-indigo-700 bg-indigo-50 border-indigo-200",
         badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200",
@@ -89,7 +89,7 @@ export function getCategoryMeta(category: string) {
       };
     case "Motores de regras":
       return {
-        label: "Rule engines",
+        label: "Motores de regras",
         icon: Sliders,
         color: "text-rose-700 bg-rose-50 border-rose-200",
         badgeColor: "bg-rose-100 text-rose-800 border-rose-200",
@@ -98,7 +98,7 @@ export function getCategoryMeta(category: string) {
       };
     case "Automação de planilha":
       return {
-        label: "Spreadsheet automation",
+        label: "Automação de planilha",
         icon: FileSpreadsheet,
         color: "text-emerald-700 bg-emerald-50 border-emerald-200",
         badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -108,7 +108,7 @@ export function getCategoryMeta(category: string) {
     case "Humano":
     default:
       return {
-        label: "Human",
+        label: "Humano",
         icon: UserCheck,
         color: "text-teal-700 bg-teal-50 border-teal-200",
         badgeColor: "bg-teal-100 text-teal-800 border-teal-200",
@@ -1168,8 +1168,6 @@ export function getProcessAutomationDetail(
     // Para esta demonstração de framework agêntico, forçamos o uso do novo dataset (P66_L6DTP)
     result = { 
       ...specialHandlingAutomationData,
-      processName: processName || "Cadastro de Conta Bancária",
-      sopTitle: "Cadastro de Conta Bancária (House Bank)",
       solutions: specialHandlingAutomationData.solutions?.length ? specialHandlingAutomationData.solutions : CANONICAL_DEMO_SOLUTIONS.map((s) => ({ ...s })),
       digitalLayers: specialHandlingAutomationData.digitalLayers || DIGITAL_LAYERS_DEMO,
       humanControls: specialHandlingAutomationData.humanControls?.length ? specialHandlingAutomationData.humanControls : HUMAN_CONTROLS_DEMO,
@@ -1270,17 +1268,17 @@ export function getProcessAutomationDetail(
 export function getEffortBadgeInfo(level?: EffortLevel) {
   switch (level) {
     case "very_high":
-      return { label: "Very High", dots: 5, color: "text-red-700 bg-red-50 border-red-200" };
+      return { label: "Muito Alto", dots: 5, color: "text-red-700 bg-red-50 border-red-200" };
     case "high":
-      return { label: "High", dots: 4, color: "text-amber-700 bg-amber-50 border-amber-200" };
+      return { label: "Alto", dots: 4, color: "text-amber-700 bg-amber-50 border-amber-200" };
     case "medium":
-      return { label: "Medium", dots: 3, color: "text-yellow-700 bg-yellow-50 border-yellow-200" };
+      return { label: "Médio", dots: 3, color: "text-yellow-700 bg-yellow-50 border-yellow-200" };
     case "low":
-      return { label: "Low", dots: 2, color: "text-emerald-700 bg-emerald-50 border-emerald-200" };
+      return { label: "Baixo", dots: 2, color: "text-emerald-700 bg-emerald-50 border-emerald-200" };
     case "not_applicable":
-      return { label: "Not applicable", dots: 0, color: "text-slate-600 bg-slate-100 border-slate-200" };
+      return { label: "Não aplicável", dots: 0, color: "text-slate-600 bg-slate-100 border-slate-200" };
     default:
-      return { label: "Not provided", dots: 0, color: "text-muted-foreground bg-muted border-border" };
+      return { label: "Não informado", dots: 0, color: "text-muted-foreground bg-muted border-border" };
   }
 }
 
@@ -1299,14 +1297,14 @@ export function getClassificationMeta(classification: Classification) {
 export function getImpactBadgeInfo(level?: import("@/types/automationDetailTypes").ImpactLevel) {
   switch (level) {
     case "transformative":
-      return { label: "Transformative", color: "bg-purple-100 text-purple-800 border-purple-200" };
+      return { label: "Transformador", color: "bg-purple-100 text-purple-800 border-purple-200" };
     case "relevant":
-      return { label: "Relevant", color: "bg-indigo-100 text-indigo-800 border-indigo-200" };
+      return { label: "Relevante", color: "bg-indigo-100 text-indigo-800 border-indigo-200" };
     case "incremental":
       return { label: "Incremental", color: "bg-blue-100 text-blue-800 border-blue-200" };
     case "not_assessed":
     default:
-      return { label: "Not evaluated", color: "bg-slate-100 text-slate-700 border-slate-200" };
+      return { label: "Não avaliado", color: "bg-slate-100 text-slate-700 border-slate-200" };
   }
 }
 
@@ -1321,22 +1319,22 @@ export function getProfileBadgeInfo(profile?: import("@/types/automationDetailTy
       };
     case "intermediate":
       return {
-        label: "Intermediate",
-        fullLabel: "Intermediate evolution",
+        label: "Intermediário",
+        fullLabel: "Evolução intermediária",
         color: "bg-blue-50 text-blue-700 border-blue-200",
         indicatorColor: "bg-blue-500",
       };
     case "transformative":
       return {
-        label: "Transformation",
-        fullLabel: "Future transformation",
+        label: "Transformação",
+        fullLabel: "Transformação futura",
         color: "bg-purple-50 text-purple-700 border-purple-200",
         indicatorColor: "bg-purple-500",
       };
     default:
       return {
-        label: "Not categorized",
-        fullLabel: "Not categorized",
+        label: "Não categorizado",
+        fullLabel: "Não categorizado",
         color: "bg-slate-50 text-slate-700 border-slate-200",
         indicatorColor: "bg-slate-400",
       };

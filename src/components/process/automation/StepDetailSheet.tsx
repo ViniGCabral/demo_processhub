@@ -63,7 +63,7 @@ export function StepDetailSheet({
   const consolidatedClassificationStr = classesToRender.join(" + ");
 
   // Justificativa breve
-  const rationale = step.rationale || step.aiInterpretation?.classificationRationale || solution?.description || "The nature of the activity and decision logic directed the choice of this solution.";
+  const rationale = step.rationale || step.aiInterpretation?.classificationRationale || solution?.description || "A natureza da atividade e a lógica de decisão direcionaram a escolha desta solução.";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -83,7 +83,7 @@ export function StepDetailSheet({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <FileText className="h-4 w-4 text-primary" />
-              <span>Brief description</span>
+              <span>Descrição breve</span>
             </div>
             <p className="text-foreground leading-relaxed text-sm">
               {step.description || step.title}
@@ -96,7 +96,7 @@ export function StepDetailSheet({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Layers className="h-4 w-4 text-primary" />
-              <span>Consolidated classification</span>
+              <span>Classificação consolidada</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {classesToRender.map((cls, i) => {
@@ -121,10 +121,10 @@ export function StepDetailSheet({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Cpu className="h-4 w-4 text-primary" />
-              <span>Technological solution</span>
+              <span>Solução tecnológica</span>
             </div>
             <p className="text-foreground font-semibold text-base">
-              {techSolution || "Not provided"}
+              {techSolution || "Não informada"}
             </p>
           </div>
 
@@ -134,7 +134,7 @@ export function StepDetailSheet({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Info className="h-4 w-4 text-primary" />
-              <span>Why was this solution selected?</span>
+              <span>Por que essa solução foi selecionada?</span>
             </div>
             <p className="text-foreground leading-relaxed text-sm">
               {rationale}
@@ -147,7 +147,7 @@ export function StepDetailSheet({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Clock className="h-4 w-4 text-primary" />
-              <span>Effort</span>
+              <span>Esforço</span>
             </div>
             <div className="flex items-center gap-3">
               <Badge variant="outline" className={effortInfo.color + " text-sm py-1"}>
@@ -167,7 +167,7 @@ export function StepDetailSheet({
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-2 text-sm font-bold text-foreground">
               <ListOrdered className="h-5 w-5 text-primary" />
-              <span>Sub-steps comprising this Step</span>
+              <span>Sub-steps que compõem este Step</span>
             </div>
 
             {substeps.length > 0 ? (
@@ -189,7 +189,7 @@ export function StepDetailSheet({
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-xs pl-10">
-                        <span className="text-muted-foreground">Classification:</span>
+                        <span className="text-muted-foreground">Classificação:</span>
                         <span className={`font-semibold ${meta.color} bg-transparent border-none p-0`}>
                           {meta.label}
                         </span>
@@ -200,7 +200,7 @@ export function StepDetailSheet({
               </div>
             ) : (
               <div className="p-4 rounded-lg border border-border bg-muted/20 text-muted-foreground text-sm">
-                This Step has no detailed sub-steps.
+                Este Step não possui sub-steps detalhados.
               </div>
             )}
           </div>

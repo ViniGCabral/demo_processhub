@@ -23,6 +23,7 @@ import { RaciMatrixModal } from "./modals/RaciMatrixModal";
 import { ProcessFlowEditor } from "./ProcessFlowEditor";
 import { useProcessFlowStore } from "@/stores/processFlowStore";
 import { ArchitectureActionButtons } from "./ArchitectureActionButtons";
+import { useValueChainStore } from "@/stores/valueChainStore";
 
 export interface BreadcrumbStep {
   label: string;
@@ -102,31 +103,31 @@ export interface ScopeContextSheetProps {
 
 export function ScopeContextSheet({
   id,
-  name,
-  description,
+  name: propName,
+  description: propDescription,
   levelKey,
   code,
   breadcrumbs,
-  responsible,
-  businessUnit,
+  responsible: propResponsible,
+  businessUnit: propBusinessUnit,
   dimensioning,
-  lastUpdate,
-  validationPercent,
-  objective,
-  valueProposition,
-  scopeBoundary,
-  startCondition,
-  endCondition,
-  inputs,
-  outputs,
-  stakeholders,
+  lastUpdate: propLastUpdate,
+  validationPercent: propValidationPercent,
+  objective: propObjective,
+  valueProposition: propValueProposition,
+  scopeBoundary: propScopeBoundary,
+  startCondition: propStartCondition,
+  endCondition: propEndCondition,
+  inputs: propInputs,
+  outputs: propOutputs,
+  stakeholders: propStakeholders,
   centralMapType,
   childrenComponents = [],
   explicitRelations = [],
   policies = [],
-  indicators = [],
-  systems = [],
-  painPoints = [],
+  indicators: propIndicators = [],
+  systems: propSystems = [],
+  painPoints: propPainPoints = [],
   evidences = [],
   openQuestions = [],
   onEdit,
@@ -138,6 +139,25 @@ export function ScopeContextSheet({
   const { language } = useLanguage();
   const pt = language === "PT";
   const { label: lvl, maxLevel, isLeaf, sidebarVisibility } = useTaxonomy();
+
+  const override = useValueChainStore((s) => s.nodeOverrides[id]);
+  const name = override?.name ?? propName;
+  const description = override?.description ?? propDescription;
+  const responsible = override?.responsible ?? propResponsible;
+  const businessUnit = override?.businessUnit ?? propBusinessUnit;
+  const lastUpdate = override?.lastUpdate ?? propLastUpdate;
+  const validationPercent = override?.validationPercent ?? propValidationPercent;
+  const objective = override?.objective ?? propObjective;
+  const valueProposition = override?.valueProposition ?? propValueProposition;
+  const scopeBoundary = override?.scopeBoundary ?? propScopeBoundary;
+  const startCondition = override?.startCondition ?? propStartCondition;
+  const endCondition = override?.endCondition ?? propEndCondition;
+  const inputs = override?.inputs ?? propInputs;
+  const outputs = override?.outputs ?? propOutputs;
+  const stakeholders = override?.stakeholders ?? propStakeholders;
+  const indicators = override?.indicators ?? propIndicators;
+  const systems = override?.systems ?? propSystems;
+  const painPoints = override?.painPoints ?? propPainPoints;
 
   // Nome formatado do nível
   const currentLevelLabel = lvl(levelKey);
@@ -182,11 +202,22 @@ export function ScopeContextSheet({
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight leading-tight mb-2">
             {name}
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center flex-wrap gap-2">
             <span className="bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider">
               {currentLevelLabel} {code && code}
             </span>
+            {override && (
+              <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-semibold px-2 py-0.5 rounded-sm">
+                <Sparkles className="h-2.5 w-2.5 text-amber-600" />
+                {pt ? "Editado via Elo IA" : "Edited by Elo AI"}
+              </span>
+            )}
           </div>
+          {description && (
+            <p className="text-xs text-slate-500 leading-relaxed mt-2">
+              {description}
+            </p>
+          )}
         </div>
 
         {/* Actions (Editar / Exportar / ...) */}
